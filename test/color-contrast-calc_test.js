@@ -81,5 +81,27 @@ describe("ColorContrastCalc", () => {
       expect(yellow.name).to.equal("#ffff00");
     });
   });
+
+  describe("contrastRatioAgainst", function() {
+    const rgb = [127, 127, 32];
+    const contrast = 4.23;
+
+    it("expects to return 4.23 when own color is [127, 127, 32] and the other color is white", function() {
+      const color = new ColorContrastCalc(rgb);
+      expect(color.contrastRatioAgainst(RGB_WHITE)).to.be.closeTo(contrast, 0.01);
+    });
+
+    it("expects to return 4.23 when own color is [127, 127, 32] and the other color is #ffffff", function() {
+      const color = new ColorContrastCalc(rgb);
+      expect(color.contrastRatioAgainst("#ffffff")).to.be.closeTo(contrast, 0.01);
+    });
+
+    it("expects to return 4.23 when own color is [127, 127, 32] and the other is an instance of ColorContrastCalc which represents white", function() {
+      const color = new ColorContrastCalc(rgb);
+      const white = new ColorContrastCalc([255, 255, 255]);
+      expect(color.contrastRatioAgainst(white)).to.be.closeTo(contrast, 0.01);
+      expect(white.contrastRatioAgainst(color)).to.be.closeTo(contrast, 0.01);
+    });
+  });
 });
 
