@@ -104,5 +104,21 @@ describe("ColorContrastCalc", () => {
       expect(white.contrastRatioAgainst(color)).to.be.closeTo(contrast, 0.01);
     });
   });
+
+  describe("toString", function() {
+    const yellow = new ColorContrastCalc("#ffff00", "yellow");
+
+    it("expects to return hexNotation when base is 16", function() {
+      expect(yellow.toString(16)).to.equal("#ffff00");
+    });
+
+    it("expects to return rgb(255,255,0) when base is 10", function() {
+      expect(yellow.toString(10)).to.equal("rgb(255,255,0)");
+    });
+
+    it("expects to return 'yellow' when base is null", function() {
+      expect(yellow.toString(null)).to.equal("yellow");
+    });
+  });
 });
 
