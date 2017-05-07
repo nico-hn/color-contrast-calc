@@ -57,5 +57,29 @@ describe("ColorContrastCalc", () => {
       });
     });
   });
+
+  describe("new", function() {
+    const rgb_yellow = [255, 255, 0];
+
+    it("expects to generate an instance with rgb and name properties", function() {
+      const yellow = new ColorContrastCalc(rgb_yellow, "yellow");
+      expect(yellow.rgb).to.deep.equal(rgb_yellow);
+      expect(yellow.relativeLuminance).to.be.closeTo(0.9278, 0.01);
+      expect(yellow.name).to.equal("yellow");
+    });
+
+    it("expects to generate an instance with rgb in hex notation and name properties", function() {
+      const yellow = new ColorContrastCalc("#ffff00", "yellow");
+      expect(yellow.rgb).to.deep.equal(rgb_yellow);
+      expect(yellow.relativeLuminance).to.be.closeTo(0.9278, 0.01);
+      expect(yellow.name).to.equal("yellow");
+    });
+
+    it("expects to assign the hex notation of rgb to its name property if no name is specified", function() {
+      const yellow = new ColorContrastCalc(rgb_yellow);
+      expect(yellow.rgb).to.deep.equal(rgb_yellow);
+      expect(yellow.name).to.equal("#ffff00");
+    });
+  });
 });
 
