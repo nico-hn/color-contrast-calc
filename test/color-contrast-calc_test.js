@@ -15,22 +15,16 @@ describe("ColorContrastCalc", () => {
 
   describe("contrastRatio", () => {
     it("expects to return MAX_CONTRAST when white and black are passed", function() {
-      const calc = new ColorContrastCalc();
-
-      expect(calc.contrastRatio(RGB_BLACK, RGB_WHITE)).to.equal(MAX_CONTRAST);
+      expect(ColorContrastCalc.contrastRatio(RGB_BLACK, RGB_WHITE)).to.equal(MAX_CONTRAST);
     });
 
     it("expects to return MIN_CONTRAST when white and white are passed", function() {
-      const calc = new ColorContrastCalc();
-
-      expect(calc.contrastRatio(RGB_WHITE, RGB_WHITE)).to.equal(MIN_CONTRAST);
+      expect(ColorContrastCalc.contrastRatio(RGB_WHITE, RGB_WHITE)).to.equal(MIN_CONTRAST);
 
     });
 
     it("expects to return 4.23 when white and [127, 127, 32] are passed", function() {
-      const calc = new ColorContrastCalc();
-
-      expect(calc.contrastRatio(RGB_WHITE, [127, 127, 32])).to.be.closeTo(4.23, 0.01);
+      expect(ColorContrastCalc.contrastRatio(RGB_WHITE, [127, 127, 32])).to.be.closeTo(4.23, 0.01);
     });
   });
 });
