@@ -26,6 +26,10 @@ describe("ColorContrastCalc", () => {
     it("expects to return 4.23 when white and [127, 127, 32] are passed", function() {
       expect(ColorContrastCalc.contrastRatio(RGB_WHITE, [127, 127, 32])).to.be.closeTo(4.23, 0.01);
     });
+
+    it("expects to return 4.23 when #ffffff and #7f7f20 are passed", function() {
+      expect(ColorContrastCalc.contrastRatio("#ffffff", "#7f7f20")).to.be.closeTo(4.23, 0.01);
+    });
   });
 
   describe("hexNotationToDecimal", function() {
