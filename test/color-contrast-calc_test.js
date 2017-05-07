@@ -66,6 +66,7 @@ describe("ColorContrastCalc", () => {
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.relativeLuminance).to.be.closeTo(0.9278, 0.01);
       expect(yellow.name).to.equal("yellow");
+      expect(yellow.hexNotation).to.equal("#ffff00");
     });
 
     it("expects to generate an instance with rgb in hex notation and name properties", function() {
