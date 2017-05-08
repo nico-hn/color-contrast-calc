@@ -132,5 +132,15 @@ describe("ColorContrastCalc", () => {
       expect(yellow.toString(null)).to.equal("yellow");
     });
   });
+
+  describe("colorsWithSufficientContrast", function() {
+    const white = new ColorContrastCalc(RGB_WHITE, "white");
+    const black = new ColorContrastCalc(RGB_BLACK, "black");
+
+    it("expects to return an array of colors that satisfy level AA of WCAG 2.0 by default", function() {
+      expect(white.colorsWithSufficientContrast().length).to.equal(31);
+      expect(black.colorsWithSufficientContrast().length).to.equal(116);
+    });
+  });
 });
 
