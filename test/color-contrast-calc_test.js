@@ -49,6 +49,10 @@ describe("ColorContrastCalc", () => {
       it("expects to return [255, 255, 0] when #FFFF00 is passed", function() {
         expect(ColorContrastCalc.hexNotationToDecimal("#FFFF00")).to.deep.equal([255, 255, 0]);
       });
+
+      it("expects to return [255, 255, 0] when #ff0 is passed", function() {
+        expect(ColorContrastCalc.hexNotationToDecimal("#ff0")).to.deep.equal([255, 255, 0]);
+      });
     });
 
     describe("decimalToHexNotation", function() {
