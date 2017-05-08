@@ -141,6 +141,20 @@ describe("ColorContrastCalc", () => {
       expect(white.colorsWithSufficientContrast().length).to.equal(31);
       expect(black.colorsWithSufficientContrast().length).to.equal(116);
     });
+
+    it("expects to return an array of colors that satisfy level A of WCAG 2.0 if its argument is 'A' or 1", function() {
+      expect(white.colorsWithSufficientContrast("A").length).to.equal(57);
+      expect(black.colorsWithSufficientContrast("A").length).to.equal(130);
+      expect(white.colorsWithSufficientContrast(1).length).to.equal(57);
+      expect(black.colorsWithSufficientContrast(1).length).to.equal(130);
+    });
+
+    it("expects to return an array of colors that satisfy level AAA of WCAG 2.0 if its argument is 'AAA' or 3", function() {
+      expect(white.colorsWithSufficientContrast("AAA").length).to.equal(17);
+      expect(black.colorsWithSufficientContrast("AAA").length).to.equal(90);
+      expect(white.colorsWithSufficientContrast(3).length).to.equal(17);
+      expect(black.colorsWithSufficientContrast(3).length).to.equal(90);
+    });
   });
 });
 
