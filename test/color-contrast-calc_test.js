@@ -81,6 +81,15 @@ describe("ColorContrastCalc", () => {
         expect(white.name).to.equal("white");
       });
     });
+
+    describe("HEX_TO_COLOR", function() {
+      it("expects to return a corresponding instance for a passed hex color", function() {
+        const black = ColorContrastCalc.HEX_TO_COLOR.get("#000000");
+        const white = ColorContrastCalc.HEX_TO_COLOR.get("#ffffff");
+        expect(black.name).to.equal("black");
+        expect(white.name).to.equal("white");
+      });
+    });
   });
 
   describe("new", function() {
