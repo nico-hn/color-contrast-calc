@@ -56,6 +56,18 @@ describe("ColorContrastCalc", () => {
         expect(ColorContrastCalc.decimalToHexNotation([255, 255, 0])).to.equal("#ffff00");
       });
     });
+
+    describe("NAMED_COLORS", function() {
+      it("expects to contain predefined instances of ColorContrastCalc", function() {
+        expect(ColorContrastCalc.NAMED_COLORS[0]).to.be.instanceof(ColorContrastCalc);
+        expect(ColorContrastCalc.NAMED_COLORS[0].name).to.equal("aliceblue");
+        expect(ColorContrastCalc.NAMED_COLORS[0].rgb).to.deep.equal([240, 248, 255]);
+        expect(ColorContrastCalc.NAMED_COLORS[0].hexNotation).to.deep.equal("#f0f8ff");
+        expect(ColorContrastCalc.NAMED_COLORS.slice(-1)[0].name).to.equal("yellowgreen");
+        expect(ColorContrastCalc.NAMED_COLORS.slice(-1)[0].rgb).to.deep.equal([154, 205, 50]);
+        expect(ColorContrastCalc.NAMED_COLORS.slice(-1)[0].hexNotation).to.deep.equal("#9acd32");
+      });
+    });
   });
 
   describe("new", function() {
