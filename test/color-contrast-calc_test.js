@@ -90,6 +90,24 @@ describe("ColorContrastCalc", () => {
         expect(white.name).to.equal("white");
       });
     });
+
+    describe("BLACK", function() {
+      it("expects to return an instance corresponding to black", function() {
+        expect(ColorContrastCalc.BLACK.name).to.equal("black");
+      });
+    });
+
+    describe("WHITE", function() {
+      it("expects to return an instance corresponding to white", function() {
+        expect(ColorContrastCalc.WHITE.name).to.equal("white");
+      });
+    });
+
+    describe("GRAY", function() {
+      it("expects to return an instance corresponding to #808080", function() {
+        expect(ColorContrastCalc.GRAY.hexNotation).to.equal("#808080");
+      });
+    });
   });
 
   describe("new", function() {
