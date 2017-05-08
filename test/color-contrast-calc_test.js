@@ -72,6 +72,15 @@ describe("ColorContrastCalc", () => {
         expect(ColorContrastCalc.NAMED_COLORS.slice(-1)[0].hexNotation).to.deep.equal("#9acd32");
       });
     });
+
+    describe("NAME_TO_COLOR", function() {
+      it("expects to return a corresponding instance for a passed color name", function() {
+        const black = ColorContrastCalc.NAME_TO_COLOR.get("black");
+        const white = ColorContrastCalc.NAME_TO_COLOR.get("white");
+        expect(black.name).to.equal("black");
+        expect(white.name).to.equal("white");
+      });
+    });
   });
 
   describe("new", function() {
