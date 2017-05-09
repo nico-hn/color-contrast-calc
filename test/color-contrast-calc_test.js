@@ -301,5 +301,18 @@ describe("ColorContrastCalc", () => {
       expect(yellow.GRAY.name).to.equal("gray");
     });
   });
+
+  describe("isSameColor", function() {
+    it("expects to return true if the values of hexNotation are same", function() {
+      const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
+      const grey = ColorContrastCalc.NAME_TO_COLOR.get("grey");
+      expect(gray.isSameColor(grey)).to.be.true;
+    });
+
+    it("expects to return fale if the values of hexNotation are not same", function() {
+      const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
+      expect(gray.isSameColor(ColorContrastCalc.WHITE)).to.be.false;
+    });
+  });
 });
 
