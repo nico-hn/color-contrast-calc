@@ -392,6 +392,11 @@ describe("ColorContrastCalc", () => {
       const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
       expect(orange.calcRatioLimit(orange)).to.equal(100);
     });
+
+    it("expects to return 594 when both colors are blueviolet", function() {
+      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+      expect(blueviolet.calcRatioLimit(blueviolet)).to.equal(594);
+    });
   });
 });
 
