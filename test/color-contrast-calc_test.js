@@ -380,6 +380,12 @@ describe("ColorContrastCalc", () => {
       const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
       expect(ColorContrastCalc.GRAY.calcRatioLimit(orange)).to.equal(155);
     });
+
+    it("expects to return 100 when blueviolet is passed to orange", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+      expect(orange.calcRatioLimit(blueviolet)).to.equal(100);
+    });
   });
 });
 
