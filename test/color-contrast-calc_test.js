@@ -314,5 +314,17 @@ describe("ColorContrastCalc", () => {
       expect(gray.isSameColor(ColorContrastCalc.WHITE)).to.be.false;
     });
   });
+
+  describe("isMaxContrast", function() {
+    it("expects to return true for yellow", function() {
+      const yellow = ColorContrastCalc.NAME_TO_COLOR.get("yellow");
+      expect(yellow.isMaxContrast()).to.be.true;
+    });
+
+    it("expects to return false for orange", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      expect(orange.isMaxContrast()).to.be.false;
+    });
+  });
 });
 
