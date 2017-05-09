@@ -280,5 +280,26 @@ describe("ColorContrastCalc", () => {
       expect(orange120.name).to.equal("orange120");
     });
   });
+
+  describe("BLACK", function() {
+    it("expects to return an instance corresponding to black", function() {
+      const yellow = new ColorContrastCalc("#ffff00", "yellow")
+      expect(yellow.BLACK.name).to.equal("black");
+    });
+  });
+
+  describe("WHITE", function() {
+    it("expects to return an instance corresponding to white", function() {
+      const yellow = new ColorContrastCalc("#ffff00", "yellow")
+      expect(yellow.WHITE.name).to.equal("white");
+    });
+  });
+
+  describe("GRAY", function() {
+    it("expects to return an instance corresponding to #808080", function() {
+      const yellow = new ColorContrastCalc("#ffff00", "yellow")
+      expect(yellow.GRAY.name).to.equal("gray");
+    });
+  });
 });
 
