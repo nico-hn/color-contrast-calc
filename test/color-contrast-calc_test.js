@@ -386,6 +386,12 @@ describe("ColorContrastCalc", () => {
       const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
       expect(orange.calcRatioLimit(blueviolet)).to.equal(100);
     });
+
+    it("expects to return 100 when two colors have the same relative luminance and lighter than gray", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+      expect(orange.calcRatioLimit(orange)).to.equal(100);
+    });
   });
 });
 
