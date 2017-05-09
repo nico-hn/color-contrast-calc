@@ -374,5 +374,12 @@ describe("ColorContrastCalc", () => {
       expect(orange.isMinContrast()).to.be.false;
     });
   });
+
+  describe("calcRatioLimit", function() {
+    it("expects to return 155 when orange is passed", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      expect(ColorContrastCalc.GRAY.calcRatioLimit(orange)).to.equal(155);
+    });
+  });
 });
 
