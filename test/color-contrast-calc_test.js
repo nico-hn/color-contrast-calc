@@ -240,6 +240,7 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("newBrightnessColor", function() {
+    const white = new ColorContrastCalc([255, 255, 255], "white");
     const yellow = new ColorContrastCalc([255, 255, 0], "yellow");
     const yellow2 = new ColorContrastCalc([254, 254, 0], "yellow2");
     const orange = new ColorContrastCalc([255, 165, 0], "orange");
@@ -278,6 +279,16 @@ describe("ColorContrastCalc", () => {
       const orange120 = orange.newBrightnessColor(120, "orange120");
       expect(orange120.rgb).to.deep.equal([255, 198, 0]);
       expect(orange120.name).to.equal("orange120");
+    });
+
+    it("expects to return white if white is combined with a ratio greater than 100", function() {
+      const white120 = white.newBrightnessColor(120, "white120");
+      expect(white120.hexNotation).to.equal("#ffffff");
+    });
+
+    it("expects to return yellow if yellow is combined with a ratio greater than 100", function() {
+      const yellow120 = yellow.newBrightnessColor(120, "yellow120");
+      expect(yellow120.hexNotation).to.equal("#ffff00");
     });
   });
 
