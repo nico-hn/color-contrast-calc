@@ -319,6 +319,7 @@ describe("ColorContrastCalc", () => {
 
     it("expects to return a darker orange if orange is passed", function() {
       const threshold = orange.findBrightnessThreshold(orange);
+      expect(orange.contrastRatioAgainst(orange)).to.be.below(4.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.above(4.5);
       expect(threshold.hexNotation).to.equal("#664200");
@@ -326,6 +327,7 @@ describe("ColorContrastCalc", () => {
 
     it("expects to return a more darker color if a passed color is darker", function() {
       const threshold = orange.findBrightnessThreshold(blueviolet);
+      expect(orange.contrastRatioAgainst(blueviolet)).to.be.below(4.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.above(4.5);
       expect(threshold.hexNotation).to.equal("#6620a7");
