@@ -316,6 +316,7 @@ describe("ColorContrastCalc", () => {
   describe("findBrightnessThreshold", function() {
     const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
     const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+    const blue = ColorContrastCalc.NAME_TO_COLOR.get("blue");
 
     it("expects to return a darker orange if orange is passed", function() {
       const threshold = orange.findBrightnessThreshold(orange);
@@ -331,6 +332,20 @@ describe("ColorContrastCalc", () => {
       expect(orange.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.above(4.5);
       expect(threshold.hexNotation).to.equal("#6620a7");
+    });
+
+    it("expects to return a brighter orange if blue is combined with orange", function() {
+      const threshold = blue.findBrightnessThreshold(orange);
+      expect(blue.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
+      expect(blue.contrastRatioAgainst(threshold)).to.be.above(4.5);
+      expect(threshold.hexNotation).to.equal("#ffaa00");
+    });
+
+    it("expects to return a brighter orange if blueviolet is combined with orange", function() {
+      const threshold = blueviolet.findBrightnessThreshold(orange);
+      expect(blueviolet.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
+      expect(blueviolet.contrastRatioAgainst(threshold)).to.be.above(4.5);
+      expect(threshold.hexNotation).to.equal("#ffe000");
     });
   });
 
