@@ -303,6 +303,26 @@ describe("ColorContrastCalc", () => {
     });
   });
 
+  describe("newInvertColor", function() {
+    const yellow = new ColorContrastCalc([255, 255, 0], "yellow");
+    const blue = new ColorContrastCalc([0, 0, 255], "yellow");
+
+    it("expects to return yellow if 0 is passed to yellow", function() {
+      const newColor = yellow.newInvertColor(0);
+      expect(newColor.isSameColor(yellow)).to.be.true;
+    });
+
+    it("expects to return blue if 100 is passed to yellow", function() {
+      const newColor = yellow.newInvertColor(100);
+      expect(newColor.isSameColor(blue)).to.be.true;
+    });
+
+    it("expects to return a gray color if 50 is passed to yellow", function() {
+      const newColor = yellow.newInvertColor(50);
+      expect(newColor.hexNotation).to.equal("#808080");
+    });
+  });
+
   describe("BLACK", function() {
     it("expects to return an instance corresponding to black", function() {
       const yellow = new ColorContrastCalc("#ffff00", "yellow");
