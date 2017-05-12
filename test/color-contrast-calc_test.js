@@ -433,29 +433,6 @@ describe("ColorContrastCalc", () => {
     });
   });
 
-  describe("calcRatioLimit", function() {
-    it("expects to return 155 when orange is passed", function() {
-      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
-      expect(ColorContrastCalc.GRAY.calcRatioLimit(orange)).to.equal(155);
-    });
-
-    it("expects to return 100 when blueviolet is passed to orange", function() {
-      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
-      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
-      expect(orange.calcRatioLimit(blueviolet)).to.equal(594);
-    });
-
-    it("expects to return 100 when two colors have the same relative luminance and lighter than gray", function() {
-      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
-      expect(orange.calcRatioLimit(orange)).to.equal(155);
-    });
-
-    it("expects to return 594 when both colors are blueviolet", function() {
-      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
-      expect(blueviolet.calcRatioLimit(blueviolet)).to.equal(594);
-    });
-  });
-
   describe("calcUpperRatioLimit", function() {
     it("expects to return 155 for ", function() {
       const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
