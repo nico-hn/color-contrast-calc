@@ -442,12 +442,12 @@ describe("ColorContrastCalc", () => {
     it("expects to return 100 when blueviolet is passed to orange", function() {
       const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
       const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
-      expect(orange.calcRatioLimit(blueviolet)).to.equal(100);
+      expect(orange.calcRatioLimit(blueviolet)).to.equal(594);
     });
 
     it("expects to return 100 when two colors have the same relative luminance and lighter than gray", function() {
       const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
-      expect(orange.calcRatioLimit(orange)).to.equal(100);
+      expect(orange.calcRatioLimit(orange)).to.equal(155);
     });
 
     it("expects to return 594 when both colors are blueviolet", function() {
