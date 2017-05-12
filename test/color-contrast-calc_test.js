@@ -455,5 +455,17 @@ describe("ColorContrastCalc", () => {
       expect(blueviolet.calcRatioLimit(blueviolet)).to.equal(594);
     });
   });
+
+  describe("calcUpperRatioLimit", function() {
+    it("expects to return 155 for ", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      expect(orange.calcUpperRatioLimit()).to.equal(155);
+    });
+
+    it("expects to return 594 for blueviolet", function() {
+      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+      expect(blueviolet.calcUpperRatioLimit()).to.equal(594);
+    });
+  });
 });
 
