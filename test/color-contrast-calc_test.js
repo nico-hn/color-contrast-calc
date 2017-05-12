@@ -358,6 +358,15 @@ describe("ColorContrastCalc", () => {
       expect(blueviolet.contrastRatioAgainst(threshold)).to.be.above(4.5);
       expect(threshold.hexNotation).to.equal("#ffe000");
     });
+
+    it("expects to return a brigher color if brown is passed to brown", function() {
+      const brown = ColorContrastCalc.NAME_TO_COLOR.get("brown");
+      const threshold = brown.findBrightnessThreshold(brown);
+      expect(brown.hexNotation).to.equal("#a52a2a");
+      expect(brown.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
+      expect(brown.contrastRatioAgainst(threshold)).to.be.above(4.5);
+      expect(threshold.hexNotation).to.equal("#ffbebe");
+    });
   });
 
   describe("hasSufficientContrast", function() {
