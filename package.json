@@ -1,7 +1,7 @@
 {
   "name": "color-contrast-calc",
   "version": "0.1.0",
-  "description": "Utility that supports you in choosing a color contrast, WCAG 2.0 in mind",
+  "description": "Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind",
   "main": "index.js",
   "author": "HASHIMOTO, Naoki",
   "license": "MIT",
