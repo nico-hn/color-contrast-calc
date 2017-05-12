@@ -109,6 +109,12 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("getByName", function() {
+      it("expects to return yellow", function() {
+        expect(ColorContrastCalc.getByName("yellow").rgb).to.deep.equal([255, 255, 0]);
+      });
+    });
+
     describe("binarySearchRange", function() {
       it("expects to return a smaller value for each iteration", function() {
         let ds = [];
