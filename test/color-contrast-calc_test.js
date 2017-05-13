@@ -66,10 +66,10 @@ describe("ColorContrastCalc", () => {
         expect(ColorContrastCalc.NAMED_COLORS[0]).to.be.instanceof(ColorContrastCalc);
         expect(ColorContrastCalc.NAMED_COLORS[0].name).to.equal("aliceblue");
         expect(ColorContrastCalc.NAMED_COLORS[0].rgb).to.deep.equal([240, 248, 255]);
-        expect(ColorContrastCalc.NAMED_COLORS[0].hexNotation).to.deep.equal("#f0f8ff");
+        expect(ColorContrastCalc.NAMED_COLORS[0].hexCode).to.deep.equal("#f0f8ff");
         expect(ColorContrastCalc.NAMED_COLORS.slice(-1)[0].name).to.equal("yellowgreen");
         expect(ColorContrastCalc.NAMED_COLORS.slice(-1)[0].rgb).to.deep.equal([154, 205, 50]);
-        expect(ColorContrastCalc.NAMED_COLORS.slice(-1)[0].hexNotation).to.deep.equal("#9acd32");
+        expect(ColorContrastCalc.NAMED_COLORS.slice(-1)[0].hexCode).to.deep.equal("#9acd32");
       });
     });
 
@@ -105,7 +105,7 @@ describe("ColorContrastCalc", () => {
 
     describe("GRAY", function() {
       it("expects to return an instance corresponding to #808080", function() {
-        expect(ColorContrastCalc.GRAY.hexNotation).to.equal("#808080");
+        expect(ColorContrastCalc.GRAY.hexCode).to.equal("#808080");
       });
     });
 
@@ -145,7 +145,7 @@ describe("ColorContrastCalc", () => {
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.relativeLuminance).to.be.closeTo(0.9278, 0.01);
       expect(yellow.name).to.equal("yellow");
-      expect(yellow.hexNotation).to.equal("#ffff00");
+      expect(yellow.hexCode).to.equal("#ffff00");
     });
 
     it("expects to generate an instance with rgb in hex notation and name properties", function() {
@@ -187,7 +187,7 @@ describe("ColorContrastCalc", () => {
   describe("toString", function() {
     const yellow = new ColorContrastCalc("#ffff00", "yellow");
 
-    it("expects to return hexNotation when base is 16", function() {
+    it("expects to return hexCode when base is 16", function() {
       expect(yellow.toString(16)).to.equal("#ffff00");
     });
 
@@ -310,12 +310,12 @@ describe("ColorContrastCalc", () => {
 
     it("expects to return white if white is combined with a ratio greater than 100", function() {
       const white120 = white.newBrightnessColor(120, "white120");
-      expect(white120.hexNotation).to.equal("#ffffff");
+      expect(white120.hexCode).to.equal("#ffffff");
     });
 
     it("expects to return yellow if yellow is combined with a ratio greater than 100", function() {
       const yellow120 = yellow.newBrightnessColor(120, "yellow120");
-      expect(yellow120.hexNotation).to.equal("#ffff00");
+      expect(yellow120.hexCode).to.equal("#ffff00");
     });
   });
 
@@ -335,7 +335,7 @@ describe("ColorContrastCalc", () => {
 
     it("expects to return a gray color if 50 is passed to yellow", function() {
       const newColor = yellow.newInvertColor(50);
-      expect(newColor.hexNotation).to.equal("#808080");
+      expect(newColor.hexCode).to.equal("#808080");
     });
   });
 
@@ -370,7 +370,7 @@ describe("ColorContrastCalc", () => {
       expect(orange.contrastRatioAgainst(orange)).to.be.below(4.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.above(4.5);
-      expect(threshold.hexNotation).to.equal("#664200");
+      expect(threshold.hexCode).to.equal("#664200");
     });
 
     it("expects to return a more darker color if a passed color is darker", function() {
@@ -378,30 +378,30 @@ describe("ColorContrastCalc", () => {
       expect(orange.contrastRatioAgainst(blueviolet)).to.be.below(4.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.above(4.5);
-      expect(threshold.hexNotation).to.equal("#6620a7");
+      expect(threshold.hexCode).to.equal("#6620a7");
     });
 
     it("expects to return a brighter orange if blue is combined with orange", function() {
       const threshold = blue.findBrightnessThreshold(orange);
       expect(blue.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(blue.contrastRatioAgainst(threshold)).to.be.above(4.5);
-      expect(threshold.hexNotation).to.equal("#ffaa00");
+      expect(threshold.hexCode).to.equal("#ffaa00");
     });
 
     it("expects to return a brighter orange if blueviolet is combined with orange", function() {
       const threshold = blueviolet.findBrightnessThreshold(orange);
       expect(blueviolet.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(blueviolet.contrastRatioAgainst(threshold)).to.be.above(4.5);
-      expect(threshold.hexNotation).to.equal("#ffe000");
+      expect(threshold.hexCode).to.equal("#ffe000");
     });
 
     it("expects to return a brigher color if brown is passed to brown", function() {
       const brown = ColorContrastCalc.NAME_TO_COLOR.get("brown");
       const threshold = brown.findBrightnessThreshold(brown);
-      expect(brown.hexNotation).to.equal("#a52a2a");
+      expect(brown.hexCode).to.equal("#a52a2a");
       expect(brown.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(brown.contrastRatioAgainst(threshold)).to.be.above(4.5);
-      expect(threshold.hexNotation).to.equal("#ffbebe");
+      expect(threshold.hexCode).to.equal("#ffbebe");
     });
   });
 
@@ -442,13 +442,13 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("isSameColor", function() {
-    it("expects to return true if the values of hexNotation are same", function() {
+    it("expects to return true if the values of hexCode are same", function() {
       const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
       const grey = ColorContrastCalc.NAME_TO_COLOR.get("grey");
       expect(gray.isSameColor(grey)).to.be.true;
     });
 
-    it("expects to return fale if the values of hexNotation are not same", function() {
+    it("expects to return fale if the values of hexCode are not same", function() {
       const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
       expect(gray.isSameColor(ColorContrastCalc.WHITE)).to.be.false;
     });
