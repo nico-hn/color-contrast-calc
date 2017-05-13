@@ -96,11 +96,11 @@ describe("ColorContrastCalc", () => {
         expect(ColorContrastCalc.WEB_SAFE_COLORS.length).to.equal(216);
       });
 
-      it("expects to be an array whose first element is white", function() {
+      it("expects to be an array whose first element is black", function() {
         expect(ColorContrastCalc.WEB_SAFE_COLORS[0].hexCode).to.equal("#000000");
       });
 
-      it("expects to be an array whose last element is black", function() {
+      it("expects to be an array whose last element is white", function() {
         const webSafeColors = ColorContrastCalc.WEB_SAFE_COLORS;
         expect(webSafeColors.length).to.equal(216);
         expect(webSafeColors[webSafeColors.length - 1].hexCode).to.equal("#ffffff");
