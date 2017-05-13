@@ -91,6 +91,22 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("WEB_SAFE_COLORS", function() {
+      it("expects to contain 216 items", function() {
+        expect(ColorContrastCalc.WEB_SAFE_COLORS.length).to.equal(216);
+      });
+
+      it("expects to be an array whose first element is white", function() {
+        expect(ColorContrastCalc.WEB_SAFE_COLORS[0].hexCode).to.equal("#000000");
+      });
+
+      it("expects to be an array whose last element is black", function() {
+        const webSafeColors = ColorContrastCalc.WEB_SAFE_COLORS;
+        expect(webSafeColors.length).to.equal(216);
+        expect(webSafeColors[webSafeColors.length - 1].hexCode).to.equal("#ffffff");
+      });
+    });
+
     describe("BLACK", function() {
       it("expects to return an instance corresponding to black", function() {
         expect(ColorContrastCalc.BLACK.name).to.equal("black");
