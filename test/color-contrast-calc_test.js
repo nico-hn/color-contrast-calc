@@ -113,15 +113,15 @@ describe("ColorContrastCalc", () => {
       it("expects to return yellow", function() {
         expect(ColorContrastCalc.getByName("yellow").rgb).to.deep.equal([255, 255, 0]);
       });
+    });
 
-      describe("getByHexCode", function() {
-        it("expects to return yellow", function() {
-          expect(ColorContrastCalc.getByHexCode("#ffff00").name).to.equal("yellow");
-        });
+    describe("getByHexCode", function() {
+      it("expects to return yellow", function() {
+        expect(ColorContrastCalc.getByHexCode("#ffff00").name).to.equal("yellow");
+      });
 
-        it("expects to return a new instance if a given hex code is not registered", function() {
-          expect(ColorContrastCalc.getByHexCode("#f3f2f1").name).to.equal("#f3f2f1");
-        });
+      it("expects to return a new instance if a given hex code is not registered", function() {
+        expect(ColorContrastCalc.getByHexCode("#f3f2f1").name).to.equal("#f3f2f1");
       });
     });
 
