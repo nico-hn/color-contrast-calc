@@ -61,6 +61,28 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("isValidRgb", function() {
+      it("expects to return true for [255, 165, 0]", function() {
+        expect(ColorContrastCalc.isValidRgb([255, 165, 0])).to.be.true;
+      });
+
+      it("expects to return false for [256, 165, 0]", function() {
+        expect(ColorContrastCalc.isValidRgb([256, 165, 0])).to.be.false;
+      });
+
+      it("expects to return false for [255, 165, -1]", function() {
+        expect(ColorContrastCalc.isValidRgb([256, 165, 0])).to.be.false;
+      });
+
+      it("expects to return false for [255, 165]", function() {
+        expect(ColorContrastCalc.isValidRgb([255, 165])).to.be.false;
+      });
+
+      it("expects to return false for [255, 165.5, 0]", function() {
+        expect(ColorContrastCalc.isValidRgb([255, 165.5, 0])).to.be.false;
+      });
+    });
+
     describe("NAMED_COLORS", function() {
       it("expects to contain predefined instances of ColorContrastCalc", function() {
         expect(ColorContrastCalc.NAMED_COLORS[0]).to.be.instanceof(ColorContrastCalc);
