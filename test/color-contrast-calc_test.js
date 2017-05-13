@@ -98,12 +98,14 @@ describe("ColorContrastCalc", () => {
 
       it("expects to be an array whose first element is black", function() {
         expect(ColorContrastCalc.WEB_SAFE_COLORS[0].hexCode).to.equal("#000000");
+        expect(ColorContrastCalc.WEB_SAFE_COLORS[0].name).to.equal("black");
       });
 
       it("expects to be an array whose last element is white", function() {
         const webSafeColors = ColorContrastCalc.WEB_SAFE_COLORS;
         expect(webSafeColors.length).to.equal(216);
         expect(webSafeColors[webSafeColors.length - 1].hexCode).to.equal("#ffffff");
+        expect(webSafeColors[webSafeColors.length - 1].name).to.equal("white");
       });
     });
 
