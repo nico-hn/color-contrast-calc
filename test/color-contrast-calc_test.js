@@ -55,9 +55,9 @@ describe("ColorContrastCalc", () => {
       });
     });
 
-    describe("decimalToHexNotation", function() {
+    describe("decimalToHexCode", function() {
       it("expects to return #fff00 when [255, 255, 0] is passed", function() {
-        expect(ColorContrastCalc.decimalToHexNotation([255, 255, 0])).to.equal("#ffff00");
+        expect(ColorContrastCalc.decimalToHexCode([255, 255, 0])).to.equal("#ffff00");
       });
     });
 
