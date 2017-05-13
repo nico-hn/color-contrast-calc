@@ -178,6 +178,14 @@ describe("ColorContrastCalc", () => {
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.name).to.equal("#ffff00");
     });
+
+    it("properties of a returned object are frozen", function() {
+      const yellow = new ColorContrastCalc(rgb_yellow);
+      expect(Object.isFrozen(yellow.rgb)).to.be.true;
+      expect(Object.isFrozen(yellow.relativeLuminance)).to.be.true;
+      expect(Object.isFrozen(yellow.name)).to.be.true;
+      expect(Object.isFrozen(yellow.hexCode)).to.be.true;
+    });
   });
 
   describe("contrastRatioAgainst", function() {
