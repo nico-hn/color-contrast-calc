@@ -212,11 +212,12 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("Matrix", function() {
+    const m1 = new ColorContrastCalc.Matrix([[1, 2, 3],
+                                             [2, 3, 4],
+                                             [3, 4, 5]]);
+
     describe("add", function() {
       it("expects to add two matrices", function() {
-        const m1 = new ColorContrastCalc.Matrix([[1, 2, 3],
-                                                 [2, 3, 4],
-                                                 [3, 4, 5]]);
         const m2 = new ColorContrastCalc.Matrix([[3, 2, 1],
                                                  [4, 3, 2],
                                                  [5, 4, 3]]);
