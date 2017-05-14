@@ -259,6 +259,31 @@ describe("ColorContrastCalc", () => {
     });
   });
 
+  describe("HueRotateCalc", function() {
+    describe("degToRad", function() {
+      it("expects to return PI / 2 if 90 is passed", function() {
+        const half_pi = ColorContrastCalc.HueRotateCalc.degToRad(90);
+        expect(half_pi).to.be.closeTo(1.57079, 0.001);
+        expect(Math.sin(half_pi)).to.be.closeTo(1, 0.00001);
+        expect(Math.cos(half_pi)).to.be.closeTo(0, 0.00001);
+      });
+
+      it("expects to return PI if 180 is passed", function() {
+        const pi = ColorContrastCalc.HueRotateCalc.degToRad(180);
+        expect(pi).to.be.closeTo(3.14159, 0.001);
+        expect(Math.sin(pi)).to.be.closeTo(0, 0.00001);
+        expect(Math.cos(pi)).to.be.closeTo(-1, 0.00001);
+      });
+
+      it("expects to return PI * 2 if 360 is passed", function() {
+        const pi2 = ColorContrastCalc.HueRotateCalc.degToRad(360);
+        expect(pi2).to.be.closeTo(6.283185, 0.00001);
+        expect(Math.sin(pi2)).to.be.closeTo(0, 0.00001);
+        expect(Math.cos(pi2)).to.be.closeTo(1, 0.00001);
+      });
+    });
+  });
+
   describe("new", function() {
     const rgb_yellow = [255, 255, 0];
 
