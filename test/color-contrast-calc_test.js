@@ -211,6 +211,24 @@ describe("ColorContrastCalc", () => {
     });
   });
 
+  describe("Matrix", function() {
+    describe("add", function() {
+      it("expects to add two matrices", function() {
+        const m1 = new ColorContrastCalc.Matrix([[1, 2, 3],
+                                                 [2, 3, 4],
+                                                 [3, 4, 5]]);
+        const m2 = new ColorContrastCalc.Matrix([[3, 2, 1],
+                                                 [4, 3, 2],
+                                                 [5, 4, 3]]);
+        const r = new ColorContrastCalc.Matrix([[4, 4, 4],
+                                                [6, 6, 6],
+                                                [8, 8, 8]]);
+
+        expect(m1.add(m2).matrix).to.deep.equal(r.matrix);
+      });
+    });
+  });
+
   describe("new", function() {
     const rgb_yellow = [255, 255, 0];
 
