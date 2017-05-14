@@ -228,6 +228,16 @@ describe("ColorContrastCalc", () => {
         expect(m1.add(m2).matrix).to.deep.equal(r.matrix);
       });
     });
+
+    describe("multiplyByScalar", function() {
+      it("expects to multiply each element of a matrix a given argument", function() {
+        const r = new ColorContrastCalc.Matrix([[2, 4, 6],
+                                                [4, 6, 8],
+                                                [6, 8, 10]]);
+
+        expect(m1.multiplyByScalar(2).matrix).to.deep.equal(r.matrix);
+      });
+    });
   });
 
   describe("new", function() {
