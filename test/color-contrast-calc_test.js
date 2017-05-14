@@ -245,6 +245,18 @@ describe("ColorContrastCalc", () => {
         expect(m1.productByVector(v)).to.deep.equal([20, 29, 38]);
       });
     });
+
+    describe("multiply", function() {
+      it("expects to be a shorthand method that can be used in place of .multiplyByScalar/.productByScalar", function() {
+        const r = new ColorContrastCalc.Matrix([[2, 4, 6],
+                                                [4, 6, 8],
+                                                [6, 8, 10]]);
+        const v = [2, 3, 4];
+
+        expect(m1.multiply(2).matrix).to.deep.equal(r.matrix);
+        expect(m1.productByVector(v)).to.deep.equal([20, 29, 38]);
+      });
+    });
   });
 
   describe("new", function() {
