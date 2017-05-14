@@ -238,6 +238,13 @@ describe("ColorContrastCalc", () => {
         expect(m1.multiplyByScalar(2).matrix).to.deep.equal(r.matrix);
       });
     });
+
+    describe("productByVector", function() {
+      it("expects to return a vector", function() {
+        const v = [2, 3, 4];
+        expect(m1.productByVector(v)).to.deep.equal([20, 29, 38]);
+      });
+    });
   });
 
   describe("new", function() {
