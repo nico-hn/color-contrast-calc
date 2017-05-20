@@ -11,6 +11,8 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "dustjs-helpers": "^1.7.3",
+    "dustjs-linkedin": "^2.7.5",
     "eslint": "^3.19.0",
     "mocha": "^3.3.0",
     "sinon": "^2.2.0"
