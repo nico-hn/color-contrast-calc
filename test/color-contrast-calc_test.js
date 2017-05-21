@@ -620,6 +620,30 @@ describe("ColorContrastCalc", () => {
     });
   });
 
+  describe("contrastLevel", function() {
+    const white = ColorContrastCalc.WHITE;
+    const black = ColorContrastCalc.BLACK;
+    const orange = ColorContrastCalc.getByName("orange");
+    const royalblue = ColorContrastCalc.getByName("royalblue");
+    const steelblue = ColorContrastCalc.getByName("steelblue");
+
+    it("expects to return 'AAA' when black is passed to white", function() {
+      expect(white.contrastLevel(black)).to.equal("AAA");
+    });
+
+    it("expects to return 'AA' when white is passed to royalblue", function() {
+      expect(royalblue.contrastLevel(white)).to.equal("AA");
+    });
+
+    it("expects to return 'A' when white is passed to steelblue", function() {
+      expect(steelblue.contrastLevel(white)).to.equal("A");
+    });
+
+    it("expects to return '-' when white is passed to orange", function() {
+      expect(orange.contrastLevel(white)).to.equal("-");
+    });
+  });
+
   describe("hasSufficientContrast", function() {
     it("expects to return true for black and white", function() {
       const black = ColorContrastCalc.BLACK;
