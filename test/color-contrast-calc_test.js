@@ -579,6 +579,9 @@ describe("ColorContrastCalc", () => {
     const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
     const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
     const blue = ColorContrastCalc.NAME_TO_COLOR.get("blue");
+    const white = ColorContrastCalc.WHITE;
+    const darkgreen = ColorContrastCalc.NAME_TO_COLOR.get("darkgreen");
+    const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
 
     it("expects to return a darker orange if orange is passed", function() {
       const threshold = orange.findBrightnessThreshold(orange);
@@ -617,6 +620,47 @@ describe("ColorContrastCalc", () => {
       expect(brown.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(brown.contrastRatioAgainst(threshold)).to.be.above(4.5);
       expect(threshold.hexCode).to.equal("#ffbebe");
+    });
+
+    it("expects to return a darker green if darkgreen is passed to white - AA", function() {
+      const threshold = white.findBrightnessThreshold(darkgreen);
+      expect(white.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
+      expect(white.contrastRatioAgainst(threshold)).to.be.above(4.5);
+    });
+
+    it("expects to return a darker green if darkgreen is passed to white - AAA", function() {
+      const threshold = white.findBrightnessThreshold(darkgreen, "AAA");
+      expect(white.contrastRatioAgainst(threshold)).to.be.closeTo(7.0, 0.5);
+      expect(white.contrastRatioAgainst(threshold)).to.be.above(7);
+    });
+
+    it("expects to return black for AAA if blue is passed to green", function() {
+      const newColor = green.findBrightnessThreshold(blue, "AAA");
+      expect(newColor.isSameColor(ColorContrastCalc.BLACK)).to.be.true;
+    });
+  });
+
+  describe("contrastLevel", function() {
+    const white = ColorContrastCalc.WHITE;
+    const black = ColorContrastCalc.BLACK;
+    const orange = ColorContrastCalc.getByName("orange");
+    const royalblue = ColorContrastCalc.getByName("royalblue");
+    const steelblue = ColorContrastCalc.getByName("steelblue");
+
+    it("expects to return 'AAA' when black is passed to white", function() {
+      expect(white.contrastLevel(black)).to.equal("AAA");
+    });
+
+    it("expects to return 'AA' when white is passed to royalblue", function() {
+      expect(royalblue.contrastLevel(white)).to.equal("AA");
+    });
+
+    it("expects to return 'A' when white is passed to steelblue", function() {
+      expect(steelblue.contrastLevel(white)).to.equal("A");
+    });
+
+    it("expects to return '-' when white is passed to orange", function() {
+      expect(orange.contrastLevel(white)).to.equal("-");
     });
   });
 
