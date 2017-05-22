@@ -585,7 +585,7 @@ describe("ColorContrastCalc", () => {
       expect(orange.contrastRatioAgainst(orange)).to.be.below(4.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.above(4.5);
-      expect(threshold.hexCode).to.equal("#664200");
+      expect(threshold.hexCode).to.equal("#674200");
     });
 
     it("expects to return a more darker color if a passed color is darker", function() {
@@ -593,7 +593,7 @@ describe("ColorContrastCalc", () => {
       expect(orange.contrastRatioAgainst(blueviolet)).to.be.below(4.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(orange.contrastRatioAgainst(threshold)).to.be.above(4.5);
-      expect(threshold.hexCode).to.equal("#6620a7");
+      expect(threshold.hexCode).to.equal("#6720a9");
     });
 
     it("expects to return a brighter orange if blue is combined with orange", function() {
