@@ -579,6 +579,8 @@ describe("ColorContrastCalc", () => {
     const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
     const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
     const blue = ColorContrastCalc.NAME_TO_COLOR.get("blue");
+    const white = ColorContrastCalc.WHITE;
+    const darkgreen = ColorContrastCalc.NAME_TO_COLOR.get("darkgreen");
     const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
 
     it("expects to return a darker orange if orange is passed", function() {
@@ -618,6 +620,18 @@ describe("ColorContrastCalc", () => {
       expect(brown.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
       expect(brown.contrastRatioAgainst(threshold)).to.be.above(4.5);
       expect(threshold.hexCode).to.equal("#ffbebe");
+    });
+
+    it("expects to return a darker green if darkgreen is passed to white - AA", function() {
+      const threshold = white.findBrightnessThreshold(darkgreen);
+      expect(white.contrastRatioAgainst(threshold)).to.be.closeTo(4.5, 0.5);
+      expect(white.contrastRatioAgainst(threshold)).to.be.above(4.5);
+    });
+
+    it("expects to return a darker green if darkgreen is passed to white - AAA", function() {
+      const threshold = white.findBrightnessThreshold(darkgreen, "AAA");
+      expect(white.contrastRatioAgainst(threshold)).to.be.closeTo(7.0, 0.5);
+      expect(white.contrastRatioAgainst(threshold)).to.be.above(7);
     });
 
     it("expects to return black for AAA if blue is passed to green", function() {
