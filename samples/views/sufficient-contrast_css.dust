@@ -26,4 +26,20 @@ td.level_no {
   background: #ff0000;
 }
 
+#grayscale_{name}_A, #grayscale_{name}_AA, #grayscale_{name}_AAA {
+  color: {baseGrayscale};
+}
+
+#grayscale_{name}_A {
+  background: {A_grayscale};
+}
+
+#grayscale_{name}_AA {
+  background: {AA_grayscale};
+}
+
+#grayscale_{name}_AAA {
+  background: {AAA_grayscale};
+}
+
 {/colors}

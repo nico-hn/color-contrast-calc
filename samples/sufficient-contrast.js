@@ -39,11 +39,12 @@ const colors = ColorContrastCalc.NAMED_COLORS.map(otherColor => {
     values[c] = newColor.hexCode;
     values[`${c}_contrast`] = Math.round(baseColor.contrastRatioAgainst(newColor) * 10000) / 10000;
     values[`${c}_satisfied`] = baseColor.hasSufficientContrast(newColor, c) ? "yes" : "no";
+    values[`${c}_grayscale`] = newColor.newGrayscaleColor(100).hexCode;
   });
   return values;
 });
 
-const data = { "title": baseColorName, "colors": colors };
+const data = { "title": baseColorName, "baseGrayscale": baseColor.newGrayscaleColor(100).hexCode, "colors": colors };
 
 dust.render("list", data, function(err, out) {
   //process.stdout.write(out);
