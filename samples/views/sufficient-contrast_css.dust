@@ -1,0 +1,29 @@
+@charset "UTF-8";
+
+{#colors}
+td.{name} {
+  color: {title};
+  background: {hex};
+}
+
+#{name}_A, #{name}_AA, #{name}_AAA {
+  color: {title};
+}
+
+#{name}_A {
+  background: {A};
+}
+
+#{name}_AA {
+  background: {AA};
+}
+
+#{name}_AAA {
+  background: {AAA};
+}
+
+td.level_no {
+  background: #ff0000;
+}
+
+{/colors}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8" />
+<title>Colors of diffrent brightness (foreground: {title})</title>
+<link href="sufficient-contrast_{title}.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<section class="h1">
+  <h1>Colors of diffrent brightness (foreground: {title})</h1>
+  <table>
+    <caption>Colors and their contrasts against {title}</caption>
+    <thead>
+      <tr><th scope="col">name</th><th scope="col">hex</th><th scope="col">contrast</th><th scope="col">level</th>
+      <th scope="col">A</th><th scope="col">A contrast</th><th scope="col">A satisfied</th>
+      <th scope="col">AA</th><th scope="col">AA contrast</th><th scope="col">AA satisfied</th>
+      <th scope="col">AAA</th><th scope="col">AAA contrast</th><th scope="col">AAA satisfied</th></tr>
+    </thead>
+{#colors}
+    <tr><td>{name}</td><td class="{name}">{hex}</td><td>{contrast}</td><td>{level}</td>
+    <td id="{name}_A">{A}</td><td>{A_contrast}</td><td class="level_{A_satisfied}">{A_satisfied}</td>
+    <td id="{name}_AA">{AA}</td><td>{AA_contrast}</td></td><td class="level_{AA_satisfied}">{AA_satisfied}</td>
+    <td id="{name}_AAA">{AAA}</td><td>{AAA_contrast}</td><td class="level_{AAA_satisfied}">{AAA_satisfied}</td></tr>
+{/colors}
+  </table>
+<!-- end of h1 -->
+</section>
+</body>
+</html>
