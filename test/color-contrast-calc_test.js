@@ -554,6 +554,22 @@ describe("ColorContrastCalc", () => {
     });
   });
 
+  describe("newGrayscaleColor", function() {
+    const orange = new ColorContrastCalc([255, 165, 0], "orange");
+
+    it("expects to the original color if 0 is passed", function() {
+      expect(orange.newGrayscaleColor(0).isSameColor(orange)).to.be.true;
+    });
+
+    it("expects to a gray color if 100 is passed", function() {
+      expect(orange.newGrayscaleColor(100).hexCode).to.equal("#acacac");
+    });
+
+    it("expects to return a graysh orange if 50 is passed", function() {
+      expect(orange.newGrayscaleColor(50).hexCode).to.equal("#d6a956");
+    });
+  });
+
   describe("BLACK", function() {
     it("expects to return an instance corresponding to black", function() {
       const yellow = new ColorContrastCalc("#ffff00", "yellow");
