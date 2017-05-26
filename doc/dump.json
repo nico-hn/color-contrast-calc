@@ -1,0 +1,2558 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "name": "lib/color-contrast-calc.js",
+    "content": "\"use strict\";\n\n/**\n * Provides methods to calculate RGB colors.\n * An instance represents a RGB color.\n */\nclass ColorContrastCalc {\n  /**\n   * @param {string|Array<number, number, number>} rgb - RGB value represented as a string (hex code) or an array of numbers\n   * @param {string} [name=null] - the value of this.name: if null, the value of this.hexCode is set to this.name instead\n   */\n  constructor(rgb, name = null) {\n    const ownClass = this.constructor;\n    /** @property {Array<number, number, number>} rgb - RGB value repsented as an array of decimal numbers */\n    this.rgb = ownClass.isString(rgb) ? ownClass.hexCodeToDecimal(rgb) : rgb;\n    /** @property {number} relativeLuminance - The relative luminance of the color */\n    this.relativeLuminance = ownClass.relativeLuminance(this.rgb);\n    /** @property {string} name - If no name is explicitely given, the property is set to the value of this.hexCode */\n    this.name = name === null ? ownClass.decimalToHexCode(this.rgb) : name;\n    /** @property {string} hexCode - The RGB value in hex code notation */\n    this.hexCode = ownClass.decimalToHexCode(this.rgb);\n    this.freezeProperties();\n  }\n\n  /**\n   * @private\n   */\n  static tristimulusValue(primaryColor, base = 255) {\n    const s = primaryColor / base;\n    if (s <= 0.03928) {\n      return s / 12.92;\n    } else {\n      return Math.pow((s + 0.055) / 1.055, 2.4);\n    }\n  }\n\n  /**\n   * Calculate the relative luminance of a RGB color given as a string or an array of numbers\n   * @param {string|Array<number, number, number>} rgb - RGB value represented as a string (hex code) or an array of numbers\n   * @returns {number} Relative luminance\n   */\n  static relativeLuminance(rgb = [255, 255, 255]) {\n    if (this.isString(rgb)) { rgb = this.hexCodeToDecimal(rgb); }\n\n    const [r, g, b] = rgb.map(c => this.tristimulusValue(c));\n    return r * 0.2126 + g * 0.7152 + b * 0.0722;\n  }\n\n  /**\n   * Calculate the contrast ratio of given colors\n   * @param {string|Array<number, number, number>} foreground - RGB value represented as a string (hex code) or an array of numbers\n   * @param {string|Array<number, number, number>} background - RGB value represented as a string (hex code) or an array of numbers\n   * @returns {number} Contrast ratio\n   */\n  static contrastRatio(foreground, background) {\n    const [l1, l2] = [foreground, background]\n          .map(c => this.relativeLuminance(c))\n          .sort((f, b) => b - f);\n    return (l1 + 0.05) / (l2 + 0.05);\n  }\n\n  /**\n   * @param {string} hexCode value in hex code\n   * @returns {Array<number, number, number>} RGB value represented as an array of numbers\n   */\n  static hexCodeToDecimal(hexCode) {\n    const h = this.normalizeHexCode(hexCode);\n    return [0, 2, 4].map(s => h.substr(s, 2))\n      .map(primaryColor => Number.parseInt(primaryColor, 16));\n  }\n\n  /**\n   * @private\n   */\n  static normalizeHexCode(hexString) {\n    const h = hexString.startsWith(\"#\") ? hexString.replace(\"#\", \"\") : hexString;\n    if (h.length === 3) {\n      return [0, 1, 2].map(s => h.substr(s, 1).repeat(2)).join(\"\");\n    } else {\n      return h;\n    }\n  }\n\n  /**\n   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers\n   * @returns {string} RGB value in hex code\n   */\n  static decimalToHexCode(rgb) {\n    return \"#\" + rgb.map(d => {\n      const h = d.toString(16);\n      return h.length === 1 ? \"0\" + h : h;\n    }).join(\"\");\n  }\n\n  /**\n   * Check if a given array is a valid representation of RGB color.\n   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers\n   * @returns {boolean} true if the argument is a valid RGB color\n   */\n  static isValidRgb(rgb) {\n    return rgb.length === 3 &&\n      rgb.every(c => c >= 0 && c <= 255 &&\n                Number.isInteger(c));\n  }\n\n  /**\n   * Check if a given string is a valid representation of RGB color.\n   * @param {string} code - RGB value in hex code\n   * @returns {boolean} returns true if then argument is a valid RGB color\n   */\n  static isValidHexCode(code) {\n    return this.HEX_CODE_RE.test(code);\n  }\n\n  /**\n   * @private\n   */\n  static isString(str) {\n    return typeof str === \"string\" || str instanceof String;\n  }\n\n  /**\n   * Returns an instance of ColorContrastCalc for a predefined color name.\n   * @param {string} name - names are defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords\n   * @returns {ColorContrastCalc}\n   */\n  static getByName(name) {\n    return this.NAME_TO_COLOR.get(name);\n  }\n\n  /**\n   * Returns an instance of ColorContrastCalc for a hex code\n   * @param {string} code - RGB value in hex code\n   * @returns {ColorContrastCalc}\n   */\n  static getByHexCode(code) {\n    const registeredCode = this.HEX_TO_COLOR.get(code);\n    return registeredCode ? registeredCode : new ColorContrastCalc(code);\n  }\n\n  /**\n   * @private\n   */\n  static setup(colorKeywordsJSON) {\n    this.loadColorKeywords(colorKeywordsJSON);\n    this.assignColorConstants();\n    this.generateWebSafeColors();\n    /** @private */\n    this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;\n  }\n\n  /**\n   * @private\n   */\n  static loadColorKeywords(colorKeywordsJSON) {\n    /**\n     * Array of named colors defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords\n     * @property {ColorContrastCalc[]} NAMED_COLORS\n     */\n    this.NAMED_COLORS = [];\n    /** @private */\n    this.NAME_TO_COLOR = new Map();\n    /** @private */\n    this.HEX_TO_COLOR = new Map();\n    colorKeywordsJSON.forEach(color => {\n      const [name, hex] = color;\n      const calc = new ColorContrastCalc(hex, name);\n      this.NAMED_COLORS.push(calc);\n      this.NAME_TO_COLOR.set(name, calc);\n      this.HEX_TO_COLOR.set(hex, calc);\n    });\n\n    Object.freeze(this.NAMED_COLORS);\n  }\n\n  /**\n   * @private\n   */\n  static assignColorConstants() {\n    /** @property {ColorContrastCalc} BLACK - an instance that represents #000000 */\n    this.BLACK = this.HEX_TO_COLOR.get(\"#000000\");\n    /** @property {ColorContrastCalc} WHITE - an instance that represents #ffffff */\n    this.WHITE = this.HEX_TO_COLOR.get(\"#ffffff\");\n    /** @property {ColorContrastCalc} GRAY - an instance that represents #808080 */\n    this.GRAY = this.NAME_TO_COLOR.get(\"gray\");\n    this.prototype.BLACK = this.BLACK;\n    this.prototype.WHITE = this.WHITE;\n    this.prototype.GRAY = this.GRAY;\n    Object.freeze(this.BLACK);\n    Object.freeze(this.WHITE);\n    Object.freeze(this.GRAY);\n    Object.freeze(this.prototype.BLACK);\n    Object.freeze(this.prototype.WHITE);\n    Object.freeze(this.prototype.GRAY);\n  }\n\n  /**\n   * @private\n   */\n  static generateWebSafeColors() {\n    /**\n     * Array of web safe colors\n     * @property {ColorContrastCalc[]} WEB_SAFE_COLORS\n     */\n    this.WEB_SAFE_COLORS = [];\n\n    for (let r = 0; r < 16; r += 3) {\n      for (let g = 0; g < 16; g += 3) {\n        for (let b = 0; b < 16; b += 3) {\n          let hexCode = this.decimalToHexCode([r, g, b].map(c => c * 17));\n          let predefined = this.HEX_TO_COLOR.get(hexCode);\n          let color = predefined ? predefined : new ColorContrastCalc(hexCode);\n          this.WEB_SAFE_COLORS.push(color);\n        }\n      }\n    }\n  }\n\n  /**\n   * Calculate the contrast ratio against another color\n   * @param {ColorContrastCalc|string|Array<number, number, number>} color - another instance of ColorContrastCalc or a RGB value\n   * @returns {number}\n   */\n  contrastRatioAgainst(color) {\n    if (!(color instanceof ColorContrastCalc)) {\n      return this.constructor.contrastRatio(this.rgb, color);\n    }\n\n    const [l1, l2] = [this.relativeLuminance, color.relativeLuminance]\n          .sort((s, o) => o - s);\n    return (l1 + 0.05) / (l2 + 0.05);\n  }\n\n  /**\n   * Returns an array of named colors that satisfy a given level of contrast ratio\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {ColorContrastCalc[]}\n   */\n  colorsWithSufficientContrast(level = \"AA\") {\n    const ratio = this.levelToContrastRatio(level);\n\n    return this.constructor.NAMED_COLORS.filter(combinedColor => {\n      return this.contrastRatioAgainst(combinedColor) >= ratio;\n    });\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newContrastColor(ratio, name = null) {\n    const newRgb = this.rgb.map(c => this.calcNewContrast(c, ratio));\n    return new ColorContrastCalc(newRgb, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newBrightnessColor(ratio, name = null) {\n    const newRgb = this.rgb.map(c => this.calcNewBrightness(c, ratio));\n    return new ColorContrastCalc(newRgb, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newInvertColor(ratio, name = null) {\n    /*\n       https://www.w3.org/TR/filter-effects-1/#invertEquivalent\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    const newRgb = this.rgb.map(c => {\n      return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);\n    });\n\n    return new ColorContrastCalc(newRgb, name);\n  }\n\n  /**\n   * @param {number} degree - Value in degree\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newHueRotateColor(degree, name = null) {\n    return this.generateNewColor(this.constructor.HueRotateCalc, degree, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newSaturateColor(ratio, name = null) {\n    return this.generateNewColor(this.constructor.SaturateCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newGrayscaleColor(ratio, name = null) {\n    return this.generateNewColor(this.constructor.GrayscaleCalc, ratio, name);\n  }\n\n  /**\n   * Tries to find a color whose contrast against the base color is close to a given level.\n   *\n   * The returned color is gained by modifying the brightness of otherColor.\n   * Even when a color that satisfies the level is not found, it returns a new color anyway.\n   * @param {ColorContrastCalc} otherColor - The color before the modification of brightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {ColorContrastCalc} A color whose contrast against the base color is close to a specified level\n   */\n  findBrightnessThreshold(otherColor, level = \"AA\") {\n    const targetRatio = this.levelToContrastRatio(level);\n    const criteria = this.brightnessThresholdCriteria(targetRatio, otherColor);\n    const w = otherColor.calcUpperRatioLimit() / 2;\n    let r = w;\n    let lastSufficentRatio = null;\n\n    for (let d of ColorContrastCalc.binarySearchWidth(w, 0.01)) {\n      let newColor = otherColor.newBrightnessColor(r);\n      let contrastRatio = newColor.contrastRatioAgainst(this);\n\n      if (contrastRatio >= targetRatio) { lastSufficentRatio = r; }\n      if (contrastRatio === targetRatio) { break; }\n      r += criteria.incrementCondition(contrastRatio) ? d : -d;\n    }\n\n    const nearestColor = otherColor.newBrightnessColor(criteria.round(r));\n\n    if (lastSufficentRatio && nearestColor.contrastRatioAgainst(this) < targetRatio) {\n      return otherColor.newBrightnessColor(criteria.round(lastSufficentRatio));\n    }\n\n    return nearestColor;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of WCAG 2.0, otherwise \"-\"\n   */\n  contrastLevel(otherColor) {\n    const ratio = this.contrastRatioAgainst(otherColor);\n    if (ratio >= 7) {\n      return \"AAA\";\n    } else if (ratio >= 4.5) {\n      return \"AA\";\n    } else if (ratio >= 3) {\n      return \"A\";\n    }\n\n    return \"-\";\n  }\n\n  /**\n   * Check if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0\n   * @param {ColorContrastCalc} otherColor\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {boolean}\n   */\n  hasSufficientContrast(otherColor, level = \"AA\") {\n    const ratio = this.levelToContrastRatio(level);\n    return this.contrastRatioAgainst(otherColor) >= ratio;\n  }\n\n  /**\n   * Check if the base color and otherColor have the same RGB value\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean}\n   */\n  isSameColor(otherColor) {\n    return this.hexCode === otherColor.hexCode;\n  }\n\n  /**\n   * @returns {boolean} true if each primary color of the base color is 0 or 255\n   */\n  isMaxContrast() {\n    const limits = [0, 255];\n    return this.rgb.every(primaryColor => limits.includes(primaryColor));\n  }\n\n  /**\n   * @returns {boolean} true if the hex code of the color is #808080\n   */\n  isMinContrast() {\n    return this.rgb.every((primaryColor, i) => {\n      return this.GRAY.rgb[i] === primaryColor;\n    });\n  }\n\n  /**\n   * Returns a string representation of the color.\n   * When 16 is passed, it return the hex code, and when 10 is passed, it returns the value in RGB notation\n   * Otherwise, it returns the color name or the hex code\n   * @param {number|null} [base=16] - 16, 10 or null\n   * @returns {string}\n   */\n  toString(base = 16) {\n    switch (base) {\n    case 16:\n      return this.hexCode;\n    case 10:\n      return `rgb(${this.rgb.join(\",\")})`;\n    default:\n      return this.name || this.hexCode;\n    }\n  }\n\n  /**\n   * @private\n   */\n  levelToContrastRatio(level) {\n    if (level === \"A\" || level === 1) {\n      return 3.0;\n    } else if (level === \"AA\" || level === 2) {\n      return 4.5;\n    } else if (level === \"AAA\" || level === 3) {\n      return 7.0;\n    }\n  }\n\n  /**\n   * @private\n   */\n  calcNewContrast(origColor, ratio = 100) {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-contrast\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    const newColor = Math.round((origColor * ratio + 255 * (50 - ratio / 2)) / 100);\n    return this.clampToRange(newColor, 0, 255);\n  }\n\n  /**\n   * @private\n   */\n  calcNewBrightness(origColor, ratio = 100) {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-brightness\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    return this.clampToRange(Math.round(origColor * ratio / 100), 0, 255);\n  }\n\n  /**\n   * @private\n   */\n  calcUpperRatioLimit() {\n    if (this.isSameColor(this.BLACK)) {\n      return 100;\n    }\n\n    const darkest = this.rgb\n            .filter(c => c !== 0)\n            .reduce((a, b) => Math.min(a, b));\n    return Math.ceil((255 / darkest) * 100);\n  }\n\n  /**\n   * @private\n   */\n  brightnessThresholdCriteria(targetRatio, otherColor) {\n    const criteria = {};\n\n    if (this.isBrighterThan(otherColor) ||\n        this.hasSameLuminance(otherColor) && this.isLightColor()) {\n      criteria.round = (r) => Math.floor(r * 10 ) / 10;\n      criteria.incrementCondition = (contrastRatio) => contrastRatio > targetRatio;\n    } else {\n      criteria.round = (r) => Math.ceil(r * 10) / 10;\n      criteria.incrementCondition = (contrastRatio) => targetRatio > contrastRatio;\n    }\n\n    return criteria;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is greater than that of otherColor\n   */\n  isBrighterThan(otherColor) {\n    return this.relativeLuminance > otherColor.relativeLuminance;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is equal to that of otherColor\n   */\n  hasSameLuminance(otherColor) {\n    return this.relativeLuminance === otherColor.relativeLuminance;\n  }\n\n  /**\n   * @returns {boolean} true if the contrast ratio against white is qual to/ less than the ratio against black\n   */\n  isLightColor() {\n    return this.WHITE.contrastRatioAgainst(this) <= this.BLACK.contrastRatioAgainst(this);\n  }\n\n  /**\n   * @private\n   */\n  freezeProperties() {\n    Object.freeze(this.rgb);\n    Object.freeze(this.relativeLuminance);\n    Object.freeze(this.name);\n    Object.freeze(this.hexCode);\n  }\n\n  /**\n   * @private\n   */\n  clampToRange(value, lowerBound, upperBound) {\n    if (value <= lowerBound) {\n      return lowerBound;\n    } else if (value > upperBound) {\n      return upperBound;\n    }\n    return value;\n  }\n\n  /**\n   * @private\n   */\n  generateNewColor(calc, ratio, name = null) {\n    const newRgb = calc.calcRgb(ratio, this.rgb);\n    return new ColorContrastCalc(newRgb.map(c => {\n      return this.clampToRange(Math.round(c), 0, 255);\n    }), name);\n  }\n}\n\nColorContrastCalc.binarySearchWidth = function*(initWidth, min) {\n  let i = 0;\n  let d = initWidth / Math.pow(2, i);\n\n  while (d > min) {\n    yield d;\n    i++;\n    d = initWidth / Math.pow(2, i);\n  }\n};\n\n(function() {\n  class Matrix {\n    constructor(matrix) {\n      this.matrix = matrix;\n    }\n\n    add(otherMatrix) {\n      const newMatrix = this.matrix.map((row, i) => {\n        const otherRow = otherMatrix.matrix[i];\n        return row.map((s, j) => s + otherRow[j]);\n      });\n\n      return new Matrix(newMatrix);\n    }\n\n    multiply(n) {\n      if (typeof n === \"number\") {\n        return this.multiplyByScalar(n);\n      } else {\n        return this.productByVector(n);\n      }\n    }\n\n    multiplyByScalar(n) {\n      const newMatrix = this.matrix.map(row => row.map(c => c * n));\n      return new Matrix(newMatrix);\n    }\n\n    productByVector(vector) {\n      return this.matrix.map(row => {\n        let s = 0;\n        row.forEach((c, i) => s += c * vector[i]);\n        return s;\n      });\n    }\n  }\n\n  ColorContrastCalc.Matrix = Matrix;\n\n  class HueRotateCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(deg, rgb) {\n      return this.calcRotation(deg).multiply(rgb);\n    }\n\n    static degToRad(deg) {\n      return Math.PI * deg / 180;\n    }\n\n    static calcRotation(deg) {\n      const rad = this.degToRad(deg);\n      const cosPartResult = this.cosPart.multiply(Math.cos(rad));\n      const sinPartResult = this.sinPart.multiply(Math.sin(rad));\n      return this.constPart.add(cosPartResult).add(sinPartResult);\n    }\n  }\n\n  HueRotateCalc.constPart = new Matrix([[0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072]]);\n\n  HueRotateCalc.cosPart = new Matrix([[0.787, -0.715, -0.072],\n                                      [-0.213,0.285, -0.072],\n                                      [-0.213, -0.715, 0.928]]);\n\n  HueRotateCalc.sinPart = new Matrix([[-0.213, -0.715, 0.928],\n                                      [0.143, 0.140, -0.283],\n                                      [-0.787, 0.715, 0.072]]);\n\n  ColorContrastCalc.HueRotateCalc = HueRotateCalc;\n\n  class SaturateCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-saturate\n       https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n     */\n    static calcRgb(s, rgb) {\n      return this.calcSaturation(s).multiply(rgb);\n    }\n\n    static calcSaturation(s) {\n      return this.constPart.add(this.saturatePart.multiply(s / 100));\n    }\n  }\n\n  SaturateCalc.constPart = HueRotateCalc.constPart;\n  SaturateCalc.saturatePart = HueRotateCalc.cosPart;\n\n  ColorContrastCalc.SaturateCalc = SaturateCalc;\n\n  class GrayscaleCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-grayscale\n       https://www.w3.org/TR/filter-effects/#grayscaleEquivalent\n       https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n    */\n    static calcRgb(s, rgb) {\n      return this.calcGrayscale(s).multiply(rgb);\n    }\n\n    static calcGrayscale(s) {\n      const r = 1 - Math.min(100, s) / 100;\n      return this.constPart.add(this.ratioPart.multiply(r));\n    }\n  }\n\n  GrayscaleCalc.constPart = new Matrix([[0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722]]);\n\n  GrayscaleCalc.ratioPart = new Matrix([[0.7874, -0.7152, -0.0722],\n                                        [-0.2126, 0.2848, -0.0722],\n                                        [-0.2126, -0.7152, 0.9278]]);\n\n  ColorContrastCalc.GrayscaleCalc = GrayscaleCalc;\n})();\n\nColorContrastCalc.setup(require(\"./color-keywords.json\"));\n\nmodule.exports.ColorContrastCalc = ColorContrastCalc;\nexport { ColorContrastCalc };\n",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 1,
+    "kind": "function",
+    "name": "binarySearchWidth",
+    "memberof": "lib/color-contrast-calc.js",
+    "generator": true,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~binarySearchWidth",
+    "access": null,
+    "export": false,
+    "importPath": "color-contrast-calc/lib/color-contrast-calc.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 541,
+    "undocument": true,
+    "unknown": [
+      {
+        "tagName": "@_undocument",
+        "tagValue": ""
+      }
+    ],
+    "params": [
+      {
+        "name": "initWidth",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "min",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 2,
+    "kind": "class",
+    "name": "ColorContrastCalc",
+    "memberof": "lib/color-contrast-calc.js",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "access": null,
+    "export": true,
+    "importPath": "color-contrast-calc/lib/color-contrast-calc.js",
+    "importStyle": "{ColorContrastCalc}",
+    "description": "Provides methods to calculate RGB colors.\nAn instance represents a RGB color.",
+    "lineNumber": 7,
+    "interface": false
+  },
+  {
+    "__docId__": 3,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#constructor",
+    "access": null,
+    "description": "",
+    "lineNumber": 12,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string",
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "rgb",
+        "description": "RGB value represented as a string (hex code) or an array of numbers"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "null",
+        "defaultRaw": null,
+        "name": "name",
+        "description": "the value of this.name: if null, the value of this.hexCode is set to this.name instead"
+      }
+    ]
+  },
+  {
+    "__docId__": 4,
+    "kind": "member",
+    "name": "rgb",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#rgb",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "rgb",
+        "description": "RGB value repsented as an array of decimal numbers"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 5,
+    "kind": "member",
+    "name": "relativeLuminance",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#relativeLuminance",
+    "access": null,
+    "description": null,
+    "lineNumber": 17,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "relativeLuminance",
+        "description": "The relative luminance of the color"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 6,
+    "kind": "member",
+    "name": "name",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 19,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "name",
+        "description": "If no name is explicitely given, the property is set to the value of this.hexCode"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 7,
+    "kind": "member",
+    "name": "hexCode",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#hexCode",
+    "access": null,
+    "description": null,
+    "lineNumber": 21,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "hexCode",
+        "description": "The RGB value in hex code notation"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 8,
+    "kind": "method",
+    "name": "tristimulusValue",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.tristimulusValue",
+    "access": "private",
+    "description": "",
+    "lineNumber": 28,
+    "params": [
+      {
+        "name": "primaryColor",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "base",
+        "optional": true,
+        "types": [
+          "number"
+        ],
+        "defaultRaw": 255,
+        "defaultValue": "255"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 9,
+    "kind": "method",
+    "name": "relativeLuminance",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.relativeLuminance",
+    "access": null,
+    "description": "Calculate the relative luminance of a RGB color given as a string or an array of numbers",
+    "lineNumber": 42,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{number} Relative luminance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string",
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "rgb",
+        "description": "RGB value represented as a string (hex code) or an array of numbers"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "number"
+      ],
+      "spread": false,
+      "description": "Relative luminance"
+    }
+  },
+  {
+    "__docId__": 10,
+    "kind": "method",
+    "name": "contrastRatio",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.contrastRatio",
+    "access": null,
+    "description": "Calculate the contrast ratio of given colors",
+    "lineNumber": 55,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{number} Contrast ratio"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string",
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "foreground",
+        "description": "RGB value represented as a string (hex code) or an array of numbers"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string",
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "background",
+        "description": "RGB value represented as a string (hex code) or an array of numbers"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "number"
+      ],
+      "spread": false,
+      "description": "Contrast ratio"
+    }
+  },
+  {
+    "__docId__": 11,
+    "kind": "method",
+    "name": "hexCodeToDecimal",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.hexCodeToDecimal",
+    "access": null,
+    "description": "",
+    "lineNumber": 66,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Array<number, number, number>} RGB value represented as an array of numbers"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "hexCode",
+        "description": "value in hex code"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array<number, number, number>"
+      ],
+      "spread": false,
+      "description": "RGB value represented as an array of numbers"
+    }
+  },
+  {
+    "__docId__": 12,
+    "kind": "method",
+    "name": "normalizeHexCode",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.normalizeHexCode",
+    "access": "private",
+    "description": "",
+    "lineNumber": 75,
+    "params": [
+      {
+        "name": "hexString",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 13,
+    "kind": "method",
+    "name": "decimalToHexCode",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.decimalToHexCode",
+    "access": null,
+    "description": "",
+    "lineNumber": 88,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{string} RGB value in hex code"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "rgb",
+        "description": "RGB value represented as an array of numbers"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "string"
+      ],
+      "spread": false,
+      "description": "RGB value in hex code"
+    }
+  },
+  {
+    "__docId__": 14,
+    "kind": "method",
+    "name": "isValidRgb",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.isValidRgb",
+    "access": null,
+    "description": "Check if a given array is a valid representation of RGB color.",
+    "lineNumber": 100,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} true if the argument is a valid RGB color"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "rgb",
+        "description": "RGB value represented as an array of numbers"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "true if the argument is a valid RGB color"
+    }
+  },
+  {
+    "__docId__": 15,
+    "kind": "method",
+    "name": "isValidHexCode",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.isValidHexCode",
+    "access": null,
+    "description": "Check if a given string is a valid representation of RGB color.",
+    "lineNumber": 111,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} returns true if then argument is a valid RGB color"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "code",
+        "description": "RGB value in hex code"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "returns true if then argument is a valid RGB color"
+    }
+  },
+  {
+    "__docId__": 16,
+    "kind": "method",
+    "name": "isString",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.isString",
+    "access": "private",
+    "description": "",
+    "lineNumber": 118,
+    "params": [
+      {
+        "name": "str",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 17,
+    "kind": "method",
+    "name": "getByName",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.getByName",
+    "access": null,
+    "description": "Returns an instance of ColorContrastCalc for a predefined color name.",
+    "lineNumber": 127,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "name",
+        "description": "names are defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 18,
+    "kind": "method",
+    "name": "getByHexCode",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.getByHexCode",
+    "access": null,
+    "description": "Returns an instance of ColorContrastCalc for a hex code",
+    "lineNumber": 136,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "code",
+        "description": "RGB value in hex code"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 19,
+    "kind": "method",
+    "name": "setup",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.setup",
+    "access": "private",
+    "description": "",
+    "lineNumber": 144,
+    "params": [
+      {
+        "name": "colorKeywordsJSON",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 20,
+    "kind": "member",
+    "name": "HEX_CODE_RE",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.HEX_CODE_RE",
+    "access": "private",
+    "description": null,
+    "lineNumber": 149,
+    "type": {
+      "types": [
+        "undefined"
+      ]
+    }
+  },
+  {
+    "__docId__": 21,
+    "kind": "method",
+    "name": "loadColorKeywords",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.loadColorKeywords",
+    "access": "private",
+    "description": "",
+    "lineNumber": 155,
+    "params": [
+      {
+        "name": "colorKeywordsJSON",
+        "types": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "__docId__": 22,
+    "kind": "member",
+    "name": "NAMED_COLORS",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.NAMED_COLORS",
+    "access": null,
+    "description": "Array of named colors defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords",
+    "lineNumber": 160,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc[]"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "NAMED_COLORS",
+        "description": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*[]"
+      ]
+    }
+  },
+  {
+    "__docId__": 23,
+    "kind": "member",
+    "name": "NAME_TO_COLOR",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.NAME_TO_COLOR",
+    "access": "private",
+    "description": null,
+    "lineNumber": 162,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 24,
+    "kind": "member",
+    "name": "HEX_TO_COLOR",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.HEX_TO_COLOR",
+    "access": "private",
+    "description": null,
+    "lineNumber": 164,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 25,
+    "kind": "method",
+    "name": "assignColorConstants",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.assignColorConstants",
+    "access": "private",
+    "description": "",
+    "lineNumber": 179,
+    "params": []
+  },
+  {
+    "__docId__": 26,
+    "kind": "member",
+    "name": "BLACK",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.BLACK",
+    "access": null,
+    "description": null,
+    "lineNumber": 181,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "BLACK",
+        "description": "an instance that represents #000000"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 27,
+    "kind": "member",
+    "name": "WHITE",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.WHITE",
+    "access": null,
+    "description": null,
+    "lineNumber": 183,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "WHITE",
+        "description": "an instance that represents #ffffff"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 28,
+    "kind": "member",
+    "name": "GRAY",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.GRAY",
+    "access": null,
+    "description": null,
+    "lineNumber": 185,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "GRAY",
+        "description": "an instance that represents #808080"
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 29,
+    "kind": "method",
+    "name": "generateWebSafeColors",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.generateWebSafeColors",
+    "access": "private",
+    "description": "",
+    "lineNumber": 200,
+    "params": []
+  },
+  {
+    "__docId__": 30,
+    "kind": "member",
+    "name": "WEB_SAFE_COLORS",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "static": true,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc.WEB_SAFE_COLORS",
+    "access": null,
+    "description": "Array of web safe colors",
+    "lineNumber": 205,
+    "properties": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc[]"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "WEB_SAFE_COLORS",
+        "description": ""
+      }
+    ],
+    "type": {
+      "types": [
+        "*[]"
+      ]
+    }
+  },
+  {
+    "__docId__": 31,
+    "kind": "method",
+    "name": "contrastRatioAgainst",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#contrastRatioAgainst",
+    "access": null,
+    "description": "Calculate the contrast ratio against another color",
+    "lineNumber": 224,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{number}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc",
+          "string",
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "color",
+        "description": "another instance of ColorContrastCalc or a RGB value"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "number"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 32,
+    "kind": "method",
+    "name": "colorsWithSufficientContrast",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#colorsWithSufficientContrast",
+    "access": null,
+    "description": "Returns an array of named colors that satisfy a given level of contrast ratio",
+    "lineNumber": 239,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc[]}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "\"AA\"",
+        "defaultRaw": "AA",
+        "name": "level",
+        "description": "A, AA or AAA"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc[]"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 33,
+    "kind": "method",
+    "name": "newContrastColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newContrastColor",
+    "access": null,
+    "description": "",
+    "lineNumber": 252,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ratio",
+        "description": "Value in percent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "null",
+        "defaultRaw": null,
+        "name": "name",
+        "description": "Name of color"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 34,
+    "kind": "method",
+    "name": "newBrightnessColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newBrightnessColor",
+    "access": null,
+    "description": "",
+    "lineNumber": 262,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ratio",
+        "description": "Value in percent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "null",
+        "defaultRaw": null,
+        "name": "name",
+        "description": "Name of color"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 35,
+    "kind": "method",
+    "name": "newInvertColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newInvertColor",
+    "access": null,
+    "description": "",
+    "lineNumber": 272,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ratio",
+        "description": "Value in percent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "null",
+        "defaultRaw": null,
+        "name": "name",
+        "description": "Name of color"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 36,
+    "kind": "method",
+    "name": "newHueRotateColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newHueRotateColor",
+    "access": null,
+    "description": "",
+    "lineNumber": 289,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "degree",
+        "description": "Value in degree"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "null",
+        "defaultRaw": null,
+        "name": "name",
+        "description": "Name of color"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 37,
+    "kind": "method",
+    "name": "newSaturateColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newSaturateColor",
+    "access": null,
+    "description": "",
+    "lineNumber": 298,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ratio",
+        "description": "Value in percent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "null",
+        "defaultRaw": null,
+        "name": "name",
+        "description": "Name of color"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 38,
+    "kind": "method",
+    "name": "newGrayscaleColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newGrayscaleColor",
+    "access": null,
+    "description": "",
+    "lineNumber": 307,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ratio",
+        "description": "Value in percent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "null",
+        "defaultRaw": null,
+        "name": "name",
+        "description": "Name of color"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 39,
+    "kind": "method",
+    "name": "findBrightnessThreshold",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#findBrightnessThreshold",
+    "access": null,
+    "description": "Tries to find a color whose contrast against the base color is close to a given level.\n\nThe returned color is gained by modifying the brightness of otherColor.\nEven when a color that satisfies the level is not found, it returns a new color anyway.",
+    "lineNumber": 320,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{ColorContrastCalc} A color whose contrast against the base color is close to a specified level"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "otherColor",
+        "description": "The color before the modification of brightness"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "\"AA\"",
+        "defaultRaw": "AA",
+        "name": "level",
+        "description": "A, AA or AAA"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "ColorContrastCalc"
+      ],
+      "spread": false,
+      "description": "A color whose contrast against the base color is close to a specified level"
+    }
+  },
+  {
+    "__docId__": 40,
+    "kind": "method",
+    "name": "contrastLevel",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#contrastLevel",
+    "access": null,
+    "description": "",
+    "lineNumber": 349,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{string} A, AA or AAA if the contrast ratio meets the criteria of WCAG 2.0, otherwise \"-\""
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "otherColor",
+        "description": ""
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "string"
+      ],
+      "spread": false,
+      "description": "A, AA or AAA if the contrast ratio meets the criteria of WCAG 2.0, otherwise \"-\""
+    }
+  },
+  {
+    "__docId__": 41,
+    "kind": "method",
+    "name": "hasSufficientContrast",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#hasSufficientContrast",
+    "access": null,
+    "description": "Check if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0",
+    "lineNumber": 368,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "otherColor",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "\"AA\"",
+        "defaultRaw": "AA",
+        "name": "level",
+        "description": "A, AA or AAA"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 42,
+    "kind": "method",
+    "name": "isSameColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isSameColor",
+    "access": null,
+    "description": "Check if the base color and otherColor have the same RGB value",
+    "lineNumber": 378,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "otherColor",
+        "description": ""
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 43,
+    "kind": "method",
+    "name": "isMaxContrast",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isMaxContrast",
+    "access": null,
+    "description": "",
+    "lineNumber": 385,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} true if each primary color of the base color is 0 or 255"
+      }
+    ],
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "true if each primary color of the base color is 0 or 255"
+    }
+  },
+  {
+    "__docId__": 44,
+    "kind": "method",
+    "name": "isMinContrast",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isMinContrast",
+    "access": null,
+    "description": "",
+    "lineNumber": 393,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} true if the hex code of the color is #808080"
+      }
+    ],
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "true if the hex code of the color is #808080"
+    }
+  },
+  {
+    "__docId__": 45,
+    "kind": "method",
+    "name": "toString",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#toString",
+    "access": null,
+    "description": "Returns a string representation of the color.\nWhen 16 is passed, it return the hex code, and when 10 is passed, it returns the value in RGB notation\nOtherwise, it returns the color name or the hex code",
+    "lineNumber": 406,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{string}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number",
+          "null"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "16",
+        "defaultRaw": 16,
+        "name": "base",
+        "description": "16, 10 or null"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "string"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 46,
+    "kind": "method",
+    "name": "levelToContrastRatio",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#levelToContrastRatio",
+    "access": "private",
+    "description": "",
+    "lineNumber": 420,
+    "params": [
+      {
+        "name": "level",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "number"
+      ]
+    }
+  },
+  {
+    "__docId__": 47,
+    "kind": "method",
+    "name": "calcNewContrast",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#calcNewContrast",
+    "access": "private",
+    "description": "",
+    "lineNumber": 433,
+    "params": [
+      {
+        "name": "origColor",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "ratio",
+        "optional": true,
+        "types": [
+          "number"
+        ],
+        "defaultRaw": 100,
+        "defaultValue": "100"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 48,
+    "kind": "method",
+    "name": "calcNewBrightness",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#calcNewBrightness",
+    "access": "private",
+    "description": "",
+    "lineNumber": 445,
+    "params": [
+      {
+        "name": "origColor",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "ratio",
+        "optional": true,
+        "types": [
+          "number"
+        ],
+        "defaultRaw": 100,
+        "defaultValue": "100"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 49,
+    "kind": "method",
+    "name": "calcUpperRatioLimit",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#calcUpperRatioLimit",
+    "access": "private",
+    "description": "",
+    "lineNumber": 456,
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 50,
+    "kind": "method",
+    "name": "brightnessThresholdCriteria",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#brightnessThresholdCriteria",
+    "access": "private",
+    "description": "",
+    "lineNumber": 470,
+    "params": [
+      {
+        "name": "targetRatio",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "otherColor",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 51,
+    "kind": "method",
+    "name": "isBrighterThan",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isBrighterThan",
+    "access": null,
+    "description": "",
+    "lineNumber": 489,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} true if the relative luminance of the base color is greater than that of otherColor"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "otherColor",
+        "description": ""
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "true if the relative luminance of the base color is greater than that of otherColor"
+    }
+  },
+  {
+    "__docId__": 52,
+    "kind": "method",
+    "name": "hasSameLuminance",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#hasSameLuminance",
+    "access": null,
+    "description": "",
+    "lineNumber": 497,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} true if the relative luminance of the base color is equal to that of otherColor"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "ColorContrastCalc"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "otherColor",
+        "description": ""
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "true if the relative luminance of the base color is equal to that of otherColor"
+    }
+  },
+  {
+    "__docId__": 53,
+    "kind": "method",
+    "name": "isLightColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isLightColor",
+    "access": null,
+    "description": "",
+    "lineNumber": 504,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} true if the contrast ratio against white is qual to/ less than the ratio against black"
+      }
+    ],
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "true if the contrast ratio against white is qual to/ less than the ratio against black"
+    }
+  },
+  {
+    "__docId__": 54,
+    "kind": "method",
+    "name": "freezeProperties",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#freezeProperties",
+    "access": "private",
+    "description": "",
+    "lineNumber": 511,
+    "params": []
+  },
+  {
+    "__docId__": 55,
+    "kind": "method",
+    "name": "clampToRange",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#clampToRange",
+    "access": "private",
+    "description": "",
+    "lineNumber": 521,
+    "params": [
+      {
+        "name": "value",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "lowerBound",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "upperBound",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 56,
+    "kind": "method",
+    "name": "generateNewColor",
+    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#generateNewColor",
+    "access": "private",
+    "description": "",
+    "lineNumber": 533,
+    "params": [
+      {
+        "name": "calc",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "ratio",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "name",
+        "optional": true,
+        "types": [
+          "undefined"
+        ],
+        "defaultValue": "undefined"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 58,
+    "kind": "external",
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 59,
+    "kind": "external",
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 60,
+    "kind": "external",
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 61,
+    "kind": "external",
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 62,
+    "kind": "external",
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 63,
+    "kind": "external",
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 64,
+    "kind": "external",
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 65,
+    "kind": "external",
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 66,
+    "kind": "external",
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 67,
+    "kind": "external",
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 68,
+    "kind": "external",
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 69,
+    "kind": "external",
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 70,
+    "kind": "external",
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 71,
+    "kind": "external",
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 72,
+    "kind": "external",
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 73,
+    "kind": "external",
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 74,
+    "kind": "external",
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 75,
+    "kind": "external",
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 76,
+    "kind": "external",
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 77,
+    "kind": "external",
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 78,
+    "kind": "external",
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 79,
+    "kind": "external",
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 80,
+    "kind": "external",
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 81,
+    "kind": "external",
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 82,
+    "kind": "external",
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 83,
+    "kind": "external",
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 84,
+    "kind": "external",
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "external",
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 86,
+    "kind": "external",
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 87,
+    "kind": "external",
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 88,
+    "kind": "external",
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 89,
+    "kind": "external",
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 90,
+    "kind": "external",
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 91,
+    "kind": "external",
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 92,
+    "kind": "external",
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 93,
+    "kind": "external",
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 94,
+    "kind": "external",
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 95,
+    "kind": "external",
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 96,
+    "kind": "external",
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 97,
+    "kind": "external",
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 98,
+    "kind": "external",
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 99,
+    "kind": "external",
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 100,
+    "kind": "external",
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 101,
+    "kind": "external",
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 102,
+    "kind": "external",
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 103,
+    "kind": "external",
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 104,
+    "kind": "external",
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "lineNumber": 193,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 106,
+    "kind": "external",
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 107,
+    "kind": "external",
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 108,
+    "kind": "external",
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 109,
+    "kind": "external",
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 110,
+    "kind": "external",
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 111,
+    "kind": "external",
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 112,
+    "kind": "external",
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 113,
+    "kind": "external",
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "static": true,
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "lineNumber": 34,
+    "builtinExternal": true
+  }
+]
