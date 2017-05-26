@@ -1,0 +1,24 @@
+{
+  "name": "color-contrast-calc",
+  "version": "0.1.0",
+  "description": "Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind",
+  "homepage": "https://github.com/nico-hn/color-contrast-calc",
+  "main": "index.js",
+  "author": "HASHIMOTO, Naoki",
+  "license": "MIT",
+  "scripts": {
+    "test": "mocha",
+    "lint": "eslint *.js lib/*.js test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nico-hn/color-contrast-calc.git"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "esdoc": "^0.5.2",
+    "eslint": "^3.19.0",
+    "mocha": "^3.3.0",
+    "sinon": "^2.2.0"
+  }
+}
