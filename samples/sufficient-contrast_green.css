@@ -137,7 +137,7 @@ td.aquamarine {
 }
 
 #aquamarine_A {
-  background: #000000;
+  background: #6cdab5;
 }
 
 #aquamarine_AA {
@@ -157,7 +157,7 @@ td.level_no {
 }
 
 #grayscale_aquamarine_A {
-  background: #000000;
+  background: #c0c0c0;
 }
 
 #grayscale_aquamarine_AA {
@@ -557,7 +557,7 @@ td.cadetblue {
 }
 
 #cadetblue_A {
-  background: #000000;
+  background: #7fd4d6;
 }
 
 #cadetblue_AA {
@@ -577,7 +577,7 @@ td.level_no {
 }
 
 #grayscale_cadetblue_A {
-  background: #000000;
+  background: #c2c2c2;
 }
 
 #grayscale_cadetblue_AA {
@@ -599,7 +599,7 @@ td.chartreuse {
 }
 
 #chartreuse_A {
-  background: #000000;
+  background: #6fe000;
 }
 
 #chartreuse_AA {
@@ -619,7 +619,7 @@ td.level_no {
 }
 
 #grayscale_chartreuse_A {
-  background: #000000;
+  background: #b8b8b8;
 }
 
 #grayscale_chartreuse_AA {
@@ -683,7 +683,7 @@ td.coral {
 }
 
 #coral_A {
-  background: #000000;
+  background: #ffb773;
 }
 
 #coral_AA {
@@ -703,7 +703,7 @@ td.level_no {
 }
 
 #grayscale_coral_A {
-  background: #000000;
+  background: #c1c1c1;
 }
 
 #grayscale_coral_AA {
@@ -1145,7 +1145,7 @@ td.darkkhaki {
 }
 
 #darkkhaki_A {
-  background: #000000;
+  background: #cfc975;
 }
 
 #darkkhaki_AA {
@@ -1165,7 +1165,7 @@ td.level_no {
 }
 
 #grayscale_darkkhaki_A {
-  background: #000000;
+  background: #c4c4c4;
 }
 
 #grayscale_darkkhaki_AA {
@@ -1229,11 +1229,11 @@ td.darkolivegreen {
 }
 
 #darkolivegreen_A {
-  background: #ffffff;
+  background: #1f2711;
 }
 
 #darkolivegreen_AA {
-  background: #ffffff;
+  background: #000000;
 }
 
 #darkolivegreen_AAA {
@@ -1249,11 +1249,11 @@ td.level_no {
 }
 
 #grayscale_darkolivegreen_A {
-  background: #ffffff;
+  background: #242424;
 }
 
 #grayscale_darkolivegreen_AA {
-  background: #ffffff;
+  background: #000000;
 }
 
 #grayscale_darkolivegreen_AAA {
@@ -1523,7 +1523,7 @@ td.darkslategray {
 }
 
 #darkslategray_A {
-  background: #ffffff;
+  background: #172727;
 }
 
 #darkslategray_AA {
@@ -1543,7 +1543,7 @@ td.level_no {
 }
 
 #grayscale_darkslategray_A {
-  background: #ffffff;
+  background: #242424;
 }
 
 #grayscale_darkslategray_AA {
@@ -1565,7 +1565,7 @@ td.darkslategrey {
 }
 
 #darkslategrey_A {
-  background: #ffffff;
+  background: #172727;
 }
 
 #darkslategrey_AA {
@@ -1585,7 +1585,7 @@ td.level_no {
 }
 
 #grayscale_darkslategrey_A {
-  background: #ffffff;
+  background: #242424;
 }
 
 #grayscale_darkslategrey_AA {
@@ -2615,7 +2615,7 @@ td.khaki {
 }
 
 #khaki_A {
-  background: #000000;
+  background: #d1c97a;
 }
 
 #khaki_AA {
@@ -2635,7 +2635,7 @@ td.level_no {
 }
 
 #grayscale_khaki_A {
-  background: #000000;
+  background: #c5c5c5;
 }
 
 #grayscale_khaki_AA {
@@ -2741,7 +2741,7 @@ td.lawngreen {
 }
 
 #lawngreen_A {
-  background: #000000;
+  background: #6ee000;
 }
 
 #lawngreen_AA {
@@ -2761,7 +2761,7 @@ td.level_no {
 }
 
 #grayscale_lawngreen_A {
-  background: #000000;
+  background: #b8b8b8;
 }
 
 #grayscale_lawngreen_AA {
@@ -3665,7 +3665,7 @@ td.mediumaquamarine {
 }
 
 #mediumaquamarine_A {
-  background: #000000;
+  background: #6cdab4;
 }
 
 #mediumaquamarine_AA {
@@ -3685,7 +3685,7 @@ td.level_no {
 }
 
 #grayscale_mediumaquamarine_A {
-  background: #000000;
+  background: #c0c0c0;
 }
 
 #grayscale_mediumaquamarine_AA {
@@ -3833,7 +3833,7 @@ td.mediumseagreen {
 }
 
 #mediumseagreen_A {
-  background: #000000;
+  background: #4be08d;
 }
 
 #mediumseagreen_AA {
@@ -3853,7 +3853,7 @@ td.level_no {
 }
 
 #grayscale_mediumseagreen_A {
-  background: #000000;
+  background: #bababa;
 }
 
 #grayscale_mediumseagreen_AA {
@@ -3959,7 +3959,7 @@ td.mediumturquoise {
 }
 
 #mediumturquoise_A {
-  background: #000000;
+  background: #4bdad4;
 }
 
 #mediumturquoise_AA {
@@ -3979,7 +3979,7 @@ td.level_no {
 }
 
 #grayscale_mediumturquoise_A {
-  background: #000000;
+  background: #bbbbbb;
 }
 
 #grayscale_mediumturquoise_AA {
@@ -4799,7 +4799,7 @@ td.peru {
 }
 
 #peru_A {
-  background: #000000;
+  background: #ffb957;
 }
 
 #peru_AA {
@@ -4819,7 +4819,7 @@ td.level_no {
 }
 
 #grayscale_peru_A {
-  background: #000000;
+  background: #c1c1c1;
 }
 
 #grayscale_peru_AA {
@@ -5139,7 +5139,7 @@ td.saddlebrown {
 }
 
 #saddlebrown_AA {
-  background: #ffffff;
+  background: #000000;
 }
 
 #saddlebrown_AAA {
@@ -5159,7 +5159,7 @@ td.level_no {
 }
 
 #grayscale_saddlebrown_AA {
-  background: #ffffff;
+  background: #000000;
 }
 
 #grayscale_saddlebrown_AAA {
@@ -5219,7 +5219,7 @@ td.sandybrown {
 }
 
 #sandybrown_A {
-  background: #000000;
+  background: #ffb86b;
 }
 
 #sandybrown_AA {
@@ -5239,7 +5239,7 @@ td.level_no {
 }
 
 #grayscale_sandybrown_A {
-  background: #000000;
+  background: #c2c2c2;
 }
 
 #grayscale_sandybrown_AA {
@@ -5261,7 +5261,7 @@ td.seagreen {
 }
 
 #seagreen_A {
-  background: #000000;
+  background: #4ae08c;
 }
 
 #seagreen_AA {
@@ -5281,7 +5281,7 @@ td.level_no {
 }
 
 #grayscale_seagreen_A {
-  background: #000000;
+  background: #bababa;
 }
 
 #grayscale_seagreen_AA {
@@ -5345,7 +5345,7 @@ td.sienna {
 }
 
 #sienna_A {
-  background: #ffffff;
+  background: #391d10;
 }
 
 #sienna_AA {
@@ -5365,7 +5365,7 @@ td.level_no {
 }
 
 #grayscale_sienna_A {
-  background: #ffffff;
+  background: #222222;
 }
 
 #grayscale_sienna_AA {
@@ -5639,7 +5639,7 @@ td.springgreen {
 }
 
 #springgreen_A {
-  background: #000000;
+  background: #00e471;
 }
 
 #springgreen_AA {
@@ -5659,7 +5659,7 @@ td.level_no {
 }
 
 #grayscale_springgreen_A {
-  background: #000000;
+  background: #ababab;
 }
 
 #grayscale_springgreen_AA {
@@ -5681,7 +5681,7 @@ td.steelblue {
 }
 
 #steelblue_A {
-  background: #000000;
+  background: #71d1ff;
 }
 
 #steelblue_AA {
@@ -5701,7 +5701,7 @@ td.level_no {
 }
 
 #grayscale_steelblue_A {
-  background: #000000;
+  background: #c0c0c0;
 }
 
 #grayscale_steelblue_AA {
