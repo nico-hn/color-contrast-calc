@@ -600,6 +600,7 @@ describe("ColorContrastCalc", () => {
     const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
     const mintcream = ColorContrastCalc.NAME_TO_COLOR.get("mintcream");
     const yellow = ColorContrastCalc.NAME_TO_COLOR.get("yellow");
+    const springgreen = ColorContrastCalc.NAME_TO_COLOR.get("springgreen");
 
     it("expects to return a darker orange if orange is passed", function() {
       const threshold = orange.findBrightnessThreshold(orange);
@@ -668,6 +669,11 @@ describe("ColorContrastCalc", () => {
       expect(aColor.hexCode).to.equal("#ffffff");
       expect(aaColor.hexCode).to.equal("#ffffff");
       expect(aaaColor.hexCode).to.equal("#ffffff");
+    });
+
+    it("expects to return darker green when springgreen is passed to green", function() {
+      const aColor = green.findBrightnessThreshold(springgreen, "A");
+      expect(green.contrastRatioAgainst(aColor)).to.be.closeTo(3.0, 0.5);
     });
   });
 
