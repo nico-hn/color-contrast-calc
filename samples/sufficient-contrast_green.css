@@ -641,7 +641,7 @@ td.chocolate {
 }
 
 #chocolate_A {
-  background: #000000;
+  background: #ffba35;
 }
 
 #chocolate_AA {
@@ -661,7 +661,7 @@ td.level_no {
 }
 
 #grayscale_chocolate_A {
-  background: #000000;
+  background: #bfbfbf;
 }
 
 #grayscale_chocolate_AA {
@@ -977,7 +977,7 @@ td.darkgoldenrod {
 }
 
 #darkgoldenrod_A {
-  background: #000000;
+  background: #ffba0f;
 }
 
 #darkgoldenrod_AA {
@@ -997,7 +997,7 @@ td.level_no {
 }
 
 #grayscale_darkgoldenrod_A {
-  background: #000000;
+  background: #bcbcbc;
 }
 
 #grayscale_darkgoldenrod_AA {
@@ -1229,11 +1229,11 @@ td.darkolivegreen {
 }
 
 #darkolivegreen_A {
-  background: #1f2711;
+  background: #ffffff;
 }
 
 #darkolivegreen_AA {
-  background: #000000;
+  background: #ffffff;
 }
 
 #darkolivegreen_AAA {
@@ -1249,11 +1249,11 @@ td.level_no {
 }
 
 #grayscale_darkolivegreen_A {
-  background: #242424;
+  background: #ffffff;
 }
 
 #grayscale_darkolivegreen_AA {
-  background: #000000;
+  background: #ffffff;
 }
 
 #grayscale_darkolivegreen_AAA {
@@ -1523,7 +1523,7 @@ td.darkslategray {
 }
 
 #darkslategray_A {
-  background: #172727;
+  background: #ffffff;
 }
 
 #darkslategray_AA {
@@ -1543,7 +1543,7 @@ td.level_no {
 }
 
 #grayscale_darkslategray_A {
-  background: #242424;
+  background: #ffffff;
 }
 
 #grayscale_darkslategray_AA {
@@ -1565,7 +1565,7 @@ td.darkslategrey {
 }
 
 #darkslategrey_A {
-  background: #172727;
+  background: #ffffff;
 }
 
 #darkslategrey_AA {
@@ -1585,7 +1585,7 @@ td.level_no {
 }
 
 #grayscale_darkslategrey_A {
-  background: #242424;
+  background: #ffffff;
 }
 
 #grayscale_darkslategrey_AA {
@@ -1859,7 +1859,7 @@ td.dodgerblue {
 }
 
 #dodgerblue_A {
-  background: #000000;
+  background: #2dd7ff;
 }
 
 #dodgerblue_AA {
@@ -1879,7 +1879,7 @@ td.level_no {
 }
 
 #grayscale_dodgerblue_A {
-  background: #000000;
+  background: #b6b6b6;
 }
 
 #grayscale_dodgerblue_AA {
@@ -1985,7 +1985,7 @@ td.forestgreen {
 }
 
 #forestgreen_A {
-  background: #000000;
+  background: #38e438;
 }
 
 #forestgreen_AA {
@@ -2005,7 +2005,7 @@ td.level_no {
 }
 
 #grayscale_forestgreen_A {
-  background: #000000;
+  background: #b3b3b3;
 }
 
 #grayscale_forestgreen_AA {
@@ -2195,7 +2195,7 @@ td.goldenrod {
 }
 
 #goldenrod_A {
-  background: #000000;
+  background: #f9bd25;
 }
 
 #goldenrod_AA {
@@ -2215,7 +2215,7 @@ td.level_no {
 }
 
 #grayscale_goldenrod_A {
-  background: #000000;
+  background: #bfbfbf;
 }
 
 #grayscale_goldenrod_AA {
@@ -2321,7 +2321,7 @@ td.greenyellow {
 }
 
 #greenyellow_A {
-  background: #000000;
+  background: #94da28;
 }
 
 #greenyellow_AA {
@@ -2341,7 +2341,7 @@ td.level_no {
 }
 
 #grayscale_greenyellow_A {
-  background: #000000;
+  background: #bebebe;
 }
 
 #grayscale_greenyellow_AA {
@@ -3203,7 +3203,7 @@ td.lightseagreen {
 }
 
 #lightseagreen_A {
-  background: #000000;
+  background: #28ddd3;
 }
 
 #lightseagreen_AA {
@@ -3223,7 +3223,7 @@ td.level_no {
 }
 
 #grayscale_lightseagreen_A {
-  background: #000000;
+  background: #b6b6b6;
 }
 
 #grayscale_lightseagreen_AA {
@@ -3497,7 +3497,7 @@ td.limegreen {
 }
 
 #limegreen_A {
-  background: #000000;
+  background: #38e438;
 }
 
 #limegreen_AA {
@@ -3517,7 +3517,7 @@ td.level_no {
 }
 
 #grayscale_limegreen_A {
-  background: #000000;
+  background: #b3b3b3;
 }
 
 #grayscale_limegreen_AA {
@@ -4379,7 +4379,7 @@ td.olivedrab {
 }
 
 #olivedrab_A {
-  background: #000000;
+  background: #a2d735;
 }
 
 #olivedrab_AA {
@@ -4399,7 +4399,7 @@ td.level_no {
 }
 
 #grayscale_olivedrab_A {
-  background: #000000;
+  background: #c0c0c0;
 }
 
 #grayscale_olivedrab_AA {
@@ -5139,7 +5139,7 @@ td.saddlebrown {
 }
 
 #saddlebrown_AA {
-  background: #000000;
+  background: #ffffff;
 }
 
 #saddlebrown_AAA {
@@ -5159,7 +5159,7 @@ td.level_no {
 }
 
 #grayscale_saddlebrown_AA {
-  background: #000000;
+  background: #ffffff;
 }
 
 #grayscale_saddlebrown_AAA {
@@ -5345,7 +5345,7 @@ td.sienna {
 }
 
 #sienna_A {
-  background: #391d10;
+  background: #ffffff;
 }
 
 #sienna_AA {
@@ -5365,7 +5365,7 @@ td.level_no {
 }
 
 #grayscale_sienna_A {
-  background: #222222;
+  background: #ffffff;
 }
 
 #grayscale_sienna_AA {
@@ -5891,7 +5891,7 @@ td.turquoise {
 }
 
 #turquoise_A {
-  background: #000000;
+  background: #3fdccc;
 }
 
 #turquoise_AA {
@@ -5911,7 +5911,7 @@ td.level_no {
 }
 
 #grayscale_turquoise_A {
-  background: #000000;
+  background: #b9b9b9;
 }
 
 #grayscale_turquoise_AA {
@@ -6143,7 +6143,7 @@ td.yellowgreen {
 }
 
 #yellowgreen_A {
-  background: #000000;
+  background: #a1d734;
 }
 
 #yellowgreen_AA {
@@ -6163,7 +6163,7 @@ td.level_no {
 }
 
 #grayscale_yellowgreen_A {
-  background: #000000;
+  background: #c0c0c0;
 }
 
 #grayscale_yellowgreen_AA {
