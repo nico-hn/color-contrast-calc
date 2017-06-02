@@ -598,6 +598,8 @@ describe("ColorContrastCalc", () => {
     const white = ColorContrastCalc.WHITE;
     const darkgreen = ColorContrastCalc.NAME_TO_COLOR.get("darkgreen");
     const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
+    const mintcream = ColorContrastCalc.NAME_TO_COLOR.get("mintcream");
+    const yellow = ColorContrastCalc.NAME_TO_COLOR.get("yellow");
 
     it("expects to return a darker orange if orange is passed", function() {
       const threshold = orange.findBrightnessThreshold(orange);
@@ -653,6 +655,19 @@ describe("ColorContrastCalc", () => {
     it("expects to return black for AAA if blue is passed to green", function() {
       const newColor = green.findBrightnessThreshold(blue, "AAA");
       expect(newColor.isSameColor(ColorContrastCalc.BLACK)).to.be.true;
+    });
+
+    it("expects to return white when mintcream is passed to yellow", function() {
+      const aColor = yellow.findBrightnessThreshold(mintcream, "A");
+      const aaColor = yellow.findBrightnessThreshold(mintcream, "AA");
+      const aaaColor = yellow.findBrightnessThreshold(mintcream, "AAA");
+      const newColor = mintcream.newBrightnessColor(105);
+      expect(mintcream.calcUpperRatioLimit()).to.equal(105);
+      expect(mintcream.isBrighterThan(yellow)).to.be.true;
+      expect(newColor.hexCode).to.equal("#ffffff");
+      expect(aColor.hexCode).to.equal("#ffffff");
+      expect(aaColor.hexCode).to.equal("#ffffff");
+      expect(aaaColor.hexCode).to.equal("#ffffff");
     });
   });
 
