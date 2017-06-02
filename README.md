@@ -26,9 +26,9 @@ console.log(yellow.contrastLevel(black));
 And execute the script:
 
 ```
-    $ node yellow-black-contrast.js
-    19.555999999999997
-    AAA
+$ node yellow-black-contrast.js
+19.555999999999997
+AAA
 ```
 
 Please refer to the [documentation](http://htmlpreview.github.io/?https://github.com/nico-hn/color-contrast-calc/blob/develop/doc/class/lib/color-contrast-calc.js~ColorContrastCalc.html) for the details.
