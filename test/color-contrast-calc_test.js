@@ -206,7 +206,7 @@ describe("ColorContrastCalc", () => {
           ds.push(d);
         }
 
-        expect(ds).to.deep.equal([100, 50, 25, 12.5, 6.25, 3.125, 1.5625]);
+        expect(ds).to.deep.equal([50, 25, 12.5, 6.25, 3.125, 1.5625]);
       });
     });
   });
@@ -601,6 +601,8 @@ describe("ColorContrastCalc", () => {
     const mintcream = ColorContrastCalc.NAME_TO_COLOR.get("mintcream");
     const yellow = ColorContrastCalc.NAME_TO_COLOR.get("yellow");
     const springgreen = ColorContrastCalc.NAME_TO_COLOR.get("springgreen");
+    const fuchsia = ColorContrastCalc.NAME_TO_COLOR.get("fuchsia");
+    const azure = ColorContrastCalc.NAME_TO_COLOR.get("azure");
 
     it("expects to return a darker orange if orange is passed", function() {
       const threshold = orange.findBrightnessThreshold(orange);
@@ -674,6 +676,12 @@ describe("ColorContrastCalc", () => {
     it("expects to return darker green when springgreen is passed to green", function() {
       const aColor = green.findBrightnessThreshold(springgreen, "A");
       expect(green.contrastRatioAgainst(aColor)).to.be.closeTo(3.0, 0.5);
+    });
+
+    it("expects to return a darker color when azure is passed to fuchsia", function() {
+      const threshold = fuchsia.findBrightnessThreshold(azure, "A");
+      expect(azure.isBrighterThan(threshold)).to.be.true;
+      expect(fuchsia.contrastRatioAgainst(threshold)).to.be.closeTo(3.0, 0.5);
     });
   });
 
