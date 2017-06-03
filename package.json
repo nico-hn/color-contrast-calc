@@ -15,6 +15,7 @@
     "url": "https://github.com/nico-hn/color-contrast-calc.git"
   },
   "devDependencies": {
+    "browserify": "^14.4.0",
     "chai": "^3.5.0",
     "esdoc": "^0.5.2",
     "eslint": "^3.19.0",
