@@ -133,7 +133,7 @@ class ColorContrastCalc {
   }
 
   /**
-   * Check if a given array is a valid representation of RGB color.
+   * Checks if a given array is a valid representation of RGB color.
    * @param {Array&lt;number, number, number&gt;} rgb - RGB value represented as an array of numbers
    * @returns {boolean} true if the argument is a valid RGB color
    */
@@ -144,7 +144,7 @@ class ColorContrastCalc {
   }
 
   /**
-   * Check if a given string is a valid representation of RGB color.
+   * Checks if a given string is a valid representation of RGB color.
    * @param {string} code - RGB value in hex code
    * @returns {boolean} returns true if then argument is a valid RGB color
    */
@@ -361,17 +361,13 @@ class ColorContrastCalc {
     const targetRatio = this.levelToContrastRatio(level);
     const criteria = this.brightnessThresholdCriteria(targetRatio, otherColor);
     const w = otherColor.calcUpperRatioLimit() / 2;
-    let r = w;
-    let lastSufficentRatio = null;
+    const upperColor = otherColor.newBrightnessColor(w * 2);
 
-    for (let d of ColorContrastCalc.binarySearchWidth(w, 0.01)) {
-      let newColor = otherColor.newBrightnessColor(r);
-      let contrastRatio = newColor.contrastRatioAgainst(this);
-
-      if (contrastRatio &gt;= targetRatio) { lastSufficentRatio = r; }
-      if (contrastRatio === targetRatio) { break; }
-      r += criteria.incrementCondition(contrastRatio) ? d : -d;
+    if (otherColor.isBrighterThan(this) &amp;&amp; ! upperColor.hasSufficientContrast(this, level)) {
+      return upperColor;
     }
+
+    const [r, lastSufficentRatio] = this.calcBrightnessRatio(otherColor, targetRatio, criteria, w);
 
     const nearestColor = otherColor.newBrightnessColor(criteria.round(r));
 
@@ -400,7 +396,7 @@ class ColorContrastCalc {
   }
 
   /**
-   * Check if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0
+   * Checks if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0
    * @param {ColorContrastCalc} otherColor
    * @param {string} [level=&quot;AA&quot;] - A, AA or AAA
    * @returns {boolean}
@@ -411,7 +407,7 @@ class ColorContrastCalc {
   }
 
   /**
-   * Check if the base color and otherColor have the same RGB value
+   * Checks if the base color and otherColor have the same RGB value
    * @param {ColorContrastCalc} otherColor
    * @returns {boolean}
    */
@@ -488,6 +484,25 @@ class ColorContrastCalc {
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
     return this.clampToRange(Math.round(origColor * ratio / 100), 0, 255);
+  }
+
+  /**
+   * @private
+   */
+  calcBrightnessRatio(otherColor, targetRatio, criteria, w) {
+    let r = w;
+    let lastSufficentRatio = null;
+
+    for (let d of ColorContrastCalc.binarySearchWidth(w, 0.01)) {
+      let newColor = otherColor.newBrightnessColor(r);
+      let contrastRatio = newColor.contrastRatioAgainst(this);
+
+      if (contrastRatio &gt;= targetRatio) { lastSufficentRatio = r; }
+      if (contrastRatio === targetRatio) { break; }
+      r += criteria.incrementCondition(contrastRatio) ? d : -d;
+    }
+
+    return [r, lastSufficentRatio];
   }
 
   /**
@@ -579,7 +594,7 @@ class ColorContrastCalc {
 }
 
 ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
-  let i = 0;
+  let i = 1;
   let d = initWidth / Math.pow(2, i);
 
   while (d &gt; min) {
@@ -711,7 +726,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
 ColorContrastCalc.setup(require(&quot;./color-keywords.json&quot;));
 
-module.exports.ColorContrastCalc = ColorContrastCalc;
+//module.exports.ColorContrastCalc = ColorContrastCalc;
+
 export { ColorContrastCalc };
 </code></pre>
 
