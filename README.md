@@ -17,18 +17,31 @@ save the following code as `yellow-black-contrast.js`:
 const ColorContrastCalc = require("color-contrast-calc").ColorContrastCalc;
 
 const yellow = ColorContrastCalc.getByName("yellow");
+const orange = ColorContrastCalc.getByName("orange");
 const black = ColorContrastCalc.getByName("black");
+const aOrange = yellow.findBrightnessThreshold(orange, "A");
+const aaOrange = yellow.findBrightnessThreshold(orange, "AA");
 
-console.log(yellow.contrastRatioAgainst(black));
-console.log(yellow.contrastLevel(black));
+
+console.log(`contast ratio between yellow and black: ${yellow.contrastRatioAgainst(black)}`);
+console.log(`contrast level: ${yellow.contrastLevel(black)}`);
+
+console.log(`aOrange: ${aOrange.hexCode}`);
+console.log(`contrast ratio between yellow and aOrange: ${yellow.contrastRatioAgainst(aOrange)}`);
+console.log(`aaOrange: ${aaOrange.hexCode}`);
+console.log(`contrast ratio between yellow and aaOrange: ${yellow.contrastRatioAgainst(aaOrange)}`);
 ```
 
 And execute the script:
 
 ```
 $ node yellow-black-contrast.js
-19.555999999999997
-AAA
+contast ratio between yellow and black: 19.555999999999997
+contrast level: AAA
+aOrange: #c68000
+contrast ratio between yellow and aOrange: 3.013798229247296
+aaOrange: #9d6600
+contrast ratio between yellow and aaOrange: 4.512053816540577
 ```
 
 Please refer to the [documentation](http://htmlpreview.github.io/?https://github.com/nico-hn/color-contrast-calc/blob/develop/doc/class/lib/color-contrast-calc.js~ColorContrastCalc.html) for the details.
