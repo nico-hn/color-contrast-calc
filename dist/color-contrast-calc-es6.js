@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ColorContrastCalc = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
 module.exports = require("./lib/color-contrast-calc");
@@ -99,7 +99,7 @@ class ColorContrastCalc {
   }
 
   /**
-   * Check if a given array is a valid representation of RGB color.
+   * Checks if a given array is a valid representation of RGB color.
    * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers
    * @returns {boolean} true if the argument is a valid RGB color
    */
@@ -110,7 +110,7 @@ class ColorContrastCalc {
   }
 
   /**
-   * Check if a given string is a valid representation of RGB color.
+   * Checks if a given string is a valid representation of RGB color.
    * @param {string} code - RGB value in hex code
    * @returns {boolean} returns true if then argument is a valid RGB color
    */
@@ -362,7 +362,7 @@ class ColorContrastCalc {
   }
 
   /**
-   * Check if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0
+   * Checks if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0
    * @param {ColorContrastCalc} otherColor
    * @param {string} [level="AA"] - A, AA or AAA
    * @returns {boolean}
@@ -373,7 +373,7 @@ class ColorContrastCalc {
   }
 
   /**
-   * Check if the base color and otherColor have the same RGB value
+   * Checks if the base color and otherColor have the same RGB value
    * @param {ColorContrastCalc} otherColor
    * @returns {boolean}
    */
@@ -845,4 +845,5 @@ module.exports=[
   ["yellowgreen", "#9acd32"]
 ]
 
-},{}]},{},[1]);
+},{}]},{},[1])(1)
+});
