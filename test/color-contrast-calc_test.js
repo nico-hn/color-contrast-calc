@@ -209,6 +209,30 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("sort", function() {
+      const black = new ColorContrastCalc("#000000");
+      const gray = new ColorContrastCalc("#808080");
+      const blue = new ColorContrastCalc("#0000ff");
+      const yellow = new ColorContrastCalc("#ffff00");
+      const orange = new ColorContrastCalc("#ffa500");
+
+      it("expects to return [black, orange, yellow] when [black, yellow, orange] is passed", function() {
+        expect(ColorContrastCalc.sort([black, yellow, orange])).to.deep.equal([black, orange, yellow]);
+      });
+
+      it("expects to return [black, orange, yellow] when [yellow, black, orange] is passed", function() {
+        expect(ColorContrastCalc.sort([yellow, black, orange])).to.deep.equal([black, orange, yellow]);
+      });
+
+      it("expects to return [black, gray, orange, yellow] when [yellow, black, orange, gray] is passed", function() {
+        expect(ColorContrastCalc.sort([yellow, black, orange, gray])).to.deep.equal([black, gray, orange, yellow]);
+      });
+
+      it("expects to return [black, blue, orange, yellow] when [yellow, black, orange, blue] is passed", function() {
+        expect(ColorContrastCalc.sort([yellow, black, orange, blue])).to.deep.equal([black, blue, orange, yellow]);
+      });
+    });
+
     describe("compare", function() {
       const yellow = new ColorContrastCalc("#ffff00");
       const orange = new ColorContrastCalc("#ffa500");
