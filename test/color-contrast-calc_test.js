@@ -209,6 +209,23 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("compare", function() {
+      const yellow = new ColorContrastCalc("#ffff00");
+      const orange = new ColorContrastCalc("#ffa500");
+
+      it("expects to return a positive number when yellow and orange are passed", function() {
+        expect(ColorContrastCalc.compare(yellow, orange)).to.be.greaterThan(0);
+      });
+
+      it("expects to return a negative number when orange and yellow are passed", function() {
+        expect(ColorContrastCalc.compare(orange, yellow)).to.be.lessThan(0);
+      });
+
+      it("expects to return zero when two arguments are same", function() {
+        expect(ColorContrastCalc.compare(orange, orange)).to.equal(0);
+      });
+    });
+
     describe("binarySearchRange", function() {
       it("expects to return a smaller value for each iteration", function() {
         let ds = [];
