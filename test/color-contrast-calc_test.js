@@ -236,6 +236,8 @@ describe("ColorContrastCalc", () => {
     describe("compare", function() {
       const yellow = new ColorContrastCalc("#ffff00");
       const orange = new ColorContrastCalc("#ffa500");
+      const deepskyblue = new ColorContrastCalc("#00bfff");
+      const springgreen = new ColorContrastCalc("#00ff7f");
 
       it("expects to return a positive number when yellow and orange are passed", function() {
         expect(ColorContrastCalc.compare(yellow, orange)).to.be.greaterThan(0);
@@ -247,6 +249,14 @@ describe("ColorContrastCalc", () => {
 
       it("expects to return zero when two arguments are same", function() {
         expect(ColorContrastCalc.compare(orange, orange)).to.equal(0);
+      });
+
+      it("expects to return a positive number when orange and deepskyblue are passed", function() {
+        expect(ColorContrastCalc.compare(orange, deepskyblue)).to.be.greaterThan(0);
+      });
+
+      it("expects to return a negative number when deepskyblue and springgreen are passed", function() {
+        expect(ColorContrastCalc.compare(deepskyblue, springgreen)).to.be.lessThan(0);
       });
     });
 
