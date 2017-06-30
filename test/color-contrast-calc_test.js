@@ -399,6 +399,34 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("Sorter.caseInsensitiveComp", function() {
+      const caseInsensitiveComp = ColorContrastCalc.Sorter.caseInsensitiveComp;
+
+      it("expects to return a positive number when 'r'and 'g' is passed", function() {
+        expect(caseInsensitiveComp("r", "g")).to.be.greaterThan(0);
+      });
+
+      it("expects to return a negative number when 'g'and 'r' is passed", function() {
+        expect(caseInsensitiveComp("g", "r")).to.be.lessThan(0);
+      });
+
+      it("expects to return 0 when 'r'and 'r' is passed", function() {
+        expect(caseInsensitiveComp("r", "r")).to.equal(0);
+      });
+
+      it("expects to return a positive number when 'R'and 'g' is passed", function() {
+        expect(caseInsensitiveComp("R", "g")).to.be.greaterThan(0);
+      });
+
+      it("expects to return a negative number when 'g'and 'R' is passed", function() {
+        expect(caseInsensitiveComp("g", "R")).to.be.lessThan(0);
+      });
+
+      it("expects to return 0 when 'r'and 'R' is passed", function() {
+        expect(caseInsensitiveComp("r", "R")).to.equal(0);
+      });
+    });
+
     describe("binarySearchRange", function() {
       it("expects to return a smaller value for each iteration", function() {
         let ds = [];
