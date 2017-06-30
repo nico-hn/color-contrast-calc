@@ -117,6 +117,16 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("isUpperCase", function() {
+      it("expects to return true when 'U' is passed", function() {
+        expect(ColorContrastCalc.isUpperCase("U")).to.be.true;
+      });
+
+      it("expects to return false when 'u' is passed", function() {
+        expect(ColorContrastCalc.isUpperCase("u")).to.be.false;
+      });
+    });
+
     describe("NAMED_COLORS", function() {
       it("expects to contain predefined instances of ColorContrastCalc", function() {
         expect(ColorContrastCalc.NAMED_COLORS[0]).to.be.instanceof(ColorContrastCalc);
