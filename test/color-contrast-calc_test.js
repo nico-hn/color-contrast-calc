@@ -423,6 +423,109 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("compareHexFunc", function() {
+      const yellow = "#ffff00";
+      const orange = "#ffa500";
+      const deepskyblue = "#00bfff";
+      const springgreen = "#00ff7f";
+
+      context("when colorOrder is 'rgb'", function() {
+        const compare = ColorContrastCalc.Sorter.compareHexFunction("rgb");
+
+        it("expects to return a positive number when yellow and orange are passed", function() {
+          expect(compare(yellow, orange)).to.be.greaterThan(0);
+        });
+
+        it("expects to return a negative number when orange and yellow are passed", function() {
+          expect(compare(orange, yellow)).to.be.lessThan(0);
+        });
+
+        it("expects to return zero when two arguments are same", function() {
+          expect(compare(orange, orange)).to.equal(0);
+        });
+
+        it("expects to return a positive number when orange and deepskyblue are passed", function() {
+          expect(compare(orange, deepskyblue)).to.be.greaterThan(0);
+        });
+
+        it("expects to return a negative number when deepskyblue and springgreen are passed", function() {
+          expect(compare(deepskyblue, springgreen)).to.be.lessThan(0);
+        });
+      });
+
+      context("when colorOrder is 'RGB'", function() {
+        const compare = ColorContrastCalc.Sorter.compareHexFunction("RGB");
+
+        it("expects to return a negative number when yellow and orange are passed", function() {
+          expect(compare(yellow, orange)).to.be.lessThan(0);
+        });
+
+        it("expects to return a positive number when orange and yellow are passed", function() {
+          expect(compare(orange, yellow)).to.be.greaterThan(0);
+        });
+
+        it("expects to return zero when two arguments are same", function() {
+          expect(compare(orange, orange)).to.equal(0);
+        });
+
+        it("expects to return a negative number when orange and deepskyblue are passed", function() {
+          expect(compare(orange, deepskyblue)).to.be.lessThan(0);
+        });
+
+        it("expects to return a positive number when deepskyblue and springgreen are passed", function() {
+          expect(compare(deepskyblue, springgreen)).to.be.greaterThan(0);
+        });
+      });
+
+      context("when colorOrder is 'grb'", function() {
+        const compare = ColorContrastCalc.Sorter.compareHexFunction("grb");
+
+        it("expects to return a positive number when yellow and orange are passed", function() {
+          expect(compare(yellow, orange)).to.be.greaterThan(0);
+        });
+
+        it("expects to return a negative number when orange and yellow are passed", function() {
+          expect(compare(orange, yellow)).to.be.lessThan(0);
+        });
+
+        it("expects to return zero when two arguments are same", function() {
+          expect(compare(orange, orange)).to.equal(0);
+        });
+
+        it("expects to return a negative number when orange and deepskyblue are passed", function() {
+          expect(compare(orange, deepskyblue)).to.be.lessThan(0);
+        });
+
+        it("expects to return a negative number when deepskyblue and springgreen are passed", function() {
+          expect(compare(deepskyblue, springgreen)).to.be.lessThan(0);
+        });
+      });
+
+      context("when colorOrder is 'brg'", function() {
+        const compare = ColorContrastCalc.Sorter.compareHexFunction("brg");
+
+        it("expects to return a positive number when yellow and orange are passed", function() {
+          expect(compare(yellow, orange)).to.be.greaterThan(0);
+        });
+
+        it("expects to return a negative number when orange and yellow are passed", function() {
+          expect(compare(orange, yellow)).to.be.lessThan(0);
+        });
+
+        it("expects to return zero when two arguments are same", function() {
+          expect(compare(orange, orange)).to.equal(0);
+        });
+
+        it("expects to return a negative number when orange and deepskyblue are passed", function() {
+          expect(compare(orange, deepskyblue)).to.be.lessThan(0);
+        });
+
+        it("expects to return a positive number when deepskyblue and springgreen are passed", function() {
+          expect(compare(deepskyblue, springgreen)).to.be.greaterThan(0);
+        });
+      });
+    });
+
     describe("Sorter.caseInsensitiveComp", function() {
       const caseInsensitiveComp = ColorContrastCalc.Sorter.caseInsensitiveComp;
 
