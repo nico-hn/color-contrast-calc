@@ -341,6 +341,40 @@ describe("ColorContrastCalc", () => {
 
         expectations();
       });
+
+      context("When keys for sorting are in the second column of a two dimensional array", function() {
+        const black = ["black", "#000000"];
+        const gray = ["gray", "#808080"];
+        const blue = ["blue", "#0000ff"];
+        const yellow = ["yellow", "#ffff00"];
+        const orange = ["orange", "#ffa500"];
+        const springgreen = ["springgreen", "#00ff7f"];
+        const keyMapper = function(color) { return color[1]; };
+
+        context("when colorOrder is 'Rgb'", function() {
+          const colorOrder = "Rgb";
+
+          it("expects to return [orange, yellow, black] when [black, yellow, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange], colorOrder, keyMapper)).to.deep.equal([orange, yellow, black]);
+          });
+
+          it("expects to return [orange, yellow, black, springgreen] when [black, yellow, orange, springgreen] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange, springgreen], colorOrder, keyMapper)).to.deep.equal([orange, yellow, black, springgreen]);
+          });
+
+          it("expects to return [orange, yellow, black] when [yellow, black, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange], colorOrder, keyMapper)).to.deep.equal([orange, yellow, black]);
+          });
+
+          it("expects to return [orange, yellow, gray, black] when [yellow, black, orange, gray] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, gray], colorOrder, keyMapper)).to.deep.equal([orange, yellow, gray, black]);
+          });
+
+          it("expects to return [orange, yellow, black, blue] when [yellow, black, orange, blue] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, blue], colorOrder, keyMapper)).to.deep.equal([orange, yellow, black, blue]);
+          });
+        });
+      });
     });
 
     describe("compare", function() {
