@@ -220,104 +220,106 @@ describe("ColorContrastCalc", () => {
     });
 
     describe("sort", function() {
-      const black = new ColorContrastCalc("#000000");
-      const gray = new ColorContrastCalc("#808080");
-      const blue = new ColorContrastCalc("#0000ff");
-      const yellow = new ColorContrastCalc("#ffff00");
-      const orange = new ColorContrastCalc("#ffa500");
-      const springgreen = new ColorContrastCalc("#00ff7f");
+      context("When an array of ColorContrastCalc instances is passed", function() {
+        const black = new ColorContrastCalc("#000000");
+        const gray = new ColorContrastCalc("#808080");
+        const blue = new ColorContrastCalc("#0000ff");
+        const yellow = new ColorContrastCalc("#ffff00");
+        const orange = new ColorContrastCalc("#ffa500");
+        const springgreen = new ColorContrastCalc("#00ff7f");
 
-      context("when colorOrder is 'rgb'", function() {
-        it("expects to return [black, orange, yellow] when [black, yellow, orange] is passed", function() {
-          expect(ColorContrastCalc.sort([black, yellow, orange])).to.deep.equal([black, orange, yellow]);
+        context("when colorOrder is 'rgb'", function() {
+          it("expects to return [black, orange, yellow] when [black, yellow, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange])).to.deep.equal([black, orange, yellow]);
+          });
+
+          it("expects to return [black, springgreen, orange, yellow] when [black, yellow, orange, springgreen] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange, springgreen])).to.deep.equal([black, springgreen, orange, yellow]);
+          });
+
+          it("expects to return [black, orange, yellow] when [yellow, black, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange])).to.deep.equal([black, orange, yellow]);
+          });
+
+          it("expects to return [black, gray, orange, yellow] when [yellow, black, orange, gray] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, gray])).to.deep.equal([black, gray, orange, yellow]);
+          });
+
+          it("expects to return [black, blue, orange, yellow] when [yellow, black, orange, blue] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, blue])).to.deep.equal([black, blue, orange, yellow]);
+          });
         });
 
-        it("expects to return [black, springgreen, orange, yellow] when [black, yellow, orange, springgreen] is passed", function() {
-          expect(ColorContrastCalc.sort([black, yellow, orange, springgreen])).to.deep.equal([black, springgreen, orange, yellow]);
+        context("when colorOrder is 'grb'", function() {
+          const colorOrder = "grb";
+
+          it("expects to return [black, orange, yellow] when [black, yellow, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange], colorOrder)).to.deep.equal([black, orange, yellow]);
+          });
+
+          it("expects to return [black, orange, springgreen, yellow] when [black, yellow, orange, springgreen] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange, springgreen], colorOrder)).to.deep.equal([black, orange, springgreen, yellow]);
+          });
+
+          it("expects to return [black, orange, yellow] when [yellow, black, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange], colorOrder)).to.deep.equal([black, orange, yellow]);
+          });
+
+          it("expects to return [black, gray, orange, yellow] when [yellow, black, orange, gray] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, gray], colorOrder)).to.deep.equal([black, gray, orange, yellow]);
+          });
+
+          it("expects to return [black, blue, orange, yellow] when [yellow, black, orange, blue] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, blue], colorOrder)).to.deep.equal([black, blue, orange, yellow]);
+          });
         });
 
-        it("expects to return [black, orange, yellow] when [yellow, black, orange] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange])).to.deep.equal([black, orange, yellow]);
+        context("when colorOrder is 'brg'", function() {
+          const colorOrder = "brg";
+
+          it("expects to return [black, orange, yellow] when [black, yellow, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange], colorOrder)).to.deep.equal([black, orange, yellow]);
+          });
+
+          it("expects to return [black, orange, yellow, springgreen] when [black, yellow, orange, springgreen] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange, springgreen], colorOrder)).to.deep.equal([black, orange, yellow, springgreen]);
+          });
+
+          it("expects to return [black, orange, yellow] when [yellow, black, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange], colorOrder)).to.deep.equal([black, orange, yellow]);
+          });
+
+          it("expects to return [black, orange, yellow, gray] when [yellow, black, orange, gray] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, gray], colorOrder)).to.deep.equal([black, orange, yellow, gray]);
+          });
+
+          it("expects to return [black, orange, yellow, blue] when [yellow, black, orange, blue] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, blue], colorOrder)).to.deep.equal([black, orange, yellow, blue]);
+          });
         });
 
-        it("expects to return [black, gray, orange, yellow] when [yellow, black, orange, gray] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange, gray])).to.deep.equal([black, gray, orange, yellow]);
-        });
+        context("when colorOrder is 'Rgb'", function() {
+          const colorOrder = "Rgb";
 
-        it("expects to return [black, blue, orange, yellow] when [yellow, black, orange, blue] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange, blue])).to.deep.equal([black, blue, orange, yellow]);
-        });
-      });
+          it("expects to return [orange, yellow, black] when [black, yellow, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange], colorOrder)).to.deep.equal([orange, yellow, black]);
+          });
 
-      context("when colorOrder is 'grb'", function() {
-        const colorOrder = "grb";
+          it("expects to return [orange, yellow, black, springgreen] when [black, yellow, orange, springgreen] is passed", function() {
+            expect(ColorContrastCalc.sort([black, yellow, orange, springgreen], colorOrder)).to.deep.equal([orange, yellow, black, springgreen]);
+          });
 
-        it("expects to return [black, orange, yellow] when [black, yellow, orange] is passed", function() {
-          expect(ColorContrastCalc.sort([black, yellow, orange], colorOrder)).to.deep.equal([black, orange, yellow]);
-        });
+          it("expects to return [orange, yellow, black] when [yellow, black, orange] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange], colorOrder)).to.deep.equal([orange, yellow, black]);
+          });
 
-        it("expects to return [black, orange, springgreen, yellow] when [black, yellow, orange, springgreen] is passed", function() {
-          expect(ColorContrastCalc.sort([black, yellow, orange, springgreen], colorOrder)).to.deep.equal([black, orange, springgreen, yellow]);
-        });
+          it("expects to return [orange, yellow, gray, black] when [yellow, black, orange, gray] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, gray], colorOrder)).to.deep.equal([orange, yellow, gray, black]);
+          });
 
-        it("expects to return [black, orange, yellow] when [yellow, black, orange] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange], colorOrder)).to.deep.equal([black, orange, yellow]);
-        });
-
-        it("expects to return [black, gray, orange, yellow] when [yellow, black, orange, gray] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange, gray], colorOrder)).to.deep.equal([black, gray, orange, yellow]);
-        });
-
-        it("expects to return [black, blue, orange, yellow] when [yellow, black, orange, blue] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange, blue], colorOrder)).to.deep.equal([black, blue, orange, yellow]);
-        });
-      });
-
-      context("when colorOrder is 'brg'", function() {
-        const colorOrder = "brg";
-
-        it("expects to return [black, orange, yellow] when [black, yellow, orange] is passed", function() {
-          expect(ColorContrastCalc.sort([black, yellow, orange], colorOrder)).to.deep.equal([black, orange, yellow]);
-        });
-
-        it("expects to return [black, orange, yellow, springgreen] when [black, yellow, orange, springgreen] is passed", function() {
-          expect(ColorContrastCalc.sort([black, yellow, orange, springgreen], colorOrder)).to.deep.equal([black, orange, yellow, springgreen]);
-        });
-
-        it("expects to return [black, orange, yellow] when [yellow, black, orange] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange], colorOrder)).to.deep.equal([black, orange, yellow]);
-        });
-
-        it("expects to return [black, orange, yellow, gray] when [yellow, black, orange, gray] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange, gray], colorOrder)).to.deep.equal([black, orange, yellow, gray]);
-        });
-
-        it("expects to return [black, orange, yellow, blue] when [yellow, black, orange, blue] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange, blue], colorOrder)).to.deep.equal([black, orange, yellow, blue]);
-        });
-      });
-
-      context("when colorOrder is 'Rgb'", function() {
-        const colorOrder = "Rgb";
-
-        it("expects to return [orange, yellow, black] when [black, yellow, orange] is passed", function() {
-          expect(ColorContrastCalc.sort([black, yellow, orange], colorOrder)).to.deep.equal([orange, yellow, black]);
-        });
-
-        it("expects to return [orange, yellow, black, springgreen] when [black, yellow, orange, springgreen] is passed", function() {
-          expect(ColorContrastCalc.sort([black, yellow, orange, springgreen], colorOrder)).to.deep.equal([orange, yellow, black, springgreen]);
-        });
-
-        it("expects to return [orange, yellow, black] when [yellow, black, orange] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange], colorOrder)).to.deep.equal([orange, yellow, black]);
-        });
-
-        it("expects to return [orange, yellow, gray, black] when [yellow, black, orange, gray] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange, gray], colorOrder)).to.deep.equal([orange, yellow, gray, black]);
-        });
-
-        it("expects to return [orange, yellow, black, blue] when [yellow, black, orange, blue] is passed", function() {
-          expect(ColorContrastCalc.sort([yellow, black, orange, blue], colorOrder)).to.deep.equal([orange, yellow, black, blue]);
+          it("expects to return [orange, yellow, black, blue] when [yellow, black, orange, blue] is passed", function() {
+            expect(ColorContrastCalc.sort([yellow, black, orange, blue], colorOrder)).to.deep.equal([orange, yellow, black, blue]);
+          });
         });
       });
     });
