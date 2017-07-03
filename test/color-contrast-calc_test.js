@@ -519,6 +519,16 @@ describe("ColorContrastCalc", () => {
 
         expectations(yellow, orange, deepskyblue, springgreen, keyType);
       });
+
+      context("When colors are given as rgb values", function() {
+        const yellow = [255, 255, 0];
+        const orange = [255, 165, 0];
+        const deepskyblue = [0, 191, 255];
+        const springgreen = [0, 255, 127];
+        const keyType = "rgb";
+
+        expectations(yellow, orange, deepskyblue, springgreen, keyType);
+      });
     });
 
     describe("compareHexFunc", function() {
