@@ -13,4 +13,14 @@ describe("ColorUtils", function() {
       expect(ColorUtils.decimalRound(3.14159, 4)).to.equal(3.1416);
     });
   });
+
+  describe("isUpperCase", function() {
+    it("expects to return true when 'U' is passed", function() {
+      expect(ColorUtils.isUpperCase("U")).to.be.true;
+    });
+
+    it("expects to return false when 'u' is passed", function() {
+      expect(ColorUtils.isUpperCase("u")).to.be.false;
+    });
+  });
 });
