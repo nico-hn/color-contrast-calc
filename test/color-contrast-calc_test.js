@@ -209,16 +209,6 @@ describe("ColorContrastCalc", () => {
       });
     });
 
-    describe("decimalRound", function() {
-      it("expects to return 3.14 when 3.14159 and 2 are passed", function() {
-        expect(ColorContrastCalc.decimalRound(3.14159, 2)).to.equal(3.14);
-      });
-
-      it("expects to return 3.1416 when 3.14159 and 4 are passed", function() {
-        expect(ColorContrastCalc.decimalRound(3.14159, 4)).to.equal(3.1416);
-      });
-    });
-
     describe("sort", function() {
       const expectations = function() {
         context("when colorOrder is 'rgb'", function() {
