@@ -27,6 +27,28 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("isValidRgb", function() {
+    it("expects to return true for [255, 165, 0]", function() {
+      expect(ColorUtils.isValidRgb([255, 165, 0])).to.be.true;
+    });
+
+    it("expects to return false for [256, 165, 0]", function() {
+      expect(ColorUtils.isValidRgb([256, 165, 0])).to.be.false;
+    });
+
+    it("expects to return false for [255, 165, -1]", function() {
+      expect(ColorUtils.isValidRgb([256, 165, 0])).to.be.false;
+    });
+
+    it("expects to return false for [255, 165]", function() {
+      expect(ColorUtils.isValidRgb([255, 165])).to.be.false;
+    });
+
+    it("expects to return false for [255, 165.5, 0]", function() {
+      expect(ColorUtils.isValidRgb([255, 165.5, 0])).to.be.false;
+    });
+  });
+
   describe("isValidHexCode", function() {
     it("expects to return true for '#ffa500'", function() {
       expect(ColorUtils.isValidHexCode("#ffa500")).to.be.true;
