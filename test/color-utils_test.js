@@ -27,6 +27,40 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("isValidHexCode", function() {
+    it("expects to return true for '#ffa500'", function() {
+      expect(ColorUtils.isValidHexCode("#ffa500")).to.be.true;
+    });
+
+    it("expects to return true for '#FFA500'", function() {
+      expect(ColorUtils.isValidHexCode("#FFA500")).to.be.true;
+    });
+
+    it("expects to return true for 'ffa500'", function() {
+      expect(ColorUtils.isValidHexCode("ffa500")).to.be.true;
+    });
+
+    it("expects to return true for 'ffa500'", function() {
+      expect(ColorUtils.isValidHexCode("#999999")).to.be.true;
+    });
+
+    it("expects to return true for '#ff0'", function() {
+      expect(ColorUtils.isValidHexCode("#ff0")).to.be.true;
+    });
+
+    it("expects to return true for '#ff0'", function() {
+      expect(ColorUtils.isValidHexCode("ff0")).to.be.true;
+    });
+
+    it("expects to return true for '#101a500'", function() {
+      expect(ColorUtils.isValidHexCode("#101a500")).to.be.false;
+    });
+
+    it("expects to return true for '#fga500'", function() {
+      expect(ColorUtils.isValidHexCode("#fga500")).to.be.false;
+    });
+  });
+
   describe("isString", function() {
     it("expects to return true when 'string' is passed", function() {
       expect(ColorUtils.isString("string")).to.be.true;
