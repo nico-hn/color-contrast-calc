@@ -509,6 +509,16 @@ describe("ColorContrastCalc", () => {
 
         expectations(yellow, orange, deepskyblue, springgreen, keyType);
       });
+
+      context("When colors are given as hex codes", function() {
+        const yellow = "#ffff00";
+        const orange = "#ffa500";
+        const deepskyblue = "#00bfff";
+        const springgreen = "#00ff7f";
+        const keyType = "hex";
+
+        expectations(yellow, orange, deepskyblue, springgreen, keyType);
+      });
     });
 
     describe("compareHexFunc", function() {
