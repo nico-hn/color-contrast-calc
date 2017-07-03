@@ -6,6 +6,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "color-contrast-calc/lib/color-utils.js~colorutils",
+    "class/lib/color-utils.js~ColorUtils.html",
+    "<span>ColorUtils</span> <span class=\"search-result-import-path\">color-contrast-calc/lib/color-utils.js</span>",
+    "class"
+  ],
+  [
     "builtinexternal/ecmascriptexternal.js~array",
     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
     "BuiltinExternal/ECMAScriptExternal.js~Array",
@@ -510,15 +516,15 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
-    "lib/color-contrast-calc.js~colorcontrastcalc.contrastratio",
-    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-contrastRatio",
-    "lib/color-contrast-calc.js~ColorContrastCalc.contrastRatio",
+    "lib/color-contrast-calc.js~colorcontrastcalc.comparefunction",
+    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-compareFunction",
+    "lib/color-contrast-calc.js~ColorContrastCalc.compareFunction",
     "method"
   ],
   [
-    "lib/color-contrast-calc.js~colorcontrastcalc.decimaltohexcode",
-    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-decimalToHexCode",
-    "lib/color-contrast-calc.js~ColorContrastCalc.decimalToHexCode",
+    "lib/color-contrast-calc.js~colorcontrastcalc.contrastratio",
+    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-contrastRatio",
+    "lib/color-contrast-calc.js~ColorContrastCalc.contrastRatio",
     "method"
   ],
   [
@@ -534,27 +540,69 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "lib/color-contrast-calc.js~colorcontrastcalc.hexcodetodecimal",
-    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-hexCodeToDecimal",
-    "lib/color-contrast-calc.js~ColorContrastCalc.hexCodeToDecimal",
-    "method"
-  ],
-  [
-    "lib/color-contrast-calc.js~colorcontrastcalc.isvalidhexcode",
-    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-isValidHexCode",
-    "lib/color-contrast-calc.js~ColorContrastCalc.isValidHexCode",
-    "method"
-  ],
-  [
-    "lib/color-contrast-calc.js~colorcontrastcalc.isvalidrgb",
-    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-isValidRgb",
-    "lib/color-contrast-calc.js~ColorContrastCalc.isValidRgb",
-    "method"
-  ],
-  [
     "lib/color-contrast-calc.js~colorcontrastcalc.relativeluminance",
     "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-relativeLuminance",
     "lib/color-contrast-calc.js~ColorContrastCalc.relativeLuminance",
+    "method"
+  ],
+  [
+    "lib/color-contrast-calc.js~colorcontrastcalc.sort",
+    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-sort",
+    "lib/color-contrast-calc.js~ColorContrastCalc.sort",
+    "method"
+  ],
+  [
+    "lib/color-utils.js",
+    "file/lib/color-utils.js.html",
+    "lib/color-utils.js",
+    "file"
+  ],
+  [
+    "lib/color-utils.js~colorutils.decimalround",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-decimalRound",
+    "lib/color-utils.js~ColorUtils.decimalRound",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.decimaltohexcode",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-decimalToHexCode",
+    "lib/color-utils.js~ColorUtils.decimalToHexCode",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.hexcodetodecimal",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-hexCodeToDecimal",
+    "lib/color-utils.js~ColorUtils.hexCodeToDecimal",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.isstring",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-isString",
+    "lib/color-utils.js~ColorUtils.isString",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.isuppercase",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-isUpperCase",
+    "lib/color-utils.js~ColorUtils.isUpperCase",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.isvalidhexcode",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-isValidHexCode",
+    "lib/color-utils.js~ColorUtils.isValidHexCode",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.isvalidrgb",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-isValidRgb",
+    "lib/color-utils.js~ColorUtils.isValidRgb",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.normalizehexcode",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-normalizeHexCode",
+    "lib/color-utils.js~ColorUtils.normalizeHexCode",
     "method"
   ]
 ]

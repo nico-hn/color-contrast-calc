@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/color-utils.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/nico-hn/color-contrast-calc.git" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-contrast-calc.js~ColorContrastCalc.html">ColorContrastCalc</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-utils.js~ColorUtils.html">ColorUtils</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/color-utils.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&quot;use strict&quot;;
+
+class ColorUtils {
+  /**
+   * Converts a hex color code string to a decimal representation
+   * @param {string} hexCode - Hex color code such as &quot;#ffff00&quot;
+   * @returns {Array&lt;number, number, number&gt;} RGB value represented as an array of numbers
+   */
+  static hexCodeToDecimal(hexCode) {
+    const h = this.normalizeHexCode(hexCode);
+    return [0, 2, 4].map(s =&gt; h.substr(s, 2))
+      .map(primaryColor =&gt; Number.parseInt(primaryColor, 16));
+  }
+
+  /**
+   * Converts a hex color code to a 6-digit hexadecimal string
+   * @param {string} hexString - String that represent a hex code
+   * @returns {string} 6-digit hexadecimal string without leading &apos;#&apos;
+   */
+  static normalizeHexCode(hexString) {
+    const h = hexString.startsWith(&quot;#&quot;) ? hexString.replace(&quot;#&quot;, &quot;&quot;) : hexString;
+    if (h.length === 3) {
+      return [0, 1, 2].map(s =&gt; h.substr(s, 1).repeat(2)).join(&quot;&quot;);
+    } else {
+      return h;
+    }
+  }
+
+  /**
+   * Converts a decimal representation of color to a hex code string
+   * @param {Array&lt;number, number, number&gt;} rgb - RGB value represented as an array of numbers
+   * @returns {string} RGB value in hex code
+   */
+  static decimalToHexCode(rgb) {
+    return &quot;#&quot; + rgb.map(d =&gt; {
+      const h = d.toString(16);
+      return h.length === 1 ? &quot;0&quot; + h : h;
+    }).join(&quot;&quot;);
+  }
+
+  /**
+   * Decimal rounding with a given precision
+   * @param {number} number - Number to be rounded off
+   * @param {number} precision - Number of digits after the decimal point
+   * @returns {number} returns the rounded number
+   */
+  static decimalRound(number, precision) {
+    const factor = Math.pow(10, precision);
+    return Math.round(number * factor) / factor;
+  }
+
+  /**
+   * Checks if a given array is a valid representation of RGB color.
+   * @param {Array&lt;number, number, number&gt;} rgb - RGB value represented as an array of numbers
+   * @returns {boolean} true if the argument is a valid RGB color
+   */
+  static isValidRgb(rgb) {
+    return rgb.length === 3 &amp;&amp;
+      rgb.every(c =&gt; c &gt;= 0 &amp;&amp; c &lt;= 255 &amp;&amp;
+                Number.isInteger(c));
+  }
+
+  /**
+   * Checks if a given string is a valid representation of RGB color.
+   * @param {string} code - RGB value in hex code
+   * @returns {boolean} returns true if then argument is a valid RGB color
+   */
+  static isValidHexCode(code) {
+    return this.HEX_CODE_RE.test(code);
+  }
+
+  /**
+   * Checks if a given object is a string
+   * @param {object} str - Object to be checked
+   * @returns {boolean} returns true if the argument is a string
+   */
+  static isString(str) {
+    return typeof str === &quot;string&quot; || str instanceof String;
+  }
+
+  /**
+   * Checks if a given string is consists of uppercase letters
+   * @param {string} str - string to be checked
+   * @returns {boolean} returns true if letters in the argument string are all uppercase
+   */
+  static isUpperCase(str) {
+    return this.isString(str) &amp;&amp; str.toUpperCase() === str;
+  }
+
+  /**
+   * @private
+   */
+  static setup() {
+    /** @private */
+    this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;
+  }
+}
+
+ColorUtils.setup();
+
+//module.exports.ColorUtils = ColorUtils;
+
+export { ColorUtils };
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.5.2)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
