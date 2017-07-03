@@ -4,6 +4,19 @@ const expect = require("chai").expect;
 const ColorUtils = require("../lib/color-utils").ColorUtils;
 
 describe("ColorUtils", function() {
+  describe("normalizeHexCode", function() {
+    it("expects to return 'ffa500' when '#ffa500' is passed", function() {
+      expect(ColorUtils.normalizeHexCode("#ffa500")).to.equal("ffa500");
+    });
+
+    it("expects to return 'FFA500' when '#FFA500' is passed", function() {
+      expect(ColorUtils.normalizeHexCode("#FFA500")).to.equal("FFA500");
+    });
+
+    it("expects to return 'ffaa00' when '#fa0' is passed", function() {
+      expect(ColorUtils.normalizeHexCode("#fa0")).to.equal("ffaa00");
+    });
+  });
   describe("decimalRound", function() {
     it("expects to return 3.14 when 3.14159 and 2 are passed", function() {
       expect(ColorUtils.decimalRound(3.14159, 2)).to.equal(3.14);
