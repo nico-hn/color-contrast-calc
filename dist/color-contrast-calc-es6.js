@@ -6,6 +6,8 @@ module.exports = require("./lib/color-contrast-calc");
 },{"./lib/color-contrast-calc":2}],2:[function(require,module,exports){
 "use strict";
 
+const ColorUtils = require("./color-utils").ColorUtils;
+
 /**
  * Provides methods to calculate RGB colors.
  * An instance represents a RGB color.
@@ -18,13 +20,13 @@ class ColorContrastCalc {
   constructor(rgb, name = null) {
     const ownClass = this.constructor;
     /** @property {Array<number, number, number>} rgb - RGB value repsented as an array of decimal numbers */
-    this.rgb = ownClass.isString(rgb) ? ownClass.hexCodeToDecimal(rgb) : rgb;
+    this.rgb = ColorUtils.isString(rgb) ? ColorUtils.hexCodeToDecimal(rgb) : rgb;
     /** @property {number} relativeLuminance - The relative luminance of the color */
     this.relativeLuminance = ownClass.relativeLuminance(this.rgb);
     /** @property {string} name - If no name is explicitely given, the property is set to the value of this.hexCode */
-    this.name = name === null ? ownClass.decimalToHexCode(this.rgb) : name;
+    this.name = name === null ? ColorUtils.decimalToHexCode(this.rgb) : name;
     /** @property {string} hexCode - The RGB value in hex code notation */
-    this.hexCode = ownClass.decimalToHexCode(this.rgb);
+    this.hexCode = ColorUtils.decimalToHexCode(this.rgb);
     this.freezeProperties();
   }
 
@@ -46,7 +48,7 @@ class ColorContrastCalc {
    * @returns {number} Relative luminance
    */
   static relativeLuminance(rgb = [255, 255, 255]) {
-    if (this.isString(rgb)) { rgb = this.hexCodeToDecimal(rgb); }
+    if (ColorUtils.isString(rgb)) { rgb = ColorUtils.hexCodeToDecimal(rgb); }
 
     const [r, g, b] = rgb.map(c => this.tristimulusValue(c));
     return r * 0.2126 + g * 0.7152 + b * 0.0722;
@@ -63,66 +65,6 @@ class ColorContrastCalc {
           .map(c => this.relativeLuminance(c))
           .sort((f, b) => b - f);
     return (l1 + 0.05) / (l2 + 0.05);
-  }
-
-  /**
-   * @param {string} hexCode value in hex code
-   * @returns {Array<number, number, number>} RGB value represented as an array of numbers
-   */
-  static hexCodeToDecimal(hexCode) {
-    const h = this.normalizeHexCode(hexCode);
-    return [0, 2, 4].map(s => h.substr(s, 2))
-      .map(primaryColor => Number.parseInt(primaryColor, 16));
-  }
-
-  /**
-   * @private
-   */
-  static normalizeHexCode(hexString) {
-    const h = hexString.startsWith("#") ? hexString.replace("#", "") : hexString;
-    if (h.length === 3) {
-      return [0, 1, 2].map(s => h.substr(s, 1).repeat(2)).join("");
-    } else {
-      return h;
-    }
-  }
-
-  /**
-   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers
-   * @returns {string} RGB value in hex code
-   */
-  static decimalToHexCode(rgb) {
-    return "#" + rgb.map(d => {
-      const h = d.toString(16);
-      return h.length === 1 ? "0" + h : h;
-    }).join("");
-  }
-
-  /**
-   * Checks if a given array is a valid representation of RGB color.
-   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers
-   * @returns {boolean} true if the argument is a valid RGB color
-   */
-  static isValidRgb(rgb) {
-    return rgb.length === 3 &&
-      rgb.every(c => c >= 0 && c <= 255 &&
-                Number.isInteger(c));
-  }
-
-  /**
-   * Checks if a given string is a valid representation of RGB color.
-   * @param {string} code - RGB value in hex code
-   * @returns {boolean} returns true if then argument is a valid RGB color
-   */
-  static isValidHexCode(code) {
-    return this.HEX_CODE_RE.test(code);
-  }
-
-  /**
-   * @private
-   */
-  static isString(str) {
-    return typeof str === "string" || str instanceof String;
   }
 
   /**
@@ -145,14 +87,32 @@ class ColorContrastCalc {
   }
 
   /**
+   * Returns a function to be used as a parameter of Array.prototype.sort()
+   * @param {string} [colorOrder="rgb"] - A left side primary color has a higher sorting precedence
+   * @param {string} [keyType="color"] - Type of keys used for sorting: "color", "hex" or "rgb"
+   * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted
+   */
+  static compareFunction(colorOrder = "rgb", keyType = "color", keyMapper = null) {
+    return this.Sorter.compareFunction(colorOrder, keyType, keyMapper);
+  }
+
+  /**
+   * Sorts colors in an array and returns the result as a new array
+   * @param {ColorContrastCalc[]} colors - List of colors
+   * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted
+   * @param {string} [mode="auto"] - If set to "hex", key values are handled as hex code strings
+   */
+  static sort(colors, colorOrder = "rgb", keyMapper = null, mode = "auto") {
+    return this.Sorter.sort(colors, colorOrder, keyMapper, mode);
+  }
+
+  /**
    * @private
    */
   static setup(colorKeywordsJSON) {
     this.loadColorKeywords(colorKeywordsJSON);
     this.assignColorConstants();
     this.generateWebSafeColors();
-    /** @private */
-    this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;
   }
 
   /**
@@ -213,7 +173,7 @@ class ColorContrastCalc {
     for (let r = 0; r < 16; r += 3) {
       for (let g = 0; g < 16; g += 3) {
         for (let b = 0; b < 16; b += 3) {
-          let hexCode = this.decimalToHexCode([r, g, b].map(c => c * 17));
+          let hexCode = ColorUtils.decimalToHexCode([r, g, b].map(c => c * 17));
           let predefined = this.HEX_TO_COLOR.get(hexCode);
           let color = predefined ? predefined : new ColorContrastCalc(hexCode);
           this.WEB_SAFE_COLORS.push(color);
@@ -688,13 +648,170 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
                                         [-0.2126, -0.7152, 0.9278]]);
 
   ColorContrastCalc.GrayscaleCalc = GrayscaleCalc;
+
+  class Sorter {
+    static sort(colors, colorOrder = "rgb", keyMapper = null, mode = "auto") {
+      const keyType = this.guessKeyType(mode, colors[0], keyMapper);
+      const compare = this.compareFunction(colorOrder, keyType, keyMapper);
+
+      return colors.slice().sort(compare);
+    }
+
+    static compareFunction(colorOrder = "rgb",
+                           keyType = this.KEY_TYPE.COLOR,
+                           keyMapper = null) {
+      let compare = null;
+
+      if (keyType === this.KEY_TYPE.HEX) {
+        compare = this.compareHexFunction(colorOrder);
+      } else if (keyType === this.KEY_TYPE.RGB) {
+        compare = this.compareRgbFunction(colorOrder);
+      } else {
+        compare = this.compareColorFunction(colorOrder);
+      }
+
+      return this.composeFunction(compare, keyMapper);
+    }
+
+    static composeFunction(compareFunc, keyMapper = null) {
+      if (! keyMapper) {
+        return compareFunc;
+      }
+
+      return function(color1, color2) {
+        return compareFunc(keyMapper(color1), keyMapper(color2));
+      };
+    }
+
+    static guessKeyType(mode, color, keyMapper) {
+      if (mode === this.KEY_TYPE.HEX ||
+          mode === "auto" && this.isStringKey(color, keyMapper)) {
+        return this.KEY_TYPE.HEX;
+      } else if (mode === this.KEY_TYPE.RGB) {
+        return this.KEY_TYPE.RGB;
+      } else {
+        return this.KEY_TYPE.COLOR;
+      }
+    }
+
+    static isStringKey(color, keyMapper) {
+      const keyType = keyMapper ? keyMapper(color) : color;
+      return ColorUtils.isString(keyType);
+    }
+
+    static compareColorFunction(colorOrder = "rgb") {
+      const rgbPos = Sorter.primaryColorPos(colorOrder);
+      const compFuncs = Sorter.chooseCompFunc(colorOrder);
+
+      return function(color1, color2) {
+        return Sorter.compareRgbVal(color1.rgb, color2.rgb, rgbPos, compFuncs);
+      };
+    }
+
+    static compareRgbFunction(colorOrder = "rgb") {
+      const rgbPos = Sorter.primaryColorPos(colorOrder);
+      const compFuncs = Sorter.chooseCompFunc(colorOrder);
+
+      return function(rgb1, rgb2) {
+        return Sorter.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
+      };
+    }
+
+    static compareHexFunction(colorOrder = "rgb") {
+      const rgbPos = Sorter.primaryColorPos(colorOrder);
+      const compFuncs = Sorter.chooseCompFunc(colorOrder);
+      const rgbCache = new Map();
+
+      return function(hex1, hex2) {
+        return Sorter.compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache);
+      };
+    }
+
+    static compareRgbVal(rgb1, rgb2, rgbPos = [0, 1, 2],
+                      compFuncs = this.defaultCompFuncs) {
+      for (let i of rgbPos) {
+        const result = compFuncs[i](rgb1[i], rgb2[i]);
+        if (result !== 0) { return result; }
+      }
+
+      return 0;
+    }
+
+    static compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache) {
+      const rgb1 = rgbCache.get(hex1) || ColorUtils.hexCodeToDecimal(hex1);
+      const rgb2 = rgbCache.get(hex2) || ColorUtils.hexCodeToDecimal(hex2);
+
+      return this.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
+    }
+
+    static primaryColorPos(colorOrder) {
+      return colorOrder.toLowerCase().split("").map((primary) => {
+        return this.RGB_IDENTIFIERS.indexOf(primary);
+      });
+    }
+
+    static ascendComp(primaryColor1, primaryColor2) {
+      return primaryColor1 - primaryColor2;
+    }
+
+    static descendComp(primaryColor1, primaryColor2) {
+      return primaryColor2 - primaryColor1;
+    }
+
+    static chooseCompFunc(colorOrder) {
+      const primaryColors = colorOrder.split("")
+              .sort(this.caseInsensitiveComp).reverse();
+
+      return primaryColors.map(primary => {
+        if (ColorUtils.isUpperCase(primary)) {
+          return this.descendComp;
+        }
+
+        return this.ascendComp;
+      });
+    }
+
+    static caseInsensitiveComp(str1, str2) {
+      const lStr1 = str1.toLowerCase();
+      const lStr2 = str2.toLowerCase();
+
+      if (lStr1 < lStr2) {
+        return -1;
+      }
+
+      if (lStr1 > lStr2) {
+        return 1;
+      }
+
+      return 0;
+    }
+
+    static setup() {
+      this.RGB_IDENTIFIERS = ["r", "g", "b"];
+      this.defaultCompFuncs = [
+        Sorter.ascendComp,
+        Sorter.ascendComp,
+        Sorter.ascendComp
+      ];
+      this.KEY_TYPE = {
+        RGB: "rgb",
+        HEX: "hex",
+        COLOR: "color"
+      };
+    }
+  }
+
+  Sorter.setup();
+
+  ColorContrastCalc.Sorter = Sorter;
 })();
 
 ColorContrastCalc.setup(require("./color-keywords.json"));
 
+module.exports.ColorUtils = ColorUtils;
 module.exports.ColorContrastCalc = ColorContrastCalc;
 
-},{"./color-keywords.json":3}],3:[function(require,module,exports){
+},{"./color-keywords.json":3,"./color-utils":4}],3:[function(require,module,exports){
 module.exports=[
   ["aliceblue", "#f0f8ff"],
   ["antiquewhite", "#faebd7"],
@@ -844,6 +961,109 @@ module.exports=[
   ["yellow", "#ffff00"],
   ["yellowgreen", "#9acd32"]
 ]
+
+},{}],4:[function(require,module,exports){
+"use strict";
+
+class ColorUtils {
+  /**
+   * Converts a hex color code string to a decimal representation
+   * @param {string} hexCode - Hex color code such as "#ffff00"
+   * @returns {Array<number, number, number>} RGB value represented as an array of numbers
+   */
+  static hexCodeToDecimal(hexCode) {
+    const h = this.normalizeHexCode(hexCode);
+    return [0, 2, 4].map(s => h.substr(s, 2))
+      .map(primaryColor => Number.parseInt(primaryColor, 16));
+  }
+
+  /**
+   * Converts a hex color code to a 6-digit hexadecimal string
+   * @param {string} hexString - String that represent a hex code
+   * @returns {string} 6-digit hexadecimal string without leading '#'
+   */
+  static normalizeHexCode(hexString) {
+    const h = hexString.startsWith("#") ? hexString.replace("#", "") : hexString;
+    if (h.length === 3) {
+      return [0, 1, 2].map(s => h.substr(s, 1).repeat(2)).join("");
+    } else {
+      return h;
+    }
+  }
+
+  /**
+   * Converts a decimal representation of color to a hex code string
+   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers
+   * @returns {string} RGB value in hex code
+   */
+  static decimalToHexCode(rgb) {
+    return "#" + rgb.map(d => {
+      const h = d.toString(16);
+      return h.length === 1 ? "0" + h : h;
+    }).join("");
+  }
+
+  /**
+   * Decimal rounding with a given precision
+   * @param {number} number - Number to be rounded off
+   * @param {number} precision - Number of digits after the decimal point
+   * @returns {number} returns the rounded number
+   */
+  static decimalRound(number, precision) {
+    const factor = Math.pow(10, precision);
+    return Math.round(number * factor) / factor;
+  }
+
+  /**
+   * Checks if a given array is a valid representation of RGB color.
+   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers
+   * @returns {boolean} true if the argument is a valid RGB color
+   */
+  static isValidRgb(rgb) {
+    return rgb.length === 3 &&
+      rgb.every(c => c >= 0 && c <= 255 &&
+                Number.isInteger(c));
+  }
+
+  /**
+   * Checks if a given string is a valid representation of RGB color.
+   * @param {string} code - RGB value in hex code
+   * @returns {boolean} returns true if then argument is a valid RGB color
+   */
+  static isValidHexCode(code) {
+    return this.HEX_CODE_RE.test(code);
+  }
+
+  /**
+   * Checks if a given object is a string
+   * @param {object} str - Object to be checked
+   * @returns {boolean} returns true if the argument is a string
+   */
+  static isString(str) {
+    return typeof str === "string" || str instanceof String;
+  }
+
+  /**
+   * Checks if a given string is consists of uppercase letters
+   * @param {string} str - string to be checked
+   * @returns {boolean} returns true if letters in the argument string are all uppercase
+   */
+  static isUpperCase(str) {
+    return this.isString(str) && str.toUpperCase() === str;
+  }
+
+  /**
+   * @private
+   */
+  static setup() {
+    /** @private */
+    this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;
+  }
+}
+
+ColorUtils.setup();
+
+module.exports.ColorUtils = ColorUtils;
 
 },{}]},{},[1])(1)
 });
