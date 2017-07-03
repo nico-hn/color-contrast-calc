@@ -384,96 +384,98 @@ describe("ColorContrastCalc", () => {
       const springgreen = new ColorContrastCalc("#00ff7f");
 
       context("when colorOrder is 'rgb'", function() {
+        const compare = ColorContrastCalc.compareFunction();
+
         it("expects to return a positive number when yellow and orange are passed", function() {
-          expect(ColorContrastCalc.compare(yellow, orange)).to.be.greaterThan(0);
+          expect(compare(yellow, orange)).to.be.greaterThan(0);
         });
 
         it("expects to return a negative number when orange and yellow are passed", function() {
-          expect(ColorContrastCalc.compare(orange, yellow)).to.be.lessThan(0);
+          expect(compare(orange, yellow)).to.be.lessThan(0);
         });
 
         it("expects to return zero when two arguments are same", function() {
-          expect(ColorContrastCalc.compare(orange, orange)).to.equal(0);
+          expect(compare(orange, orange)).to.equal(0);
         });
 
         it("expects to return a positive number when orange and deepskyblue are passed", function() {
-          expect(ColorContrastCalc.compare(orange, deepskyblue)).to.be.greaterThan(0);
+          expect(compare(orange, deepskyblue)).to.be.greaterThan(0);
         });
 
         it("expects to return a negative number when deepskyblue and springgreen are passed", function() {
-          expect(ColorContrastCalc.compare(deepskyblue, springgreen)).to.be.lessThan(0);
+          expect(compare(deepskyblue, springgreen)).to.be.lessThan(0);
         });
       });
 
       context("when colorOrder is 'RGB'", function() {
-        const colorOrder = "RGB";
+        const compare = ColorContrastCalc.compareFunction("RGB");
 
         it("expects to return a negative number when yellow and orange are passed", function() {
-          expect(ColorContrastCalc.compare(yellow, orange, colorOrder)).to.be.lessThan(0);
+          expect(compare(yellow, orange)).to.be.lessThan(0);
         });
 
         it("expects to return a positive number when orange and yellow are passed", function() {
-          expect(ColorContrastCalc.compare(orange, yellow, colorOrder)).to.be.greaterThan(0);
+          expect(compare(orange, yellow)).to.be.greaterThan(0);
         });
 
         it("expects to return zero when two arguments are same", function() {
-          expect(ColorContrastCalc.compare(orange, orange, colorOrder)).to.equal(0);
+          expect(compare(orange, orange)).to.equal(0);
         });
 
         it("expects to return a negative number when orange and deepskyblue are passed", function() {
-          expect(ColorContrastCalc.compare(orange, deepskyblue, colorOrder)).to.be.lessThan(0);
+          expect(compare(orange, deepskyblue)).to.be.lessThan(0);
         });
 
         it("expects to return a positive number when deepskyblue and springgreen are passed", function() {
-          expect(ColorContrastCalc.compare(deepskyblue, springgreen, colorOrder)).to.be.greaterThan(0);
+          expect(compare(deepskyblue, springgreen)).to.be.greaterThan(0);
         });
       });
 
       context("when colorOrder is 'grb'", function() {
-        const colorOrder = "grb";
+        const compare = ColorContrastCalc.compareFunction("grb");
 
         it("expects to return a positive number when yellow and orange are passed", function() {
-          expect(ColorContrastCalc.compare(yellow, orange, colorOrder)).to.be.greaterThan(0);
+          expect(compare(yellow, orange)).to.be.greaterThan(0);
         });
 
         it("expects to return a negative number when orange and yellow are passed", function() {
-          expect(ColorContrastCalc.compare(orange, yellow, colorOrder)).to.be.lessThan(0);
+          expect(compare(orange, yellow)).to.be.lessThan(0);
         });
 
         it("expects to return zero when two arguments are same", function() {
-          expect(ColorContrastCalc.compare(orange, orange, colorOrder)).to.equal(0);
+          expect(compare(orange, orange)).to.equal(0);
         });
 
         it("expects to return a negative number when orange and deepskyblue are passed", function() {
-          expect(ColorContrastCalc.compare(orange, deepskyblue, colorOrder)).to.be.lessThan(0);
+          expect(compare(orange, deepskyblue)).to.be.lessThan(0);
         });
 
         it("expects to return a negative number when deepskyblue and springgreen are passed", function() {
-          expect(ColorContrastCalc.compare(deepskyblue, springgreen, colorOrder)).to.be.lessThan(0);
+          expect(compare(deepskyblue, springgreen)).to.be.lessThan(0);
         });
       });
 
       context("when colorOrder is 'brg'", function() {
-        const colorOrder = "brg";
+        const compare = ColorContrastCalc.compareFunction("brg");
 
         it("expects to return a positive number when yellow and orange are passed", function() {
-          expect(ColorContrastCalc.compare(yellow, orange, colorOrder)).to.be.greaterThan(0);
+          expect(compare(yellow, orange)).to.be.greaterThan(0);
         });
 
         it("expects to return a negative number when orange and yellow are passed", function() {
-          expect(ColorContrastCalc.compare(orange, yellow, colorOrder)).to.be.lessThan(0);
+          expect(compare(orange, yellow)).to.be.lessThan(0);
         });
 
         it("expects to return zero when two arguments are same", function() {
-          expect(ColorContrastCalc.compare(orange, orange, colorOrder)).to.equal(0);
+          expect(compare(orange, orange)).to.equal(0);
         });
 
         it("expects to return a negative number when orange and deepskyblue are passed", function() {
-          expect(ColorContrastCalc.compare(orange, deepskyblue, colorOrder)).to.be.lessThan(0);
+          expect(compare(orange, deepskyblue)).to.be.lessThan(0);
         });
 
         it("expects to return a positive number when deepskyblue and springgreen are passed", function() {
-          expect(ColorContrastCalc.compare(deepskyblue, springgreen, colorOrder)).to.be.greaterThan(0);
+          expect(compare(deepskyblue, springgreen)).to.be.greaterThan(0);
         });
       });
     });
