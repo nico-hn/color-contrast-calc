@@ -33,28 +33,6 @@ describe("ColorContrastCalc", () => {
       });
     });
 
-    describe("hexCodeToDecimal", function() {
-      it("expects to return [255, 255, 255] when #ffffff is passed", function() {
-        expect(ColorContrastCalc.hexCodeToDecimal("#ffffff")).to.deep.equal(RGB_WHITE);
-      });
-
-      it("expects to return [0, 0, 0] when #000000 is passed", function() {
-        expect(ColorContrastCalc.hexCodeToDecimal("#000000")).to.deep.equal(RGB_BLACK);
-      });
-
-      it("expects to return [255, 255, 0] when #ffff00 is passed", function() {
-        expect(ColorContrastCalc.hexCodeToDecimal("#ffff00")).to.deep.equal([255, 255, 0]);
-      });
-
-      it("expects to return [255, 255, 0] when #FFFF00 is passed", function() {
-        expect(ColorContrastCalc.hexCodeToDecimal("#FFFF00")).to.deep.equal([255, 255, 0]);
-      });
-
-      it("expects to return [255, 255, 0] when #ff0 is passed", function() {
-        expect(ColorContrastCalc.hexCodeToDecimal("#ff0")).to.deep.equal([255, 255, 0]);
-      });
-    });
-
     describe("decimalToHexCode", function() {
       it("expects to return #fff00 when [255, 255, 0] is passed", function() {
         expect(ColorContrastCalc.decimalToHexCode([255, 255, 0])).to.equal("#ffff00");
