@@ -33,12 +33,6 @@ describe("ColorContrastCalc", () => {
       });
     });
 
-    describe("decimalToHexCode", function() {
-      it("expects to return #fff00 when [255, 255, 0] is passed", function() {
-        expect(ColorContrastCalc.decimalToHexCode([255, 255, 0])).to.equal("#ffff00");
-      });
-    });
-
     describe("NAMED_COLORS", function() {
       it("expects to contain predefined instances of ColorContrastCalc", function() {
         expect(ColorContrastCalc.NAMED_COLORS[0]).to.be.instanceof(ColorContrastCalc);

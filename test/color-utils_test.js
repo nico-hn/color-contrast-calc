@@ -42,6 +42,13 @@ describe("ColorUtils", function() {
       expect(ColorUtils.normalizeHexCode("#fa0")).to.equal("ffaa00");
     });
   });
+
+  describe("decimalToHexCode", function() {
+    it("expects to return #fff00 when [255, 255, 0] is passed", function() {
+      expect(ColorUtils.decimalToHexCode([255, 255, 0])).to.equal("#ffff00");
+    });
+  });
+
   describe("decimalRound", function() {
     it("expects to return 3.14 when 3.14159 and 2 are passed", function() {
       expect(ColorUtils.decimalRound(3.14159, 2)).to.equal(3.14);
