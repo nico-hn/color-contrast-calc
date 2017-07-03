@@ -14,6 +14,20 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("isString", function() {
+    it("expects to return true when 'string' is passed", function() {
+      expect(ColorUtils.isString("string")).to.be.true;
+    });
+
+    it("expects to return false when 123 is passed", function() {
+      expect(ColorUtils.isString(123)).to.be.false;
+    });
+
+    it("expects to return false when ['string'] is passed", function() {
+      expect(ColorUtils.isString(["string"])).to.be.false;
+    });
+  });
+
   describe("isUpperCase", function() {
     it("expects to return true when 'U' is passed", function() {
       expect(ColorUtils.isUpperCase("U")).to.be.true;
