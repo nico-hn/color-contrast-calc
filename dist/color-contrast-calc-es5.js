@@ -665,6 +665,7 @@ var ColorContrastCalc = function () {
      * @param {string} [colorOrder="rgb"] - A left side primary color has a higher sorting precedence
      * @param {string} [keyType="color"] - Type of keys used for sorting: "color", "hex" or "rgb"
      * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted
+     * @returns {function} Function that compares two given colors
      */
 
   }, {
@@ -679,9 +680,11 @@ var ColorContrastCalc = function () {
 
     /**
      * Sorts colors in an array and returns the result as a new array
-     * @param {ColorContrastCalc[]} colors - List of colors
+     * @param {ColorContrastCalc[]|String[]} colors - List of colors
+     * @param {string} [colorOrder="rgb"] - A left side primary color has a higher sorting precedence
      * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted
      * @param {string} [mode="auto"] - If set to "hex", key values are handled as hex code strings
+     * @returns {ColorContrastCalc[]} An array of sorted colors
      */
 
   }, {
