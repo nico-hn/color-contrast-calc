@@ -35,7 +35,7 @@ describe("ColorUtils", function() {
     });
 
     it("expects to return 'FFA500' when '#FFA500' is passed", function() {
-      expect(ColorUtils.normalizeHexCode("#FFA500")).to.equal("FFA500");
+      expect(ColorUtils.normalizeHexCode("#FFA500")).to.equal("ffa500");
     });
 
     it("expects to return 'ffaa00' when '#fa0' is passed", function() {
