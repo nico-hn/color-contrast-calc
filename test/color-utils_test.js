@@ -115,6 +115,25 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("isSameHexColor", function() {
+    const upperYellow = "#FFFF00";
+    const lowerYellow = "#ffff00";
+    const shortYellow = "#ff0";
+    const red = "#ff0000";
+
+    it("expects to return true if the only difference of two colors are their letter case", function() {
+      expect(ColorUtils.isSameHexColor(upperYellow, lowerYellow)).to.be.true;
+    });
+
+    it("expects to return true if one of given colors is a shorthand form of the other", function() {
+      expect(ColorUtils.isSameHexColor(lowerYellow, shortYellow)).to.be.true;
+    });
+
+    it("expects to return false if given two colors are different", function() {
+      expect(ColorUtils.isSameHexColor(lowerYellow, red)).to.be.false;
+    });
+  });
+
   describe("isString", function() {
     it("expects to return true when 'string' is passed", function() {
       expect(ColorUtils.isString("string")).to.be.true;
