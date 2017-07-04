@@ -134,6 +134,34 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("isSameRgbColor", function() {
+    const yellow1 = [255, 255, 0];
+    const yellow2 = [255, 255, 0];
+    const red = [255, 0, 0];
+    const lime = [0, 255, 0];
+    const blue = [0, 0, 255];
+
+    it("expects to return true RGB values represent a same color", function() {
+      expect(ColorUtils.isSameRgbColor(yellow1, yellow2)).to.be.true;
+    });
+
+    it("expects to return true the two arguments are the same RGB value", function() {
+      expect(ColorUtils.isSameRgbColor(yellow1, yellow1)).to.be.true;
+    });
+
+    it("expects to return false when yellow1 and red are passed", function() {
+      expect(ColorUtils.isSameRgbColor(yellow1, red)).to.be.false;
+    });
+
+    it("expects to return false when yellow1 and lime are passed", function() {
+      expect(ColorUtils.isSameRgbColor(yellow1, lime)).to.be.false;
+    });
+
+    it("expects to return false when yellow1 and blue are passed", function() {
+      expect(ColorUtils.isSameRgbColor(yellow1, blue)).to.be.false;
+    });
+  });
+
   describe("isString", function() {
     it("expects to return true when 'string' is passed", function() {
       expect(ColorUtils.isString("string")).to.be.true;
