@@ -1115,6 +1115,14 @@ describe("ColorContrastCalc", () => {
       const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
       expect(gray.isSameColor(ColorContrastCalc.WHITE)).to.be.false;
     });
+
+    it("expects to be case insensitive", function() {
+      const upperHexYellow = "#FFFF00";
+      const lowerHexYellow = "#ffff00";
+      const upperYellow = new ColorContrastCalc(upperHexYellow);
+      const lowerYellow = new ColorContrastCalc(lowerHexYellow);
+      expect(upperYellow.isSameColor(lowerYellow)).to.be.true;
+    });
   });
 
   describe("isMaxContrast", function() {
