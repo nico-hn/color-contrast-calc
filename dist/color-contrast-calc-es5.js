@@ -37,6 +37,7 @@ var _createClass3 = _interopRequireDefault(_createClass2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var ColorUtils = require("./color-utils").ColorUtils;
+var Utils = ColorUtils;
 
 /**
  * Provides methods to calculate RGB colors.
@@ -54,13 +55,13 @@ var ColorContrastCalc = function () {
 
     var ownClass = this.constructor;
     /** @property {Array<number, number, number>} rgb - RGB value repsented as an array of decimal numbers */
-    this.rgb = ColorUtils.isString(rgb) ? ColorUtils.hexCodeToDecimal(rgb) : rgb;
+    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToDecimal(rgb) : rgb;
     /** @property {number} relativeLuminance - The relative luminance of the color */
     this.relativeLuminance = ownClass.relativeLuminance(this.rgb);
     /** @property {string} name - If no name is explicitely given, the property is set to the value of this.hexCode */
-    this.name = name === null ? ColorUtils.decimalToHexCode(this.rgb) : name;
+    this.name = name === null ? Utils.decimalToHexCode(this.rgb) : name;
     /** @property {string} hexCode - The RGB value in hex code notation */
-    this.hexCode = ColorUtils.decimalToHexCode(this.rgb);
+    this.hexCode = Utils.decimalToHexCode(this.rgb);
     this.freezeProperties();
   }
 
@@ -596,8 +597,8 @@ var ColorContrastCalc = function () {
 
       var rgb = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [255, 255, 255];
 
-      if (ColorUtils.isString(rgb)) {
-        rgb = ColorUtils.hexCodeToDecimal(rgb);
+      if (Utils.isString(rgb)) {
+        rgb = Utils.hexCodeToDecimal(rgb);
       }
 
       var _rgb$map = rgb.map(function (c) {
@@ -781,7 +782,7 @@ var ColorContrastCalc = function () {
       for (var r = 0; r < 16; r += 3) {
         for (var g = 0; g < 16; g += 3) {
           for (var b = 0; b < 16; b += 3) {
-            var hexCode = ColorUtils.decimalToHexCode([r, g, b].map(function (c) {
+            var hexCode = Utils.decimalToHexCode([r, g, b].map(function (c) {
               return c * 17;
             }));
             var predefined = this.HEX_TO_COLOR.get(hexCode);
@@ -1048,7 +1049,7 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       key: "isStringKey",
       value: function isStringKey(color, keyMapper) {
         var keyType = keyMapper ? keyMapper(color) : color;
-        return ColorUtils.isString(keyType);
+        return Utils.isString(keyType);
       }
     }, {
       key: "compareColorFunction",
@@ -1125,8 +1126,8 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
     }, {
       key: "compareHexVal",
       value: function compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache) {
-        var rgb1 = rgbCache.get(hex1) || ColorUtils.hexCodeToDecimal(hex1);
-        var rgb2 = rgbCache.get(hex2) || ColorUtils.hexCodeToDecimal(hex2);
+        var rgb1 = rgbCache.get(hex1) || Utils.hexCodeToDecimal(hex1);
+        var rgb2 = rgbCache.get(hex2) || Utils.hexCodeToDecimal(hex2);
 
         return this.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
       }
@@ -1157,7 +1158,7 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
         var primaryColors = colorOrder.split("").sort(this.caseInsensitiveComp).reverse();
 
         return primaryColors.map(function (primary) {
-          if (ColorUtils.isUpperCase(primary)) {
+          if (Utils.isUpperCase(primary)) {
             return _this10.descendComp;
           }
 
@@ -1173,11 +1174,9 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
         if (lStr1 < lStr2) {
           return -1;
         }
-
         if (lStr1 > lStr2) {
           return 1;
         }
-
         return 0;
       }
     }, {
@@ -1408,7 +1407,8 @@ var ColorUtils = function () {
   }, {
     key: "normalizeHexCode",
     value: function normalizeHexCode(hexString) {
-      var h = hexString.startsWith("#") ? hexString.replace("#", "") : hexString;
+      var hl = hexString.toLowerCase();
+      var h = hl.startsWith("#") ? hl.replace("#", "") : hl;
       if (h.length === 3) {
         return [0, 1, 2].map(function (s) {
           return h.substr(s, 1).repeat(2);
@@ -1471,6 +1471,39 @@ var ColorUtils = function () {
     key: "isValidHexCode",
     value: function isValidHexCode(code) {
       return this.HEX_CODE_RE.test(code);
+    }
+
+    /**
+     * Checks if given two hex color codes represent a same color.
+     * @param {string} hexCode1 - Color given as a hex code, such as "#ffff00", "#FFFF00" or "#ff0"
+     * @param {string} hexCode2 - Color given as a hex code, such as "#ffff00", "#FFFF00" or "#ff0"
+     * @returns {boolean} True if given two colors are same
+     */
+
+  }, {
+    key: "isSameHexColor",
+    value: function isSameHexColor(hexCode1, hexCode2) {
+      var h1 = this.normalizeHexCode(hexCode1);
+      var h2 = this.normalizeHexCode(hexCode2);
+      return h1 === h2;
+    }
+
+    /**
+     * Checks if given two RGB values represent a same color.
+     * @param {Array<number, number, number>} rgb1 - Color given as an array of numbers, such as [255, 255, 0]
+     * @param {Array<number, number, number>} rgb2 - Color given as an array of numbers, such as [255, 255, 0]
+     * @returns {boolean} True if given two colors are same
+     */
+
+  }, {
+    key: "isSameRgbColor",
+    value: function isSameRgbColor(rgb1, rgb2) {
+      if (rgb1.length !== rgb2.length) {
+        return false;
+      }
+      return rgb1.every(function (primaryColor, i) {
+        return primaryColor === rgb2[i];
+      });
     }
 
     /**
