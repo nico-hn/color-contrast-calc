@@ -1,7 +1,7 @@
 {
-  "coverage": "97.72%",
-  "expectCount": 44,
-  "actualCount": 43,
+  "coverage": "97.82%",
+  "expectCount": 46,
+  "actualCount": 45,
   "files": {
     "lib/color-contrast-calc.js": {
       "expectCount": 35,
@@ -9,8 +9,8 @@
       "undocumentLines": []
     },
     "lib/color-utils.js": {
-      "expectCount": 9,
-      "actualCount": 8,
+      "expectCount": 11,
+      "actualCount": 10,
       "undocumentLines": [
         3
       ]

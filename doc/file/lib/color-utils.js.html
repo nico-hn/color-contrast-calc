@@ -59,7 +59,8 @@ class ColorUtils {
    * @returns {string} 6-digit hexadecimal string without leading &apos;#&apos;
    */
   static normalizeHexCode(hexString) {
-    const h = hexString.startsWith(&quot;#&quot;) ? hexString.replace(&quot;#&quot;, &quot;&quot;) : hexString;
+    const hl = hexString.toLowerCase();
+    const h = hl.startsWith(&quot;#&quot;) ? hl.replace(&quot;#&quot;, &quot;&quot;) : hl;
     if (h.length === 3) {
       return [0, 1, 2].map(s =&gt; h.substr(s, 1).repeat(2)).join(&quot;&quot;);
     } else {
@@ -108,6 +109,29 @@ class ColorUtils {
    */
   static isValidHexCode(code) {
     return this.HEX_CODE_RE.test(code);
+  }
+
+  /**
+   * Checks if given two hex color codes represent a same color.
+   * @param {string} hexCode1 - Color given as a hex code, such as &quot;#ffff00&quot;, &quot;#FFFF00&quot; or &quot;#ff0&quot;
+   * @param {string} hexCode2 - Color given as a hex code, such as &quot;#ffff00&quot;, &quot;#FFFF00&quot; or &quot;#ff0&quot;
+   * @returns {boolean} True if given two colors are same
+   */
+  static isSameHexColor(hexCode1, hexCode2) {
+    const h1 = this.normalizeHexCode(hexCode1);
+    const h2 = this.normalizeHexCode(hexCode2);
+    return h1 === h2;
+  }
+
+  /**
+   * Checks if given two RGB values represent a same color.
+   * @param {Array&lt;number, number, number&gt;} rgb1 - Color given as an array of numbers, such as [255, 255, 0]
+   * @param {Array&lt;number, number, number&gt;} rgb2 - Color given as an array of numbers, such as [255, 255, 0]
+   * @returns {boolean} True if given two colors are same
+   */
+  static isSameRgbColor(rgb1, rgb2) {
+    if (rgb1.length !== rgb2.length) { return false; }
+    return rgb1.every((primaryColor, i) =&gt; primaryColor === rgb2[i]);
   }
 
   /**

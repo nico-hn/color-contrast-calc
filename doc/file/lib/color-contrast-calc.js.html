@@ -42,6 +42,7 @@
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&quot;use strict&quot;;
 
 const ColorUtils = require(&quot;./color-utils&quot;).ColorUtils;
+const Utils = ColorUtils;
 
 /**
  * Provides methods to calculate RGB colors.
@@ -55,13 +56,13 @@ class ColorContrastCalc {
   constructor(rgb, name = null) {
     const ownClass = this.constructor;
     /** @property {Array&lt;number, number, number&gt;} rgb - RGB value repsented as an array of decimal numbers */
-    this.rgb = ColorUtils.isString(rgb) ? ColorUtils.hexCodeToDecimal(rgb) : rgb;
+    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToDecimal(rgb) : rgb;
     /** @property {number} relativeLuminance - The relative luminance of the color */
     this.relativeLuminance = ownClass.relativeLuminance(this.rgb);
     /** @property {string} name - If no name is explicitely given, the property is set to the value of this.hexCode */
-    this.name = name === null ? ColorUtils.decimalToHexCode(this.rgb) : name;
+    this.name = name === null ? Utils.decimalToHexCode(this.rgb) : name;
     /** @property {string} hexCode - The RGB value in hex code notation */
-    this.hexCode = ColorUtils.decimalToHexCode(this.rgb);
+    this.hexCode = Utils.decimalToHexCode(this.rgb);
     this.freezeProperties();
   }
 
@@ -83,7 +84,7 @@ class ColorContrastCalc {
    * @returns {number} Relative luminance
    */
   static relativeLuminance(rgb = [255, 255, 255]) {
-    if (ColorUtils.isString(rgb)) { rgb = ColorUtils.hexCodeToDecimal(rgb); }
+    if (Utils.isString(rgb)) { rgb = Utils.hexCodeToDecimal(rgb); }
 
     const [r, g, b] = rgb.map(c =&gt; this.tristimulusValue(c));
     return r * 0.2126 + g * 0.7152 + b * 0.0722;
@@ -211,7 +212,7 @@ class ColorContrastCalc {
     for (let r = 0; r &lt; 16; r += 3) {
       for (let g = 0; g &lt; 16; g += 3) {
         for (let b = 0; b &lt; 16; b += 3) {
-          let hexCode = ColorUtils.decimalToHexCode([r, g, b].map(c =&gt; c * 17));
+          let hexCode = Utils.decimalToHexCode([r, g, b].map(c =&gt; c * 17));
           let predefined = this.HEX_TO_COLOR.get(hexCode);
           let color = predefined ? predefined : new ColorContrastCalc(hexCode);
           this.WEB_SAFE_COLORS.push(color);
@@ -734,7 +735,7 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
     static isStringKey(color, keyMapper) {
       const keyType = keyMapper ? keyMapper(color) : color;
-      return ColorUtils.isString(keyType);
+      return Utils.isString(keyType);
     }
 
     static compareColorFunction(colorOrder = &quot;rgb&quot;) {
@@ -776,8 +777,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
     }
 
     static compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache) {
-      const rgb1 = rgbCache.get(hex1) || ColorUtils.hexCodeToDecimal(hex1);
-      const rgb2 = rgbCache.get(hex2) || ColorUtils.hexCodeToDecimal(hex2);
+      const rgb1 = rgbCache.get(hex1) || Utils.hexCodeToDecimal(hex1);
+      const rgb2 = rgbCache.get(hex2) || Utils.hexCodeToDecimal(hex2);
 
       return this.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
     }
@@ -801,7 +802,7 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
               .sort(this.caseInsensitiveComp).reverse();
 
       return primaryColors.map(primary =&gt; {
-        if (ColorUtils.isUpperCase(primary)) {
+        if (Utils.isUpperCase(primary)) {
           return this.descendComp;
         }
 
@@ -813,14 +814,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
       const lStr1 = str1.toLowerCase();
       const lStr2 = str2.toLowerCase();
 
-      if (lStr1 &lt; lStr2) {
-        return -1;
-      }
-
-      if (lStr1 &gt; lStr2) {
-        return 1;
-      }
-
+      if (lStr1 &lt; lStr2) { return -1; }
+      if (lStr1 &gt; lStr2) { return 1; }
       return 0;
     }
 

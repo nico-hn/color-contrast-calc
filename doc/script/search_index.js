@@ -576,6 +576,18 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "lib/color-utils.js~colorutils.issamehexcolor",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-isSameHexColor",
+    "lib/color-utils.js~ColorUtils.isSameHexColor",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.issamergbcolor",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-isSameRgbColor",
+    "lib/color-utils.js~ColorUtils.isSameRgbColor",
+    "method"
+  ],
+  [
     "lib/color-utils.js~colorutils.isstring",
     "class/lib/color-utils.js~ColorUtils.html#static-method-isString",
     "lib/color-utils.js~ColorUtils.isString",
