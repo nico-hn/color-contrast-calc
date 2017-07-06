@@ -3,7 +3,7 @@
     "__docId__": 0,
     "kind": "file",
     "name": "lib/color-contrast-calc.js",
-    "content": "\"use strict\";\n\nconst ColorUtils = require(\"./color-utils\").ColorUtils;\nconst Utils = ColorUtils;\n\n/**\n * Provides methods to calculate RGB colors.\n * An instance represents a RGB color.\n */\nclass ColorContrastCalc {\n  /**\n   * @param {string|Array<number, number, number>} rgb - RGB value represented as a string (hex code) or an array of numbers\n   * @param {string} [name=null] - the value of this.name: if null, the value of this.hexCode is set to this.name instead\n   */\n  constructor(rgb, name = null) {\n    const ownClass = this.constructor;\n    /** @property {Array<number, number, number>} rgb - RGB value repsented as an array of decimal numbers */\n    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToDecimal(rgb) : rgb;\n    /** @property {number} relativeLuminance - The relative luminance of the color */\n    this.relativeLuminance = ownClass.relativeLuminance(this.rgb);\n    /** @property {string} name - If no name is explicitely given, the property is set to the value of this.hexCode */\n    this.name = name === null ? Utils.decimalToHexCode(this.rgb) : name;\n    /** @property {string} hexCode - The RGB value in hex code notation */\n    this.hexCode = Utils.decimalToHexCode(this.rgb);\n    this.freezeProperties();\n  }\n\n  /**\n   * @private\n   */\n  static tristimulusValue(primaryColor, base = 255) {\n    const s = primaryColor / base;\n    if (s <= 0.03928) {\n      return s / 12.92;\n    } else {\n      return Math.pow((s + 0.055) / 1.055, 2.4);\n    }\n  }\n\n  /**\n   * Calculate the relative luminance of a RGB color given as a string or an array of numbers\n   * @param {string|Array<number, number, number>} rgb - RGB value represented as a string (hex code) or an array of numbers\n   * @returns {number} Relative luminance\n   */\n  static relativeLuminance(rgb = [255, 255, 255]) {\n    if (Utils.isString(rgb)) { rgb = Utils.hexCodeToDecimal(rgb); }\n\n    const [r, g, b] = rgb.map(c => this.tristimulusValue(c));\n    return r * 0.2126 + g * 0.7152 + b * 0.0722;\n  }\n\n  /**\n   * Calculate the contrast ratio of given colors\n   * @param {string|Array<number, number, number>} foreground - RGB value represented as a string (hex code) or an array of numbers\n   * @param {string|Array<number, number, number>} background - RGB value represented as a string (hex code) or an array of numbers\n   * @returns {number} Contrast ratio\n   */\n  static contrastRatio(foreground, background) {\n    const [l1, l2] = [foreground, background]\n          .map(c => this.relativeLuminance(c))\n          .sort((f, b) => b - f);\n    return (l1 + 0.05) / (l2 + 0.05);\n  }\n\n  /**\n   * Returns an instance of ColorContrastCalc for a predefined color name.\n   * @param {string} name - names are defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords\n   * @returns {ColorContrastCalc}\n   */\n  static getByName(name) {\n    return this.NAME_TO_COLOR.get(name);\n  }\n\n  /**\n   * Returns an instance of ColorContrastCalc for a hex code\n   * @param {string} code - RGB value in hex code\n   * @returns {ColorContrastCalc}\n   */\n  static getByHexCode(code) {\n    const registeredCode = this.HEX_TO_COLOR.get(code);\n    return registeredCode ? registeredCode : new ColorContrastCalc(code);\n  }\n\n  /**\n   * Returns a function to be used as a parameter of Array.prototype.sort()\n   * @param {string} [colorOrder=\"rgb\"] - A left side primary color has a higher sorting precedence\n   * @param {string} [keyType=\"color\"] - Type of keys used for sorting: \"color\", \"hex\" or \"rgb\"\n   * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted\n   * @returns {function} Function that compares given two colors\n   */\n  static compareFunction(colorOrder = \"rgb\", keyType = \"color\", keyMapper = null) {\n    return this.Sorter.compareFunction(colorOrder, keyType, keyMapper);\n  }\n\n  /**\n   * Sorts colors in an array and returns the result as a new array\n   * @param {ColorContrastCalc[]|String[]} colors - List of colors\n   * @param {string} [colorOrder=\"rgb\"] - A left side primary color has a higher sorting precedence\n   * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted\n   * @param {string} [mode=\"auto\"] - If set to \"hex\", key values are handled as hex code strings\n   * @returns {ColorContrastCalc[]} An array of sorted colors\n   */\n  static sort(colors, colorOrder = \"rgb\", keyMapper = null, mode = \"auto\") {\n    return this.Sorter.sort(colors, colorOrder, keyMapper, mode);\n  }\n\n  /**\n   * @private\n   */\n  static setup(colorKeywordsJSON) {\n    this.loadColorKeywords(colorKeywordsJSON);\n    this.assignColorConstants();\n    this.generateWebSafeColors();\n  }\n\n  /**\n   * @private\n   */\n  static loadColorKeywords(colorKeywordsJSON) {\n    /**\n     * Array of named colors defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords\n     * @property {ColorContrastCalc[]} NAMED_COLORS\n     */\n    this.NAMED_COLORS = [];\n    /** @private */\n    this.NAME_TO_COLOR = new Map();\n    /** @private */\n    this.HEX_TO_COLOR = new Map();\n    colorKeywordsJSON.forEach(color => {\n      const [name, hex] = color;\n      const calc = new ColorContrastCalc(hex, name);\n      this.NAMED_COLORS.push(calc);\n      this.NAME_TO_COLOR.set(name, calc);\n      this.HEX_TO_COLOR.set(hex, calc);\n    });\n\n    Object.freeze(this.NAMED_COLORS);\n  }\n\n  /**\n   * @private\n   */\n  static assignColorConstants() {\n    /** @property {ColorContrastCalc} BLACK - an instance that represents #000000 */\n    this.BLACK = this.HEX_TO_COLOR.get(\"#000000\");\n    /** @property {ColorContrastCalc} WHITE - an instance that represents #ffffff */\n    this.WHITE = this.HEX_TO_COLOR.get(\"#ffffff\");\n    /** @property {ColorContrastCalc} GRAY - an instance that represents #808080 */\n    this.GRAY = this.NAME_TO_COLOR.get(\"gray\");\n    this.prototype.BLACK = this.BLACK;\n    this.prototype.WHITE = this.WHITE;\n    this.prototype.GRAY = this.GRAY;\n    Object.freeze(this.BLACK);\n    Object.freeze(this.WHITE);\n    Object.freeze(this.GRAY);\n    Object.freeze(this.prototype.BLACK);\n    Object.freeze(this.prototype.WHITE);\n    Object.freeze(this.prototype.GRAY);\n  }\n\n  /**\n   * @private\n   */\n  static generateWebSafeColors() {\n    /**\n     * Array of web safe colors\n     * @property {ColorContrastCalc[]} WEB_SAFE_COLORS\n     */\n    this.WEB_SAFE_COLORS = [];\n\n    for (let r = 0; r < 16; r += 3) {\n      for (let g = 0; g < 16; g += 3) {\n        for (let b = 0; b < 16; b += 3) {\n          let hexCode = Utils.decimalToHexCode([r, g, b].map(c => c * 17));\n          let predefined = this.HEX_TO_COLOR.get(hexCode);\n          let color = predefined ? predefined : new ColorContrastCalc(hexCode);\n          this.WEB_SAFE_COLORS.push(color);\n        }\n      }\n    }\n  }\n\n  /**\n   * Calculate the contrast ratio against another color\n   * @param {ColorContrastCalc|string|Array<number, number, number>} color - another instance of ColorContrastCalc or a RGB value\n   * @returns {number}\n   */\n  contrastRatioAgainst(color) {\n    if (!(color instanceof ColorContrastCalc)) {\n      return this.constructor.contrastRatio(this.rgb, color);\n    }\n\n    const [l1, l2] = [this.relativeLuminance, color.relativeLuminance]\n          .sort((s, o) => o - s);\n    return (l1 + 0.05) / (l2 + 0.05);\n  }\n\n  /**\n   * Returns an array of named colors that satisfy a given level of contrast ratio\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {ColorContrastCalc[]}\n   */\n  colorsWithSufficientContrast(level = \"AA\") {\n    const ratio = this.levelToContrastRatio(level);\n\n    return this.constructor.NAMED_COLORS.filter(combinedColor => {\n      return this.contrastRatioAgainst(combinedColor) >= ratio;\n    });\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newContrastColor(ratio, name = null) {\n    const newRgb = this.rgb.map(c => this.calcNewContrast(c, ratio));\n    return new ColorContrastCalc(newRgb, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newBrightnessColor(ratio, name = null) {\n    const newRgb = this.rgb.map(c => this.calcNewBrightness(c, ratio));\n    return new ColorContrastCalc(newRgb, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newInvertColor(ratio, name = null) {\n    /*\n       https://www.w3.org/TR/filter-effects-1/#invertEquivalent\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    const newRgb = this.rgb.map(c => {\n      return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);\n    });\n\n    return new ColorContrastCalc(newRgb, name);\n  }\n\n  /**\n   * @param {number} degree - Value in degree\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newHueRotateColor(degree, name = null) {\n    return this.generateNewColor(this.constructor.HueRotateCalc, degree, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newSaturateColor(ratio, name = null) {\n    return this.generateNewColor(this.constructor.SaturateCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newGrayscaleColor(ratio, name = null) {\n    return this.generateNewColor(this.constructor.GrayscaleCalc, ratio, name);\n  }\n\n  /**\n   * Tries to find a color whose contrast against the base color is close to a given level.\n   *\n   * The returned color is gained by modifying the brightness of otherColor.\n   * Even when a color that satisfies the level is not found, it returns a new color anyway.\n   * @param {ColorContrastCalc} otherColor - The color before the modification of brightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {ColorContrastCalc} A color whose contrast against the base color is close to a specified level\n   */\n  findBrightnessThreshold(otherColor, level = \"AA\") {\n    const targetRatio = this.levelToContrastRatio(level);\n    const criteria = this.brightnessThresholdCriteria(targetRatio, otherColor);\n    const w = otherColor.calcUpperRatioLimit() / 2;\n    const upperColor = otherColor.newBrightnessColor(w * 2);\n\n    if (otherColor.isBrighterThan(this) && ! upperColor.hasSufficientContrast(this, level)) {\n      return upperColor;\n    }\n\n    const [r, lastSufficentRatio] = this.calcBrightnessRatio(otherColor, targetRatio, criteria, w);\n\n    const nearestColor = otherColor.newBrightnessColor(criteria.round(r));\n\n    if (lastSufficentRatio && nearestColor.contrastRatioAgainst(this) < targetRatio) {\n      return otherColor.newBrightnessColor(criteria.round(lastSufficentRatio));\n    }\n\n    return nearestColor;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of WCAG 2.0, otherwise \"-\"\n   */\n  contrastLevel(otherColor) {\n    const ratio = this.contrastRatioAgainst(otherColor);\n    if (ratio >= 7) {\n      return \"AAA\";\n    } else if (ratio >= 4.5) {\n      return \"AA\";\n    } else if (ratio >= 3) {\n      return \"A\";\n    }\n\n    return \"-\";\n  }\n\n  /**\n   * Checks if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0\n   * @param {ColorContrastCalc} otherColor\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {boolean}\n   */\n  hasSufficientContrast(otherColor, level = \"AA\") {\n    const ratio = this.levelToContrastRatio(level);\n    return this.contrastRatioAgainst(otherColor) >= ratio;\n  }\n\n  /**\n   * Checks if the base color and otherColor have the same RGB value\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean}\n   */\n  isSameColor(otherColor) {\n    return this.hexCode === otherColor.hexCode;\n  }\n\n  /**\n   * @returns {boolean} true if each primary color of the base color is 0 or 255\n   */\n  isMaxContrast() {\n    const limits = [0, 255];\n    return this.rgb.every(primaryColor => limits.includes(primaryColor));\n  }\n\n  /**\n   * @returns {boolean} true if the hex code of the color is #808080\n   */\n  isMinContrast() {\n    return this.rgb.every((primaryColor, i) => {\n      return this.GRAY.rgb[i] === primaryColor;\n    });\n  }\n\n  /**\n   * Returns a string representation of the color.\n   * When 16 is passed, it return the hex code, and when 10 is passed, it returns the value in RGB notation\n   * Otherwise, it returns the color name or the hex code\n   * @param {number|null} [base=16] - 16, 10 or null\n   * @returns {string}\n   */\n  toString(base = 16) {\n    switch (base) {\n    case 16:\n      return this.hexCode;\n    case 10:\n      return `rgb(${this.rgb.join(\",\")})`;\n    default:\n      return this.name || this.hexCode;\n    }\n  }\n\n  /**\n   * @private\n   */\n  levelToContrastRatio(level) {\n    if (level === \"A\" || level === 1) {\n      return 3.0;\n    } else if (level === \"AA\" || level === 2) {\n      return 4.5;\n    } else if (level === \"AAA\" || level === 3) {\n      return 7.0;\n    }\n  }\n\n  /**\n   * @private\n   */\n  calcNewContrast(origColor, ratio = 100) {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-contrast\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    const newColor = Math.round((origColor * ratio + 255 * (50 - ratio / 2)) / 100);\n    return this.clampToRange(newColor, 0, 255);\n  }\n\n  /**\n   * @private\n   */\n  calcNewBrightness(origColor, ratio = 100) {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-brightness\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    return this.clampToRange(Math.round(origColor * ratio / 100), 0, 255);\n  }\n\n  /**\n   * @private\n   */\n  calcBrightnessRatio(otherColor, targetRatio, criteria, w) {\n    let r = w;\n    let lastSufficentRatio = null;\n\n    for (let d of ColorContrastCalc.binarySearchWidth(w, 0.01)) {\n      let newColor = otherColor.newBrightnessColor(r);\n      let contrastRatio = newColor.contrastRatioAgainst(this);\n\n      if (contrastRatio >= targetRatio) { lastSufficentRatio = r; }\n      if (contrastRatio === targetRatio) { break; }\n      r += criteria.incrementCondition(contrastRatio) ? d : -d;\n    }\n\n    return [r, lastSufficentRatio];\n  }\n\n  /**\n   * @private\n   */\n  calcUpperRatioLimit() {\n    if (this.isSameColor(this.BLACK)) {\n      return 100;\n    }\n\n    const darkest = this.rgb\n            .filter(c => c !== 0)\n            .reduce((a, b) => Math.min(a, b));\n    return Math.ceil((255 / darkest) * 100);\n  }\n\n  /**\n   * @private\n   */\n  brightnessThresholdCriteria(targetRatio, otherColor) {\n    const criteria = {};\n\n    if (this.isBrighterThan(otherColor) ||\n        this.hasSameLuminance(otherColor) && this.isLightColor()) {\n      criteria.round = (r) => Math.floor(r * 10 ) / 10;\n      criteria.incrementCondition = (contrastRatio) => contrastRatio > targetRatio;\n    } else {\n      criteria.round = (r) => Math.ceil(r * 10) / 10;\n      criteria.incrementCondition = (contrastRatio) => targetRatio > contrastRatio;\n    }\n\n    return criteria;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is greater than that of otherColor\n   */\n  isBrighterThan(otherColor) {\n    return this.relativeLuminance > otherColor.relativeLuminance;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is equal to that of otherColor\n   */\n  hasSameLuminance(otherColor) {\n    return this.relativeLuminance === otherColor.relativeLuminance;\n  }\n\n  /**\n   * @returns {boolean} true if the contrast ratio against white is qual to/ less than the ratio against black\n   */\n  isLightColor() {\n    return this.WHITE.contrastRatioAgainst(this) <= this.BLACK.contrastRatioAgainst(this);\n  }\n\n  /**\n   * @private\n   */\n  freezeProperties() {\n    Object.freeze(this.rgb);\n    Object.freeze(this.relativeLuminance);\n    Object.freeze(this.name);\n    Object.freeze(this.hexCode);\n  }\n\n  /**\n   * @private\n   */\n  clampToRange(value, lowerBound, upperBound) {\n    if (value <= lowerBound) {\n      return lowerBound;\n    } else if (value > upperBound) {\n      return upperBound;\n    }\n    return value;\n  }\n\n  /**\n   * @private\n   */\n  generateNewColor(calc, ratio, name = null) {\n    const newRgb = calc.calcRgb(ratio, this.rgb);\n    return new ColorContrastCalc(newRgb.map(c => {\n      return this.clampToRange(Math.round(c), 0, 255);\n    }), name);\n  }\n}\n\nColorContrastCalc.binarySearchWidth = function*(initWidth, min) {\n  let i = 1;\n  let d = initWidth / Math.pow(2, i);\n\n  while (d > min) {\n    yield d;\n    i++;\n    d = initWidth / Math.pow(2, i);\n  }\n};\n\n(function() {\n  class Matrix {\n    constructor(matrix) {\n      this.matrix = matrix;\n    }\n\n    add(otherMatrix) {\n      const newMatrix = this.matrix.map((row, i) => {\n        const otherRow = otherMatrix.matrix[i];\n        return row.map((s, j) => s + otherRow[j]);\n      });\n\n      return new Matrix(newMatrix);\n    }\n\n    multiply(n) {\n      if (typeof n === \"number\") {\n        return this.multiplyByScalar(n);\n      } else {\n        return this.productByVector(n);\n      }\n    }\n\n    multiplyByScalar(n) {\n      const newMatrix = this.matrix.map(row => row.map(c => c * n));\n      return new Matrix(newMatrix);\n    }\n\n    productByVector(vector) {\n      return this.matrix.map(row => {\n        let s = 0;\n        row.forEach((c, i) => s += c * vector[i]);\n        return s;\n      });\n    }\n  }\n\n  ColorContrastCalc.Matrix = Matrix;\n\n  class HueRotateCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(deg, rgb) {\n      return this.calcRotation(deg).multiply(rgb);\n    }\n\n    static degToRad(deg) {\n      return Math.PI * deg / 180;\n    }\n\n    static calcRotation(deg) {\n      const rad = this.degToRad(deg);\n      const cosPartResult = this.cosPart.multiply(Math.cos(rad));\n      const sinPartResult = this.sinPart.multiply(Math.sin(rad));\n      return this.constPart.add(cosPartResult).add(sinPartResult);\n    }\n  }\n\n  HueRotateCalc.constPart = new Matrix([[0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072]]);\n\n  HueRotateCalc.cosPart = new Matrix([[0.787, -0.715, -0.072],\n                                      [-0.213,0.285, -0.072],\n                                      [-0.213, -0.715, 0.928]]);\n\n  HueRotateCalc.sinPart = new Matrix([[-0.213, -0.715, 0.928],\n                                      [0.143, 0.140, -0.283],\n                                      [-0.787, 0.715, 0.072]]);\n\n  ColorContrastCalc.HueRotateCalc = HueRotateCalc;\n\n  class SaturateCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-saturate\n       https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n     */\n    static calcRgb(s, rgb) {\n      return this.calcSaturation(s).multiply(rgb);\n    }\n\n    static calcSaturation(s) {\n      return this.constPart.add(this.saturatePart.multiply(s / 100));\n    }\n  }\n\n  SaturateCalc.constPart = HueRotateCalc.constPart;\n  SaturateCalc.saturatePart = HueRotateCalc.cosPart;\n\n  ColorContrastCalc.SaturateCalc = SaturateCalc;\n\n  class GrayscaleCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-grayscale\n       https://www.w3.org/TR/filter-effects/#grayscaleEquivalent\n       https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n    */\n    static calcRgb(s, rgb) {\n      return this.calcGrayscale(s).multiply(rgb);\n    }\n\n    static calcGrayscale(s) {\n      const r = 1 - Math.min(100, s) / 100;\n      return this.constPart.add(this.ratioPart.multiply(r));\n    }\n  }\n\n  GrayscaleCalc.constPart = new Matrix([[0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722]]);\n\n  GrayscaleCalc.ratioPart = new Matrix([[0.7874, -0.7152, -0.0722],\n                                        [-0.2126, 0.2848, -0.0722],\n                                        [-0.2126, -0.7152, 0.9278]]);\n\n  ColorContrastCalc.GrayscaleCalc = GrayscaleCalc;\n\n  class Sorter {\n    static sort(colors, colorOrder = \"rgb\", keyMapper = null, mode = \"auto\") {\n      const keyType = this.guessKeyType(mode, colors[0], keyMapper);\n      const compare = this.compareFunction(colorOrder, keyType, keyMapper);\n\n      return colors.slice().sort(compare);\n    }\n\n    static compareFunction(colorOrder = \"rgb\",\n                           keyType = this.KEY_TYPE.COLOR,\n                           keyMapper = null) {\n      let compare = null;\n\n      if (keyType === this.KEY_TYPE.HEX) {\n        compare = this.compareHexFunction(colorOrder);\n      } else if (keyType === this.KEY_TYPE.RGB) {\n        compare = this.compareRgbFunction(colorOrder);\n      } else {\n        compare = this.compareColorFunction(colorOrder);\n      }\n\n      return this.composeFunction(compare, keyMapper);\n    }\n\n    static composeFunction(compareFunc, keyMapper = null) {\n      if (! keyMapper) {\n        return compareFunc;\n      }\n\n      return function(color1, color2) {\n        return compareFunc(keyMapper(color1), keyMapper(color2));\n      };\n    }\n\n    static guessKeyType(mode, color, keyMapper) {\n      if (mode === this.KEY_TYPE.HEX ||\n          mode === \"auto\" && this.isStringKey(color, keyMapper)) {\n        return this.KEY_TYPE.HEX;\n      } else if (mode === this.KEY_TYPE.RGB) {\n        return this.KEY_TYPE.RGB;\n      } else {\n        return this.KEY_TYPE.COLOR;\n      }\n    }\n\n    static isStringKey(color, keyMapper) {\n      const keyType = keyMapper ? keyMapper(color) : color;\n      return Utils.isString(keyType);\n    }\n\n    static compareColorFunction(colorOrder = \"rgb\") {\n      const rgbPos = Sorter.primaryColorPos(colorOrder);\n      const compFuncs = Sorter.chooseCompFunc(colorOrder);\n\n      return function(color1, color2) {\n        return Sorter.compareRgbVal(color1.rgb, color2.rgb, rgbPos, compFuncs);\n      };\n    }\n\n    static compareRgbFunction(colorOrder = \"rgb\") {\n      const rgbPos = Sorter.primaryColorPos(colorOrder);\n      const compFuncs = Sorter.chooseCompFunc(colorOrder);\n\n      return function(rgb1, rgb2) {\n        return Sorter.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);\n      };\n    }\n\n    static compareHexFunction(colorOrder = \"rgb\") {\n      const rgbPos = Sorter.primaryColorPos(colorOrder);\n      const compFuncs = Sorter.chooseCompFunc(colorOrder);\n      const rgbCache = new Map();\n\n      return function(hex1, hex2) {\n        return Sorter.compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache);\n      };\n    }\n\n    static compareRgbVal(rgb1, rgb2, rgbPos = [0, 1, 2],\n                      compFuncs = this.defaultCompFuncs) {\n      for (let i of rgbPos) {\n        const result = compFuncs[i](rgb1[i], rgb2[i]);\n        if (result !== 0) { return result; }\n      }\n\n      return 0;\n    }\n\n    static compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache) {\n      const rgb1 = rgbCache.get(hex1) || Utils.hexCodeToDecimal(hex1);\n      const rgb2 = rgbCache.get(hex2) || Utils.hexCodeToDecimal(hex2);\n\n      return this.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);\n    }\n\n    static primaryColorPos(colorOrder) {\n      return colorOrder.toLowerCase().split(\"\").map((primary) => {\n        return this.RGB_IDENTIFIERS.indexOf(primary);\n      });\n    }\n\n    static ascendComp(primaryColor1, primaryColor2) {\n      return primaryColor1 - primaryColor2;\n    }\n\n    static descendComp(primaryColor1, primaryColor2) {\n      return primaryColor2 - primaryColor1;\n    }\n\n    static chooseCompFunc(colorOrder) {\n      const primaryColors = colorOrder.split(\"\")\n              .sort(this.caseInsensitiveComp).reverse();\n\n      return primaryColors.map(primary => {\n        if (Utils.isUpperCase(primary)) {\n          return this.descendComp;\n        }\n\n        return this.ascendComp;\n      });\n    }\n\n    static caseInsensitiveComp(str1, str2) {\n      const lStr1 = str1.toLowerCase();\n      const lStr2 = str2.toLowerCase();\n\n      if (lStr1 < lStr2) { return -1; }\n      if (lStr1 > lStr2) { return 1; }\n      return 0;\n    }\n\n    static setup() {\n      this.RGB_IDENTIFIERS = [\"r\", \"g\", \"b\"];\n      this.defaultCompFuncs = [\n        Sorter.ascendComp,\n        Sorter.ascendComp,\n        Sorter.ascendComp\n      ];\n      this.KEY_TYPE = {\n        RGB: \"rgb\",\n        HEX: \"hex\",\n        COLOR: \"color\"\n      };\n    }\n  }\n\n  Sorter.setup();\n\n  ColorContrastCalc.Sorter = Sorter;\n})();\n\nColorContrastCalc.setup(require(\"./color-keywords.json\"));\n\n//module.exports.ColorUtils = ColorUtils;\n//module.exports.ColorContrastCalc = ColorContrastCalc;\n\nexport { ColorContrastCalc };\n",
+    "content": "\"use strict\";\n\nconst ColorUtils = require(\"./color-utils\").ColorUtils;\nconst Utils = ColorUtils;\n\n/**\n * Provides methods to calculate RGB colors.\n * An instance represents a RGB color.\n */\nclass ColorContrastCalc {\n  /**\n   * @param {string|Array<number, number, number>} rgb - RGB value represented as a string (hex code) or an array of numbers\n   * @param {string} [name=null] - the value of this.name: if null, the value of this.hexCode is set to this.name instead\n   */\n  constructor(rgb, name = null) {\n    const ownClass = this.constructor;\n    /** @property {Array<number, number, number>} rgb - RGB value repsented as an array of decimal numbers */\n    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToDecimal(rgb) : rgb;\n    /** @property {number} relativeLuminance - The relative luminance of the color */\n    this.relativeLuminance = ownClass.relativeLuminance(this.rgb);\n    /** @property {string} name - If no name is explicitely given, the property is set to the value of this.hexCode */\n    this.name = name === null ? Utils.decimalToHexCode(this.rgb) : name;\n    /** @property {string} hexCode - The RGB value in hex code notation */\n    this.hexCode = Utils.decimalToHexCode(this.rgb);\n    this.freezeProperties();\n  }\n\n  /**\n   * @private\n   */\n  static tristimulusValue(primaryColor, base = 255) {\n    const s = primaryColor / base;\n    if (s <= 0.03928) {\n      return s / 12.92;\n    } else {\n      return Math.pow((s + 0.055) / 1.055, 2.4);\n    }\n  }\n\n  /**\n   * Calculate the relative luminance of a RGB color given as a string or an array of numbers\n   * @param {string|Array<number, number, number>} rgb - RGB value represented as a string (hex code) or an array of numbers\n   * @returns {number} Relative luminance\n   */\n  static relativeLuminance(rgb = [255, 255, 255]) {\n    if (Utils.isString(rgb)) { rgb = Utils.hexCodeToDecimal(rgb); }\n\n    const [r, g, b] = rgb.map(c => this.tristimulusValue(c));\n    return r * 0.2126 + g * 0.7152 + b * 0.0722;\n  }\n\n  /**\n   * Calculate the contrast ratio of given colors\n   * @param {string|Array<number, number, number>} foreground - RGB value represented as a string (hex code) or an array of numbers\n   * @param {string|Array<number, number, number>} background - RGB value represented as a string (hex code) or an array of numbers\n   * @returns {number} Contrast ratio\n   */\n  static contrastRatio(foreground, background) {\n    const [l1, l2] = [foreground, background]\n          .map(c => this.relativeLuminance(c))\n          .sort((f, b) => b - f);\n    return (l1 + 0.05) / (l2 + 0.05);\n  }\n\n  /**\n   * Returns an instance of ColorContrastCalc for a predefined color name.\n   * @param {string} name - names are defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords\n   * @returns {ColorContrastCalc}\n   */\n  static getByName(name) {\n    return this.NAME_TO_COLOR.get(name);\n  }\n\n  /**\n   * Returns an instance of ColorContrastCalc for a hex code\n   * @param {string} code - RGB value in hex code\n   * @returns {ColorContrastCalc}\n   */\n  static getByHexCode(code) {\n    const hexCode = Utils.normalizeHexCode(code);\n    const registeredCode = this.HEX_TO_COLOR.get(hexCode);\n    return registeredCode ? registeredCode : new ColorContrastCalc(hexCode);\n  }\n\n  /**\n   * Returns a function to be used as a parameter of Array.prototype.sort()\n   * @param {string} [colorOrder=\"rgb\"] - A left side primary color has a higher sorting precedence\n   * @param {string} [keyType=\"color\"] - Type of keys used for sorting: \"color\", \"hex\" or \"rgb\"\n   * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted\n   * @returns {function} Function that compares given two colors\n   */\n  static compareFunction(colorOrder = \"rgb\", keyType = \"color\", keyMapper = null) {\n    return this.Sorter.compareFunction(colorOrder, keyType, keyMapper);\n  }\n\n  /**\n   * Sorts colors in an array and returns the result as a new array\n   * @param {ColorContrastCalc[]|String[]} colors - List of colors\n   * @param {string} [colorOrder=\"rgb\"] - A left side primary color has a higher sorting precedence\n   * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted\n   * @param {string} [mode=\"auto\"] - If set to \"hex\", key values are handled as hex code strings\n   * @returns {ColorContrastCalc[]} An array of sorted colors\n   */\n  static sort(colors, colorOrder = \"rgb\", keyMapper = null, mode = \"auto\") {\n    return this.Sorter.sort(colors, colorOrder, keyMapper, mode);\n  }\n\n  /**\n   * @private\n   */\n  static setup(colorKeywordsJSON) {\n    this.loadColorKeywords(colorKeywordsJSON);\n    this.assignColorConstants();\n    this.generateWebSafeColors();\n  }\n\n  /**\n   * @private\n   */\n  static loadColorKeywords(colorKeywordsJSON) {\n    /**\n     * Array of named colors defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords\n     * @property {ColorContrastCalc[]} NAMED_COLORS\n     */\n    this.NAMED_COLORS = [];\n    /** @private */\n    this.NAME_TO_COLOR = new Map();\n    /** @private */\n    this.HEX_TO_COLOR = new Map();\n    colorKeywordsJSON.forEach(color => {\n      const [name, hex] = color;\n      const calc = new ColorContrastCalc(hex, name);\n      this.NAMED_COLORS.push(calc);\n      this.NAME_TO_COLOR.set(name, calc);\n      this.HEX_TO_COLOR.set(hex, calc);\n    });\n\n    Object.freeze(this.NAMED_COLORS);\n  }\n\n  /**\n   * @private\n   */\n  static assignColorConstants() {\n    /** @property {ColorContrastCalc} BLACK - an instance that represents #000000 */\n    this.BLACK = this.HEX_TO_COLOR.get(\"#000000\");\n    /** @property {ColorContrastCalc} WHITE - an instance that represents #ffffff */\n    this.WHITE = this.HEX_TO_COLOR.get(\"#ffffff\");\n    /** @property {ColorContrastCalc} GRAY - an instance that represents #808080 */\n    this.GRAY = this.NAME_TO_COLOR.get(\"gray\");\n    this.prototype.BLACK = this.BLACK;\n    this.prototype.WHITE = this.WHITE;\n    this.prototype.GRAY = this.GRAY;\n    Object.freeze(this.BLACK);\n    Object.freeze(this.WHITE);\n    Object.freeze(this.GRAY);\n    Object.freeze(this.prototype.BLACK);\n    Object.freeze(this.prototype.WHITE);\n    Object.freeze(this.prototype.GRAY);\n  }\n\n  /**\n   * @private\n   */\n  static generateWebSafeColors() {\n    /**\n     * Array of web safe colors\n     * @property {ColorContrastCalc[]} WEB_SAFE_COLORS\n     */\n    this.WEB_SAFE_COLORS = [];\n\n    for (let r = 0; r < 16; r += 3) {\n      for (let g = 0; g < 16; g += 3) {\n        for (let b = 0; b < 16; b += 3) {\n          let hexCode = Utils.decimalToHexCode([r, g, b].map(c => c * 17));\n          let predefined = this.HEX_TO_COLOR.get(hexCode);\n          let color = predefined ? predefined : new ColorContrastCalc(hexCode);\n          this.WEB_SAFE_COLORS.push(color);\n        }\n      }\n    }\n  }\n\n  /**\n   * Calculate the contrast ratio against another color\n   * @param {ColorContrastCalc|string|Array<number, number, number>} color - another instance of ColorContrastCalc or a RGB value\n   * @returns {number}\n   */\n  contrastRatioAgainst(color) {\n    if (!(color instanceof ColorContrastCalc)) {\n      return this.constructor.contrastRatio(this.rgb, color);\n    }\n\n    const [l1, l2] = [this.relativeLuminance, color.relativeLuminance]\n          .sort((s, o) => o - s);\n    return (l1 + 0.05) / (l2 + 0.05);\n  }\n\n  /**\n   * Returns an array of named colors that satisfy a given level of contrast ratio\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {ColorContrastCalc[]}\n   */\n  colorsWithSufficientContrast(level = \"AA\") {\n    const ratio = this.levelToContrastRatio(level);\n\n    return this.constructor.NAMED_COLORS.filter(combinedColor => {\n      return this.contrastRatioAgainst(combinedColor) >= ratio;\n    });\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newContrastColor(ratio = 100, name = null) {\n    return this.generateNewColor(Utils.ContrastCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newBrightnessColor(ratio = 100, name = null) {\n    return this.generateNewColor(Utils.BrightnessCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newInvertColor(ratio, name = null) {\n    return this.generateNewColor(Utils.InvertCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} degree - Value in degree\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newHueRotateColor(degree, name = null) {\n    return this.generateNewColor(Utils.HueRotateCalc, degree, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newSaturateColor(ratio, name = null) {\n    return this.generateNewColor(Utils.SaturateCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {ColorContrastCalc}\n   */\n  newGrayscaleColor(ratio, name = null) {\n    return this.generateNewColor(Utils.GrayscaleCalc, ratio, name);\n  }\n\n  /**\n   * Tries to find a color whose contrast against the base color is close to a given level.\n   *\n   * The returned color is gained by modifying the brightness of otherColor.\n   * Even when a color that satisfies the level is not found, it returns a new color anyway.\n   * @param {ColorContrastCalc} otherColor - The color before the modification of brightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {ColorContrastCalc} A color whose contrast against the base color is close to a specified level\n   */\n  findBrightnessThreshold(otherColor, level = \"AA\") {\n    const targetRatio = this.levelToContrastRatio(level);\n    const criteria = this.brightnessThresholdCriteria(targetRatio, otherColor);\n    const w = otherColor.calcUpperRatioLimit() / 2;\n    const upperColor = otherColor.newBrightnessColor(w * 2);\n\n    if (otherColor.isBrighterThan(this) && ! upperColor.hasSufficientContrast(this, level)) {\n      return upperColor;\n    }\n\n    const [r, lastSufficentRatio] = this.calcBrightnessRatio(otherColor, targetRatio, criteria, w);\n\n    const nearestColor = otherColor.newBrightnessColor(criteria.round(r));\n\n    if (lastSufficentRatio && nearestColor.contrastRatioAgainst(this) < targetRatio) {\n      return otherColor.newBrightnessColor(criteria.round(lastSufficentRatio));\n    }\n\n    return nearestColor;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of WCAG 2.0, otherwise \"-\"\n   */\n  contrastLevel(otherColor) {\n    const ratio = this.contrastRatioAgainst(otherColor);\n    if (ratio >= 7) {\n      return \"AAA\";\n    } else if (ratio >= 4.5) {\n      return \"AA\";\n    } else if (ratio >= 3) {\n      return \"A\";\n    }\n\n    return \"-\";\n  }\n\n  /**\n   * Checks if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0\n   * @param {ColorContrastCalc} otherColor\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {boolean}\n   */\n  hasSufficientContrast(otherColor, level = \"AA\") {\n    const ratio = this.levelToContrastRatio(level);\n    return this.contrastRatioAgainst(otherColor) >= ratio;\n  }\n\n  /**\n   * Checks if the base color and otherColor have the same RGB value\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean}\n   */\n  isSameColor(otherColor) {\n    return this.hexCode === otherColor.hexCode;\n  }\n\n  /**\n   * @returns {boolean} true if each primary color of the base color is 0 or 255\n   */\n  isMaxContrast() {\n    const limits = [0, 255];\n    return this.rgb.every(primaryColor => limits.includes(primaryColor));\n  }\n\n  /**\n   * @returns {boolean} true if the hex code of the color is #808080\n   */\n  isMinContrast() {\n    return this.rgb.every((primaryColor, i) => {\n      return this.GRAY.rgb[i] === primaryColor;\n    });\n  }\n\n  /**\n   * Returns a string representation of the color.\n   * When 16 is passed, it return the hex code, and when 10 is passed, it returns the value in RGB notation\n   * Otherwise, it returns the color name or the hex code\n   * @param {number|null} [base=16] - 16, 10 or null\n   * @returns {string}\n   */\n  toString(base = 16) {\n    switch (base) {\n    case 16:\n      return this.hexCode;\n    case 10:\n      return `rgb(${this.rgb.join(\",\")})`;\n    default:\n      return this.name || this.hexCode;\n    }\n  }\n\n  /**\n   * @private\n   */\n  levelToContrastRatio(level) {\n    if (level === \"A\" || level === 1) {\n      return 3.0;\n    } else if (level === \"AA\" || level === 2) {\n      return 4.5;\n    } else if (level === \"AAA\" || level === 3) {\n      return 7.0;\n    }\n  }\n\n  /**\n   * @private\n   */\n  calcBrightnessRatio(otherColor, targetRatio, criteria, w) {\n    let r = w;\n    let lastSufficentRatio = null;\n\n    for (let d of ColorContrastCalc.binarySearchWidth(w, 0.01)) {\n      let newColor = otherColor.newBrightnessColor(r);\n      let contrastRatio = newColor.contrastRatioAgainst(this);\n\n      if (contrastRatio >= targetRatio) { lastSufficentRatio = r; }\n      if (contrastRatio === targetRatio) { break; }\n      r += criteria.incrementCondition(contrastRatio) ? d : -d;\n    }\n\n    return [r, lastSufficentRatio];\n  }\n\n  /**\n   * @private\n   */\n  calcUpperRatioLimit() {\n    if (this.isSameColor(this.BLACK)) {\n      return 100;\n    }\n\n    const darkest = this.rgb\n            .filter(c => c !== 0)\n            .reduce((a, b) => Math.min(a, b));\n    return Math.ceil((255 / darkest) * 100);\n  }\n\n  /**\n   * @private\n   */\n  brightnessThresholdCriteria(targetRatio, otherColor) {\n    const criteria = {};\n\n    if (this.isBrighterThan(otherColor) ||\n        this.hasSameLuminance(otherColor) && this.isLightColor()) {\n      criteria.round = (r) => Math.floor(r * 10 ) / 10;\n      criteria.incrementCondition = (contrastRatio) => contrastRatio > targetRatio;\n    } else {\n      criteria.round = (r) => Math.ceil(r * 10) / 10;\n      criteria.incrementCondition = (contrastRatio) => targetRatio > contrastRatio;\n    }\n\n    return criteria;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is greater than that of otherColor\n   */\n  isBrighterThan(otherColor) {\n    return this.relativeLuminance > otherColor.relativeLuminance;\n  }\n\n  /**\n   * @param {ColorContrastCalc} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is equal to that of otherColor\n   */\n  hasSameLuminance(otherColor) {\n    return this.relativeLuminance === otherColor.relativeLuminance;\n  }\n\n  /**\n   * @returns {boolean} true if the contrast ratio against white is qual to/ less than the ratio against black\n   */\n  isLightColor() {\n    return this.WHITE.contrastRatioAgainst(this) <= this.BLACK.contrastRatioAgainst(this);\n  }\n\n  /**\n   * @private\n   */\n  freezeProperties() {\n    Object.freeze(this.rgb);\n    Object.freeze(this.relativeLuminance);\n    Object.freeze(this.name);\n    Object.freeze(this.hexCode);\n  }\n\n  /**\n   * @private\n   */\n  generateNewColor(calc, ratio, name = null) {\n    const newRgb = calc.calcRgb(ratio, this.rgb);\n    return new ColorContrastCalc(newRgb, name);\n  }\n}\n\nColorContrastCalc.binarySearchWidth = function*(initWidth, min) {\n  let i = 1;\n  let d = initWidth / Math.pow(2, i);\n\n  while (d > min) {\n    yield d;\n    i++;\n    d = initWidth / Math.pow(2, i);\n  }\n};\n\n(function() {\n  class Sorter {\n    static sort(colors, colorOrder = \"rgb\", keyMapper = null, mode = \"auto\") {\n      const keyType = this.guessKeyType(mode, colors[0], keyMapper);\n      const compare = this.compareFunction(colorOrder, keyType, keyMapper);\n\n      return colors.slice().sort(compare);\n    }\n\n    static compareFunction(colorOrder = \"rgb\",\n                           keyType = this.KEY_TYPE.COLOR,\n                           keyMapper = null) {\n      let compare = null;\n\n      if (keyType === this.KEY_TYPE.HEX) {\n        compare = this.compareHexFunction(colorOrder);\n      } else if (keyType === this.KEY_TYPE.RGB) {\n        compare = this.compareRgbFunction(colorOrder);\n      } else {\n        compare = this.compareColorFunction(colorOrder);\n      }\n\n      return this.composeFunction(compare, keyMapper);\n    }\n\n    static composeFunction(compareFunc, keyMapper = null) {\n      if (! keyMapper) {\n        return compareFunc;\n      }\n\n      return function(color1, color2) {\n        return compareFunc(keyMapper(color1), keyMapper(color2));\n      };\n    }\n\n    static guessKeyType(mode, color, keyMapper) {\n      if (mode === this.KEY_TYPE.HEX ||\n          mode === \"auto\" && this.isStringKey(color, keyMapper)) {\n        return this.KEY_TYPE.HEX;\n      } else if (mode === this.KEY_TYPE.RGB) {\n        return this.KEY_TYPE.RGB;\n      } else {\n        return this.KEY_TYPE.COLOR;\n      }\n    }\n\n    static isStringKey(color, keyMapper) {\n      const keyType = keyMapper ? keyMapper(color) : color;\n      return Utils.isString(keyType);\n    }\n\n    static compareColorFunction(colorOrder = \"rgb\") {\n      const rgbPos = this.primaryColorPos(colorOrder);\n      const compFuncs = this.chooseCompFunc(colorOrder);\n\n      return function(color1, color2) {\n        return Sorter.compareRgbVal(color1.rgb, color2.rgb, rgbPos, compFuncs);\n      };\n    }\n\n    static compareRgbFunction(colorOrder = \"rgb\") {\n      const rgbPos = this.primaryColorPos(colorOrder);\n      const compFuncs = this.chooseCompFunc(colorOrder);\n\n      return function(rgb1, rgb2) {\n        return Sorter.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);\n      };\n    }\n\n    static compareHexFunction(colorOrder = \"rgb\") {\n      const rgbPos = this.primaryColorPos(colorOrder);\n      const compFuncs = this.chooseCompFunc(colorOrder);\n      const rgbCache = new Map();\n\n      return function(hex1, hex2) {\n        return Sorter.compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache);\n      };\n    }\n\n    static compareRgbVal(rgb1, rgb2, rgbPos = [0, 1, 2],\n                         compFuncs = this.defaultCompFuncs) {\n      for (let i of rgbPos) {\n        const result = compFuncs[i](rgb1[i], rgb2[i]);\n        if (result !== 0) { return result; }\n      }\n\n      return 0;\n    }\n\n    static compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache) {\n      const rgb1 = rgbCache.get(hex1) || Utils.hexCodeToDecimal(hex1);\n      const rgb2 = rgbCache.get(hex2) || Utils.hexCodeToDecimal(hex2);\n\n      return this.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);\n    }\n\n    static primaryColorPos(colorOrder) {\n      return colorOrder.toLowerCase().split(\"\").map((primary) => {\n        return this.RGB_IDENTIFIERS.indexOf(primary);\n      });\n    }\n\n    static ascendComp(primaryColor1, primaryColor2) {\n      return primaryColor1 - primaryColor2;\n    }\n\n    static descendComp(primaryColor1, primaryColor2) {\n      return primaryColor2 - primaryColor1;\n    }\n\n    static chooseCompFunc(colorOrder) {\n      const primaryColors = colorOrder.split(\"\")\n              .sort(this.caseInsensitiveComp).reverse();\n\n      return primaryColors.map(primary => {\n        if (Utils.isUpperCase(primary)) {\n          return this.descendComp;\n        }\n\n        return this.ascendComp;\n      });\n    }\n\n    static caseInsensitiveComp(str1, str2) {\n      const lStr1 = str1.toLowerCase();\n      const lStr2 = str2.toLowerCase();\n\n      if (lStr1 < lStr2) { return -1; }\n      if (lStr1 > lStr2) { return 1; }\n      return 0;\n    }\n\n    static setup() {\n      this.RGB_IDENTIFIERS = [\"r\", \"g\", \"b\"];\n      this.defaultCompFuncs = [\n        Sorter.ascendComp,\n        Sorter.ascendComp,\n        Sorter.ascendComp\n      ];\n      this.KEY_TYPE = {\n        RGB: \"rgb\",\n        HEX: \"hex\",\n        COLOR: \"color\"\n      };\n    }\n  }\n\n  Sorter.setup();\n\n  ColorContrastCalc.Sorter = Sorter;\n})();\n\nColorContrastCalc.setup(require(\"./color-keywords.json\"));\n\n//module.exports.ColorUtils = ColorUtils;\n//module.exports.ColorContrastCalc = ColorContrastCalc;\n\nexport { ColorContrastCalc };\n",
     "static": true,
     "longname": "lib/color-contrast-calc.js",
     "access": null,
@@ -76,7 +76,7 @@
     "importPath": "color-contrast-calc/lib/color-contrast-calc.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 520,
+    "lineNumber": 474,
     "undocument": true,
     "unknown": [
       {
@@ -479,7 +479,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.compareFunction",
     "access": null,
     "description": "Returns a function to be used as a parameter of Array.prototype.sort()",
-    "lineNumber": 91,
+    "lineNumber": 92,
     "unknown": [
       {
         "tagName": "@returns",
@@ -544,7 +544,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.sort",
     "access": null,
     "description": "Sorts colors in an array and returns the result as a new array",
-    "lineNumber": 103,
+    "lineNumber": 104,
     "unknown": [
       {
         "tagName": "@returns",
@@ -620,7 +620,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.setup",
     "access": "private",
     "description": "",
-    "lineNumber": 110,
+    "lineNumber": 111,
     "params": [
       {
         "name": "colorKeywordsJSON",
@@ -641,7 +641,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.loadColorKeywords",
     "access": "private",
     "description": "",
-    "lineNumber": 119,
+    "lineNumber": 120,
     "params": [
       {
         "name": "colorKeywordsJSON",
@@ -660,7 +660,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.NAMED_COLORS",
     "access": null,
     "description": "Array of named colors defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords",
-    "lineNumber": 124,
+    "lineNumber": 125,
     "properties": [
       {
         "nullable": null,
@@ -688,7 +688,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.NAME_TO_COLOR",
     "access": "private",
     "description": null,
-    "lineNumber": 126,
+    "lineNumber": 127,
     "type": {
       "types": [
         "*"
@@ -704,7 +704,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.HEX_TO_COLOR",
     "access": "private",
     "description": null,
-    "lineNumber": 128,
+    "lineNumber": 129,
     "type": {
       "types": [
         "*"
@@ -722,7 +722,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.assignColorConstants",
     "access": "private",
     "description": "",
-    "lineNumber": 143,
+    "lineNumber": 144,
     "params": []
   },
   {
@@ -734,7 +734,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.BLACK",
     "access": null,
     "description": null,
-    "lineNumber": 145,
+    "lineNumber": 146,
     "properties": [
       {
         "nullable": null,
@@ -762,7 +762,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.WHITE",
     "access": null,
     "description": null,
-    "lineNumber": 147,
+    "lineNumber": 148,
     "properties": [
       {
         "nullable": null,
@@ -790,7 +790,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.GRAY",
     "access": null,
     "description": null,
-    "lineNumber": 149,
+    "lineNumber": 150,
     "properties": [
       {
         "nullable": null,
@@ -820,7 +820,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.generateWebSafeColors",
     "access": "private",
     "description": "",
-    "lineNumber": 164,
+    "lineNumber": 165,
     "params": []
   },
   {
@@ -832,7 +832,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc.WEB_SAFE_COLORS",
     "access": null,
     "description": "Array of web safe colors",
-    "lineNumber": 169,
+    "lineNumber": 170,
     "properties": [
       {
         "nullable": null,
@@ -862,7 +862,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#contrastRatioAgainst",
     "access": null,
     "description": "Calculate the contrast ratio against another color",
-    "lineNumber": 188,
+    "lineNumber": 189,
     "unknown": [
       {
         "tagName": "@returns",
@@ -903,7 +903,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#colorsWithSufficientContrast",
     "access": null,
     "description": "Returns an array of named colors that satisfy a given level of contrast ratio",
-    "lineNumber": 203,
+    "lineNumber": 204,
     "unknown": [
       {
         "tagName": "@returns",
@@ -944,7 +944,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newContrastColor",
     "access": null,
     "description": "",
-    "lineNumber": 216,
+    "lineNumber": 217,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1046,7 +1046,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newInvertColor",
     "access": null,
     "description": "",
-    "lineNumber": 236,
+    "lineNumber": 235,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1097,7 +1097,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newHueRotateColor",
     "access": null,
     "description": "",
-    "lineNumber": 253,
+    "lineNumber": 244,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1148,7 +1148,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newSaturateColor",
     "access": null,
     "description": "",
-    "lineNumber": 262,
+    "lineNumber": 253,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1199,7 +1199,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#newGrayscaleColor",
     "access": null,
     "description": "",
-    "lineNumber": 271,
+    "lineNumber": 262,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1250,7 +1250,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#findBrightnessThreshold",
     "access": null,
     "description": "Tries to find a color whose contrast against the base color is close to a given level.\n\nThe returned color is gained by modifying the brightness of otherColor.\nEven when a color that satisfies the level is not found, it returns a new color anyway.",
-    "lineNumber": 284,
+    "lineNumber": 275,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1301,7 +1301,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#contrastLevel",
     "access": null,
     "description": "",
-    "lineNumber": 309,
+    "lineNumber": 300,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1340,7 +1340,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#hasSufficientContrast",
     "access": null,
     "description": "Checks if the contrast ratio between the base color and otherColor meets the requirement of WCAG 2.0",
-    "lineNumber": 328,
+    "lineNumber": 319,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1391,7 +1391,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isSameColor",
     "access": null,
     "description": "Checks if the base color and otherColor have the same RGB value",
-    "lineNumber": 338,
+    "lineNumber": 329,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1430,7 +1430,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isMaxContrast",
     "access": null,
     "description": "",
-    "lineNumber": 345,
+    "lineNumber": 336,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1458,7 +1458,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isMinContrast",
     "access": null,
     "description": "",
-    "lineNumber": 353,
+    "lineNumber": 344,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1486,7 +1486,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#toString",
     "access": null,
     "description": "Returns a string representation of the color.\nWhen 16 is passed, it return the hex code, and when 10 is passed, it returns the value in RGB notation\nOtherwise, it returns the color name or the hex code",
-    "lineNumber": 366,
+    "lineNumber": 357,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1528,7 +1528,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#levelToContrastRatio",
     "access": "private",
     "description": "",
-    "lineNumber": 380,
+    "lineNumber": 371,
     "params": [
       {
         "name": "level",
@@ -1546,76 +1546,6 @@
   {
     "__docId__": 44,
     "kind": "method",
-    "name": "calcNewContrast",
-    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#calcNewContrast",
-    "access": "private",
-    "description": "",
-    "lineNumber": 393,
-    "params": [
-      {
-        "name": "origColor",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "ratio",
-        "optional": true,
-        "types": [
-          "number"
-        ],
-        "defaultRaw": 100,
-        "defaultValue": "100"
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 45,
-    "kind": "method",
-    "name": "calcNewBrightness",
-    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#calcNewBrightness",
-    "access": "private",
-    "description": "",
-    "lineNumber": 405,
-    "params": [
-      {
-        "name": "origColor",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "ratio",
-        "optional": true,
-        "types": [
-          "number"
-        ],
-        "defaultRaw": 100,
-        "defaultValue": "100"
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 46,
-    "kind": "method",
     "name": "calcBrightnessRatio",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
     "generator": false,
@@ -1624,7 +1554,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#calcBrightnessRatio",
     "access": "private",
     "description": "",
-    "lineNumber": 416,
+    "lineNumber": 384,
     "params": [
       {
         "name": "otherColor",
@@ -1658,7 +1588,7 @@
     }
   },
   {
-    "__docId__": 47,
+    "__docId__": 45,
     "kind": "method",
     "name": "calcUpperRatioLimit",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1668,7 +1598,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#calcUpperRatioLimit",
     "access": "private",
     "description": "",
-    "lineNumber": 435,
+    "lineNumber": 403,
     "params": [],
     "return": {
       "types": [
@@ -1677,7 +1607,7 @@
     }
   },
   {
-    "__docId__": 48,
+    "__docId__": 46,
     "kind": "method",
     "name": "brightnessThresholdCriteria",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1687,7 +1617,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#brightnessThresholdCriteria",
     "access": "private",
     "description": "",
-    "lineNumber": 449,
+    "lineNumber": 417,
     "params": [
       {
         "name": "targetRatio",
@@ -1709,7 +1639,7 @@
     }
   },
   {
-    "__docId__": 49,
+    "__docId__": 47,
     "kind": "method",
     "name": "isBrighterThan",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1719,7 +1649,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isBrighterThan",
     "access": null,
     "description": "",
-    "lineNumber": 468,
+    "lineNumber": 436,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1748,7 +1678,7 @@
     }
   },
   {
-    "__docId__": 50,
+    "__docId__": 48,
     "kind": "method",
     "name": "hasSameLuminance",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1758,7 +1688,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#hasSameLuminance",
     "access": null,
     "description": "",
-    "lineNumber": 476,
+    "lineNumber": 444,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1787,7 +1717,7 @@
     }
   },
   {
-    "__docId__": 51,
+    "__docId__": 49,
     "kind": "method",
     "name": "isLightColor",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1797,7 +1727,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#isLightColor",
     "access": null,
     "description": "",
-    "lineNumber": 483,
+    "lineNumber": 451,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1815,7 +1745,7 @@
     }
   },
   {
-    "__docId__": 52,
+    "__docId__": 50,
     "kind": "method",
     "name": "freezeProperties",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1825,49 +1755,11 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#freezeProperties",
     "access": "private",
     "description": "",
-    "lineNumber": 490,
+    "lineNumber": 458,
     "params": []
   },
   {
-    "__docId__": 53,
-    "kind": "method",
-    "name": "clampToRange",
-    "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color-contrast-calc.js~ColorContrastCalc#clampToRange",
-    "access": "private",
-    "description": "",
-    "lineNumber": 500,
-    "params": [
-      {
-        "name": "value",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "lowerBound",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "upperBound",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 54,
+    "__docId__": 51,
     "kind": "method",
     "name": "generateNewColor",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1877,7 +1769,7 @@
     "longname": "lib/color-contrast-calc.js~ColorContrastCalc#generateNewColor",
     "access": "private",
     "description": "",
-    "lineNumber": 512,
+    "lineNumber": 468,
     "params": [
       {
         "name": "calc",
@@ -1907,10 +1799,10 @@
     }
   },
   {
-    "__docId__": 55,
+    "__docId__": 52,
     "kind": "file",
     "name": "lib/color-utils.js",
-    "content": "\"use strict\";\n\nclass ColorUtils {\n  /**\n   * Converts a hex color code string to a decimal representation\n   * @param {string} hexCode - Hex color code such as \"#ffff00\"\n   * @returns {Array<number, number, number>} RGB value represented as an array of numbers\n   */\n  static hexCodeToDecimal(hexCode) {\n    const h = this.normalizeHexCode(hexCode);\n    return [0, 2, 4].map(s => h.substr(s, 2))\n      .map(primaryColor => Number.parseInt(primaryColor, 16));\n  }\n\n  /**\n   * Converts a hex color code to a 6-digit hexadecimal string\n   * @param {string} hexString - String that represent a hex code\n   * @returns {string} 6-digit hexadecimal string without leading '#'\n   */\n  static normalizeHexCode(hexString) {\n    const hl = hexString.toLowerCase();\n    const h = hl.startsWith(\"#\") ? hl.replace(\"#\", \"\") : hl;\n    if (h.length === 3) {\n      return [0, 1, 2].map(s => h.substr(s, 1).repeat(2)).join(\"\");\n    } else {\n      return h;\n    }\n  }\n\n  /**\n   * Converts a decimal representation of color to a hex code string\n   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers\n   * @returns {string} RGB value in hex code\n   */\n  static decimalToHexCode(rgb) {\n    return \"#\" + rgb.map(d => {\n      const h = d.toString(16);\n      return h.length === 1 ? \"0\" + h : h;\n    }).join(\"\");\n  }\n\n  /**\n   * Decimal rounding with a given precision\n   * @param {number} number - Number to be rounded off\n   * @param {number} precision - Number of digits after the decimal point\n   * @returns {number} returns the rounded number\n   */\n  static decimalRound(number, precision) {\n    const factor = Math.pow(10, precision);\n    return Math.round(number * factor) / factor;\n  }\n\n  /**\n   * Checks if a given array is a valid representation of RGB color.\n   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers\n   * @returns {boolean} true if the argument is a valid RGB color\n   */\n  static isValidRgb(rgb) {\n    return rgb.length === 3 &&\n      rgb.every(c => c >= 0 && c <= 255 &&\n                Number.isInteger(c));\n  }\n\n  /**\n   * Checks if a given string is a valid representation of RGB color.\n   * @param {string} code - RGB value in hex code\n   * @returns {boolean} returns true if then argument is a valid RGB color\n   */\n  static isValidHexCode(code) {\n    return this.HEX_CODE_RE.test(code);\n  }\n\n  /**\n   * Checks if given two hex color codes represent a same color.\n   * @param {string} hexCode1 - Color given as a hex code, such as \"#ffff00\", \"#FFFF00\" or \"#ff0\"\n   * @param {string} hexCode2 - Color given as a hex code, such as \"#ffff00\", \"#FFFF00\" or \"#ff0\"\n   * @returns {boolean} True if given two colors are same\n   */\n  static isSameHexColor(hexCode1, hexCode2) {\n    const h1 = this.normalizeHexCode(hexCode1);\n    const h2 = this.normalizeHexCode(hexCode2);\n    return h1 === h2;\n  }\n\n  /**\n   * Checks if given two RGB values represent a same color.\n   * @param {Array<number, number, number>} rgb1 - Color given as an array of numbers, such as [255, 255, 0]\n   * @param {Array<number, number, number>} rgb2 - Color given as an array of numbers, such as [255, 255, 0]\n   * @returns {boolean} True if given two colors are same\n   */\n  static isSameRgbColor(rgb1, rgb2) {\n    if (rgb1.length !== rgb2.length) { return false; }\n    return rgb1.every((primaryColor, i) => primaryColor === rgb2[i]);\n  }\n\n  /**\n   * Checks if a given object is a string\n   * @param {object} str - Object to be checked\n   * @returns {boolean} returns true if the argument is a string\n   */\n  static isString(str) {\n    return typeof str === \"string\" || str instanceof String;\n  }\n\n  /**\n   * Checks if a given string is consists of uppercase letters\n   * @param {string} str - string to be checked\n   * @returns {boolean} returns true if letters in the argument string are all uppercase\n   */\n  static isUpperCase(str) {\n    return this.isString(str) && str.toUpperCase() === str;\n  }\n\n  /**\n   * @private\n   */\n  static setup() {\n    /** @private */\n    this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;\n  }\n}\n\nColorUtils.setup();\n\n//module.exports.ColorUtils = ColorUtils;\n\nexport { ColorUtils };\n",
+    "content": "\"use strict\";\n\nclass ColorUtils {\n  /**\n   * Converts a hex color code string to a decimal representation\n   * @param {string} hexCode - Hex color code such as \"#ffff00\"\n   * @returns {Array<number, number, number>} RGB value represented as an array of numbers\n   */\n  static hexCodeToDecimal(hexCode) {\n    const h = this.normalizeHexCode(hexCode, false);\n    return [0, 2, 4].map(s => h.substr(s, 2))\n      .map(primaryColor => Number.parseInt(primaryColor, 16));\n  }\n\n  /**\n   * Converts a hex color code to a 6-digit hexadecimal string\n   * @param {string} hexString - String that represent a hex code\n   * @param {boolean} [prefix=true] - Append '#' to the head of return value if a truthy value is given\n   * @returns {string} 6-digit hexadecimal string with/without leading '#'\n   */\n  static normalizeHexCode(hexString, prefix = true) {\n    const hl = hexString.toLowerCase();\n    const h = hl.startsWith(\"#\") ? hl.replace(\"#\", \"\") : hl;\n    let hexPart = h;\n    if (h.length === 3) {\n      hexPart = [0, 1, 2].map(s => h.substr(s, 1).repeat(2)).join(\"\");\n    }\n\n    return prefix ? `#${hexPart}` : hexPart;\n  }\n\n  /**\n   * Converts a decimal representation of color to a hex code string\n   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers\n   * @returns {string} RGB value in hex code\n   */\n  static decimalToHexCode(rgb) {\n    return \"#\" + rgb.map(d => {\n      const h = d.toString(16);\n      return h.length === 1 ? \"0\" + h : h;\n    }).join(\"\");\n  }\n\n  /**\n   * Decimal rounding with a given precision\n   * @param {number} number - Number to be rounded off\n   * @param {number} precision - Number of digits after the decimal point\n   * @returns {number} returns the rounded number\n   */\n  static decimalRound(number, precision) {\n    const factor = Math.pow(10, precision);\n    return Math.round(number * factor) / factor;\n  }\n\n  /**\n   * Checks if a given array is a valid representation of RGB color.\n   * @param {Array<number, number, number>} rgb - RGB value represented as an array of numbers\n   * @returns {boolean} true if the argument is a valid RGB color\n   */\n  static isValidRgb(rgb) {\n    return rgb.length === 3 &&\n      rgb.every(c => c >= 0 && c <= 255 &&\n                Number.isInteger(c));\n  }\n\n  /**\n   * Checks if a given string is a valid representation of RGB color.\n   * @param {string} code - RGB value in hex code\n   * @returns {boolean} returns true if then argument is a valid RGB color\n   */\n  static isValidHexCode(code) {\n    return this.HEX_CODE_RE.test(code);\n  }\n\n  /**\n   * Checks if given two hex color codes represent a same color.\n   * @param {string} hexCode1 - Color given as a hex code, such as \"#ffff00\", \"#FFFF00\" or \"#ff0\"\n   * @param {string} hexCode2 - Color given as a hex code, such as \"#ffff00\", \"#FFFF00\" or \"#ff0\"\n   * @returns {boolean} True if given two colors are same\n   */\n  static isSameHexColor(hexCode1, hexCode2) {\n    const h1 = this.normalizeHexCode(hexCode1);\n    const h2 = this.normalizeHexCode(hexCode2);\n    return h1 === h2;\n  }\n\n  /**\n   * Checks if given two RGB values represent a same color.\n   * @param {Array<number, number, number>} rgb1 - Color given as an array of numbers, such as [255, 255, 0]\n   * @param {Array<number, number, number>} rgb2 - Color given as an array of numbers, such as [255, 255, 0]\n   * @returns {boolean} True if given two colors are same\n   */\n  static isSameRgbColor(rgb1, rgb2) {\n    if (rgb1.length !== rgb2.length) { return false; }\n    return rgb1.every((primaryColor, i) => primaryColor === rgb2[i]);\n  }\n\n  /**\n   * Checks if a given object is a string\n   * @param {object} str - Object to be checked\n   * @returns {boolean} returns true if the argument is a string\n   */\n  static isString(str) {\n    return typeof str === \"string\" || str instanceof String;\n  }\n\n  /**\n   * Checks if a given string is consists of uppercase letters\n   * @param {string} str - string to be checked\n   * @returns {boolean} returns true if letters in the argument string are all uppercase\n   */\n  static isUpperCase(str) {\n    return this.isString(str) && str.toUpperCase() === str;\n  }\n\n  /**\n   * @private\n   */\n  static setup() {\n    /** @private */\n    this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;\n  }\n\n\n  /**\n   * @private\n   */\n  static clampToRange(value, lowerBound, upperBound) {\n    if (value <= lowerBound) {\n      return lowerBound;\n    } else if (value > upperBound) {\n      return upperBound;\n    }\n    return value;\n  }\n\n  /**\n   * @private\n   */\n  static rgbMap(values, func = null) {\n    if (func) {\n      return values.map(val => {\n        return ColorUtils.clampToRange(Math.round(func(val)), 0, 255);\n      });\n    } else {\n      return values.map(val => {\n        return ColorUtils.clampToRange(Math.round(val), 0, 255);\n      });\n    }\n  }\n}\n\n(function() {\n  class Matrix {\n    constructor(matrix) {\n      this.matrix = matrix;\n    }\n\n    add(otherMatrix) {\n      const newMatrix = this.matrix.map((row, i) => {\n        const otherRow = otherMatrix.matrix[i];\n        return row.map((s, j) => s + otherRow[j]);\n      });\n\n      return new Matrix(newMatrix);\n    }\n\n    multiply(n) {\n      if (typeof n === \"number\") {\n        return this.multiplyByScalar(n);\n      } else {\n        return this.productByVector(n);\n      }\n    }\n\n    multiplyByScalar(n) {\n      const newMatrix = this.matrix.map(row => row.map(c => c * n));\n      return new Matrix(newMatrix);\n    }\n\n    productByVector(vector) {\n      return this.matrix.map(row => {\n        return row.reduce((s, c, i) => s += c * vector[i], 0);\n      });\n    }\n  }\n\n  ColorUtils.Matrix = Matrix;\n\n  const rgbMap = ColorUtils.rgbMap;\n\n  class ContrastCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-contrast\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(ratio, rgb) {\n      return rgbMap(rgb, c => (c * ratio + 255 * (50 - ratio / 2)) / 100);\n    }\n  }\n\n  ColorUtils.ContrastCalc = ContrastCalc;\n\n  class BrightnessCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-brightness\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(ratio, rgb) {\n      return rgbMap(rgb, c => c * ratio / 100);\n    }\n  }\n\n  ColorUtils.BrightnessCalc = BrightnessCalc;\n\n  class InvertCalc {\n    /*\n       https://www.w3.org/TR/filter-effects-1/#invertEquivalent\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(ratio, rgb) {\n      return rgb.map(c => {\n        return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);\n      });\n    }\n  }\n\n  ColorUtils.InvertCalc = InvertCalc;\n\n  class HueRotateCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate\n       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(deg, rgb) {\n      return rgbMap(this.calcRotation(deg).multiply(rgb));\n    }\n\n    static degToRad(deg) {\n      return Math.PI * deg / 180;\n    }\n\n    static calcRotation(deg) {\n      const rad = this.degToRad(deg);\n      const cosPartResult = this.cosPart.multiply(Math.cos(rad));\n      const sinPartResult = this.sinPart.multiply(Math.sin(rad));\n      return this.constPart.add(cosPartResult).add(sinPartResult);\n    }\n  }\n\n  HueRotateCalc.constPart = new Matrix([[0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072]]);\n\n  HueRotateCalc.cosPart = new Matrix([[0.787, -0.715, -0.072],\n                                      [-0.213,0.285, -0.072],\n                                      [-0.213, -0.715, 0.928]]);\n\n  HueRotateCalc.sinPart = new Matrix([[-0.213, -0.715, 0.928],\n                                      [0.143, 0.140, -0.283],\n                                      [-0.787, 0.715, 0.072]]);\n\n  ColorUtils.HueRotateCalc = HueRotateCalc;\n\n  class SaturateCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-saturate\n       https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n     */\n    static calcRgb(s, rgb) {\n      return rgbMap(this.calcSaturation(s).multiply(rgb));\n    }\n\n    static calcSaturation(s) {\n      return this.constPart.add(this.saturatePart.multiply(s / 100));\n    }\n  }\n\n  SaturateCalc.constPart = HueRotateCalc.constPart;\n  SaturateCalc.saturatePart = HueRotateCalc.cosPart;\n\n  ColorUtils.SaturateCalc = SaturateCalc;\n\n  class GrayscaleCalc {\n    /*\n       https://www.w3.org/TR/filter-effects/#funcdef-grayscale\n       https://www.w3.org/TR/filter-effects/#grayscaleEquivalent\n       https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n    */\n    static calcRgb(s, rgb) {\n      return rgbMap(this.calcGrayscale(s).multiply(rgb));\n    }\n\n    static calcGrayscale(s) {\n      const r = 1 - Math.min(100, s) / 100;\n      return this.constPart.add(this.ratioPart.multiply(r));\n    }\n  }\n\n  GrayscaleCalc.constPart = new Matrix([[0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722]]);\n\n  GrayscaleCalc.ratioPart = new Matrix([[0.7874, -0.7152, -0.0722],\n                                        [-0.2126, 0.2848, -0.0722],\n                                        [-0.2126, -0.7152, 0.9278]]);\n\n  ColorUtils.GrayscaleCalc = GrayscaleCalc;\n})();\n\nColorUtils.setup();\n\n//module.exports.ColorUtils = ColorUtils;\n\nexport { ColorUtils };\n",
     "static": true,
     "longname": "lib/color-utils.js",
     "access": null,
@@ -1918,7 +1810,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 56,
+    "__docId__": 53,
     "kind": "class",
     "name": "ColorUtils",
     "memberof": "lib/color-utils.js",
@@ -1940,7 +1832,7 @@
     "interface": false
   },
   {
-    "__docId__": 57,
+    "__docId__": 54,
     "kind": "method",
     "name": "hexCodeToDecimal",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1979,7 +1871,7 @@
     }
   },
   {
-    "__docId__": 58,
+    "__docId__": 55,
     "kind": "method",
     "name": "normalizeHexCode",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1989,11 +1881,11 @@
     "longname": "lib/color-utils.js~ColorUtils.normalizeHexCode",
     "access": null,
     "description": "Converts a hex color code to a 6-digit hexadecimal string",
-    "lineNumber": 20,
+    "lineNumber": 21,
     "unknown": [
       {
         "tagName": "@returns",
-        "tagValue": "{string} 6-digit hexadecimal string without leading '#'"
+        "tagValue": "{string} 6-digit hexadecimal string with/without leading '#'"
       }
     ],
     "params": [
@@ -2006,6 +1898,18 @@
         "optional": false,
         "name": "hexString",
         "description": "String that represent a hex code"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "boolean"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "true",
+        "defaultRaw": true,
+        "name": "prefix",
+        "description": "Append '#' to the head of return value if a truthy value is given"
       }
     ],
     "return": {
@@ -2014,11 +1918,11 @@
         "string"
       ],
       "spread": false,
-      "description": "6-digit hexadecimal string without leading '#'"
+      "description": "6-digit hexadecimal string with/without leading '#'"
     }
   },
   {
-    "__docId__": 59,
+    "__docId__": 56,
     "kind": "method",
     "name": "decimalToHexCode",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2028,7 +1932,7 @@
     "longname": "lib/color-utils.js~ColorUtils.decimalToHexCode",
     "access": null,
     "description": "Converts a decimal representation of color to a hex code string",
-    "lineNumber": 35,
+    "lineNumber": 37,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2057,7 +1961,7 @@
     }
   },
   {
-    "__docId__": 60,
+    "__docId__": 57,
     "kind": "method",
     "name": "decimalRound",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2067,7 +1971,7 @@
     "longname": "lib/color-utils.js~ColorUtils.decimalRound",
     "access": null,
     "description": "Decimal rounding with a given precision",
-    "lineNumber": 48,
+    "lineNumber": 50,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2106,7 +2010,7 @@
     }
   },
   {
-    "__docId__": 61,
+    "__docId__": 58,
     "kind": "method",
     "name": "isValidRgb",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2116,7 +2020,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isValidRgb",
     "access": null,
     "description": "Checks if a given array is a valid representation of RGB color.",
-    "lineNumber": 58,
+    "lineNumber": 60,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2145,7 +2049,7 @@
     }
   },
   {
-    "__docId__": 62,
+    "__docId__": 59,
     "kind": "method",
     "name": "isValidHexCode",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2155,7 +2059,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isValidHexCode",
     "access": null,
     "description": "Checks if a given string is a valid representation of RGB color.",
-    "lineNumber": 69,
+    "lineNumber": 71,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2184,7 +2088,7 @@
     }
   },
   {
-    "__docId__": 63,
+    "__docId__": 60,
     "kind": "method",
     "name": "isSameHexColor",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2194,7 +2098,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isSameHexColor",
     "access": null,
     "description": "Checks if given two hex color codes represent a same color.",
-    "lineNumber": 79,
+    "lineNumber": 81,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2233,7 +2137,7 @@
     }
   },
   {
-    "__docId__": 64,
+    "__docId__": 61,
     "kind": "method",
     "name": "isSameRgbColor",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2243,7 +2147,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isSameRgbColor",
     "access": null,
     "description": "Checks if given two RGB values represent a same color.",
-    "lineNumber": 91,
+    "lineNumber": 93,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2282,7 +2186,7 @@
     }
   },
   {
-    "__docId__": 65,
+    "__docId__": 62,
     "kind": "method",
     "name": "isString",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2292,7 +2196,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isString",
     "access": null,
     "description": "Checks if a given object is a string",
-    "lineNumber": 101,
+    "lineNumber": 103,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2321,7 +2225,7 @@
     }
   },
   {
-    "__docId__": 66,
+    "__docId__": 63,
     "kind": "method",
     "name": "isUpperCase",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2331,7 +2235,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isUpperCase",
     "access": null,
     "description": "Checks if a given string is consists of uppercase letters",
-    "lineNumber": 110,
+    "lineNumber": 112,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2360,7 +2264,7 @@
     }
   },
   {
-    "__docId__": 67,
+    "__docId__": 64,
     "kind": "method",
     "name": "setup",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2370,11 +2274,11 @@
     "longname": "lib/color-utils.js~ColorUtils.setup",
     "access": "private",
     "description": "",
-    "lineNumber": 117,
+    "lineNumber": 119,
     "params": []
   },
   {
-    "__docId__": 68,
+    "__docId__": 65,
     "kind": "member",
     "name": "HEX_CODE_RE",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2382,7 +2286,7 @@
     "longname": "lib/color-utils.js~ColorUtils.HEX_CODE_RE",
     "access": "private",
     "description": null,
-    "lineNumber": 119,
+    "lineNumber": 121,
     "type": {
       "types": [
         "undefined"
@@ -2390,7 +2294,79 @@
     }
   },
   {
-    "__docId__": 70,
+    "__docId__": 66,
+    "kind": "method",
+    "name": "clampToRange",
+    "memberof": "lib/color-utils.js~ColorUtils",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-utils.js~ColorUtils.clampToRange",
+    "access": "private",
+    "description": "",
+    "lineNumber": 128,
+    "params": [
+      {
+        "name": "value",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "lowerBound",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "upperBound",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 67,
+    "kind": "method",
+    "name": "rgbMap",
+    "memberof": "lib/color-utils.js~ColorUtils",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-utils.js~ColorUtils.rgbMap",
+    "access": "private",
+    "description": "",
+    "lineNumber": 140,
+    "params": [
+      {
+        "name": "values",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "func",
+        "optional": true,
+        "types": [
+          "undefined"
+        ],
+        "defaultValue": "undefined"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 69,
     "kind": "external",
     "name": "Infinity",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
@@ -2402,7 +2378,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 71,
+    "__docId__": 70,
     "kind": "external",
     "name": "NaN",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
@@ -2414,7 +2390,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 72,
+    "__docId__": 71,
     "kind": "external",
     "name": "undefined",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
@@ -2426,7 +2402,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 73,
+    "__docId__": 72,
     "kind": "external",
     "name": "null",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
@@ -2438,7 +2414,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 74,
+    "__docId__": 73,
     "kind": "external",
     "name": "Object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -2450,7 +2426,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 75,
+    "__docId__": 74,
     "kind": "external",
     "name": "object",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
@@ -2462,7 +2438,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 76,
+    "__docId__": 75,
     "kind": "external",
     "name": "Function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -2474,7 +2450,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 77,
+    "__docId__": 76,
     "kind": "external",
     "name": "function",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
@@ -2486,7 +2462,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 78,
+    "__docId__": 77,
     "kind": "external",
     "name": "Boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -2498,7 +2474,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 78,
     "kind": "external",
     "name": "boolean",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
@@ -2510,7 +2486,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 80,
+    "__docId__": 79,
     "kind": "external",
     "name": "Symbol",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
@@ -2522,7 +2498,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 81,
+    "__docId__": 80,
     "kind": "external",
     "name": "Error",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
@@ -2534,7 +2510,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 82,
+    "__docId__": 81,
     "kind": "external",
     "name": "EvalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
@@ -2546,7 +2522,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 83,
+    "__docId__": 82,
     "kind": "external",
     "name": "InternalError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
@@ -2558,7 +2534,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 84,
+    "__docId__": 83,
     "kind": "external",
     "name": "RangeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
@@ -2570,7 +2546,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 84,
     "kind": "external",
     "name": "ReferenceError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
@@ -2582,7 +2558,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 86,
+    "__docId__": 85,
     "kind": "external",
     "name": "SyntaxError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
@@ -2594,7 +2570,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 86,
     "kind": "external",
     "name": "TypeError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
@@ -2606,7 +2582,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 88,
+    "__docId__": 87,
     "kind": "external",
     "name": "URIError",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
@@ -2618,7 +2594,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 89,
+    "__docId__": 88,
     "kind": "external",
     "name": "Number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -2630,7 +2606,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 90,
+    "__docId__": 89,
     "kind": "external",
     "name": "number",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
@@ -2642,7 +2618,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 91,
+    "__docId__": 90,
     "kind": "external",
     "name": "Date",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
@@ -2654,7 +2630,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 92,
+    "__docId__": 91,
     "kind": "external",
     "name": "String",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -2666,7 +2642,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 93,
+    "__docId__": 92,
     "kind": "external",
     "name": "string",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
@@ -2678,7 +2654,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 94,
+    "__docId__": 93,
     "kind": "external",
     "name": "RegExp",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
@@ -2690,7 +2666,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 95,
+    "__docId__": 94,
     "kind": "external",
     "name": "Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
@@ -2702,7 +2678,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 95,
     "kind": "external",
     "name": "Int8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
@@ -2714,7 +2690,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 97,
+    "__docId__": 96,
     "kind": "external",
     "name": "Uint8Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
@@ -2726,7 +2702,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 98,
+    "__docId__": 97,
     "kind": "external",
     "name": "Uint8ClampedArray",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
@@ -2738,7 +2714,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 99,
+    "__docId__": 98,
     "kind": "external",
     "name": "Int16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
@@ -2750,7 +2726,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 100,
+    "__docId__": 99,
     "kind": "external",
     "name": "Uint16Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
@@ -2762,7 +2738,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 101,
+    "__docId__": 100,
     "kind": "external",
     "name": "Int32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
@@ -2774,7 +2750,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 102,
+    "__docId__": 101,
     "kind": "external",
     "name": "Uint32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
@@ -2786,7 +2762,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 103,
+    "__docId__": 102,
     "kind": "external",
     "name": "Float32Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
@@ -2798,7 +2774,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 104,
+    "__docId__": 103,
     "kind": "external",
     "name": "Float64Array",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
@@ -2810,7 +2786,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 105,
+    "__docId__": 104,
     "kind": "external",
     "name": "Map",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
@@ -2822,7 +2798,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 106,
+    "__docId__": 105,
     "kind": "external",
     "name": "Set",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
@@ -2834,7 +2810,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 107,
+    "__docId__": 106,
     "kind": "external",
     "name": "WeakMap",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
@@ -2846,7 +2822,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 108,
+    "__docId__": 107,
     "kind": "external",
     "name": "WeakSet",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
@@ -2858,7 +2834,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 109,
+    "__docId__": 108,
     "kind": "external",
     "name": "ArrayBuffer",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
@@ -2870,7 +2846,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 110,
+    "__docId__": 109,
     "kind": "external",
     "name": "DataView",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
@@ -2882,7 +2858,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 111,
+    "__docId__": 110,
     "kind": "external",
     "name": "JSON",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
@@ -2894,7 +2870,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 112,
+    "__docId__": 111,
     "kind": "external",
     "name": "Promise",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
@@ -2906,7 +2882,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 113,
+    "__docId__": 112,
     "kind": "external",
     "name": "Generator",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
@@ -2918,7 +2894,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 114,
+    "__docId__": 113,
     "kind": "external",
     "name": "GeneratorFunction",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
@@ -2930,7 +2906,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 115,
+    "__docId__": 114,
     "kind": "external",
     "name": "Reflect",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
@@ -2942,7 +2918,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 116,
+    "__docId__": 115,
     "kind": "external",
     "name": "Proxy",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
@@ -2955,7 +2931,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 118,
+    "__docId__": 117,
     "kind": "external",
     "name": "CanvasRenderingContext2D",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
@@ -2967,7 +2943,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 119,
+    "__docId__": 118,
     "kind": "external",
     "name": "DocumentFragment",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
@@ -2979,7 +2955,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 120,
+    "__docId__": 119,
     "kind": "external",
     "name": "Element",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
@@ -2991,7 +2967,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 121,
+    "__docId__": 120,
     "kind": "external",
     "name": "Event",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
@@ -3003,7 +2979,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 122,
+    "__docId__": 121,
     "kind": "external",
     "name": "Node",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
@@ -3015,7 +2991,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 123,
+    "__docId__": 122,
     "kind": "external",
     "name": "NodeList",
     "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
@@ -3027,7 +3003,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 124,
+    "__docId__": 123,
     "kind": "external",
     "name": "XMLHttpRequest",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
@@ -3039,7 +3015,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 125,
+    "__docId__": 124,
     "kind": "external",
     "name": "AudioContext",
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",

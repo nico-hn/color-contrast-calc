@@ -19,7 +19,7 @@
   <a href="identifiers.html">Reference</a>
   <a href="source.html">Source</a>
   
-  <a data-ice="repoURL" href="https://github.com/nico-hn/color-contrast-calc.git" class="repo-url-github">Repository</a>
+  <a data-ice="repoURL" href="https://github.com/nico-hn/color-contrast-calc" class="repo-url-github">Repository</a>
   <div class="search-box">
   <span>
     <img src="./image/search.png">
@@ -48,7 +48,7 @@ class ColorUtils {
    * @returns {Array&lt;number, number, number&gt;} RGB value represented as an array of numbers
    */
   static hexCodeToDecimal(hexCode) {
-    const h = this.normalizeHexCode(hexCode);
+    const h = this.normalizeHexCode(hexCode, false);
     return [0, 2, 4].map(s =&gt; h.substr(s, 2))
       .map(primaryColor =&gt; Number.parseInt(primaryColor, 16));
   }
@@ -56,16 +56,18 @@ class ColorUtils {
   /**
    * Converts a hex color code to a 6-digit hexadecimal string
    * @param {string} hexString - String that represent a hex code
-   * @returns {string} 6-digit hexadecimal string without leading &apos;#&apos;
+   * @param {boolean} [prefix=true] - Append &apos;#&apos; to the head of return value if a truthy value is given
+   * @returns {string} 6-digit hexadecimal string with/without leading &apos;#&apos;
    */
-  static normalizeHexCode(hexString) {
+  static normalizeHexCode(hexString, prefix = true) {
     const hl = hexString.toLowerCase();
     const h = hl.startsWith(&quot;#&quot;) ? hl.replace(&quot;#&quot;, &quot;&quot;) : hl;
+    let hexPart = h;
     if (h.length === 3) {
-      return [0, 1, 2].map(s =&gt; h.substr(s, 1).repeat(2)).join(&quot;&quot;);
-    } else {
-      return h;
+      hexPart = [0, 1, 2].map(s =&gt; h.substr(s, 1).repeat(2)).join(&quot;&quot;);
     }
+
+    return prefix ? `#${hexPart}` : hexPart;
   }
 
   /**
@@ -159,7 +161,193 @@ class ColorUtils {
     /** @private */
     this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;
   }
+
+
+  /**
+   * @private
+   */
+  static clampToRange(value, lowerBound, upperBound) {
+    if (value &lt;= lowerBound) {
+      return lowerBound;
+    } else if (value &gt; upperBound) {
+      return upperBound;
+    }
+    return value;
+  }
+
+  /**
+   * @private
+   */
+  static rgbMap(values, func = null) {
+    if (func) {
+      return values.map(val =&gt; {
+        return ColorUtils.clampToRange(Math.round(func(val)), 0, 255);
+      });
+    } else {
+      return values.map(val =&gt; {
+        return ColorUtils.clampToRange(Math.round(val), 0, 255);
+      });
+    }
+  }
 }
+
+(function() {
+  class Matrix {
+    constructor(matrix) {
+      this.matrix = matrix;
+    }
+
+    add(otherMatrix) {
+      const newMatrix = this.matrix.map((row, i) =&gt; {
+        const otherRow = otherMatrix.matrix[i];
+        return row.map((s, j) =&gt; s + otherRow[j]);
+      });
+
+      return new Matrix(newMatrix);
+    }
+
+    multiply(n) {
+      if (typeof n === &quot;number&quot;) {
+        return this.multiplyByScalar(n);
+      } else {
+        return this.productByVector(n);
+      }
+    }
+
+    multiplyByScalar(n) {
+      const newMatrix = this.matrix.map(row =&gt; row.map(c =&gt; c * n));
+      return new Matrix(newMatrix);
+    }
+
+    productByVector(vector) {
+      return this.matrix.map(row =&gt; {
+        return row.reduce((s, c, i) =&gt; s += c * vector[i], 0);
+      });
+    }
+  }
+
+  ColorUtils.Matrix = Matrix;
+
+  const rgbMap = ColorUtils.rgbMap;
+
+  class ContrastCalc {
+    /*
+       https://www.w3.org/TR/filter-effects/#funcdef-contrast
+       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
+    */
+    static calcRgb(ratio, rgb) {
+      return rgbMap(rgb, c =&gt; (c * ratio + 255 * (50 - ratio / 2)) / 100);
+    }
+  }
+
+  ColorUtils.ContrastCalc = ContrastCalc;
+
+  class BrightnessCalc {
+    /*
+       https://www.w3.org/TR/filter-effects/#funcdef-brightness
+       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
+    */
+    static calcRgb(ratio, rgb) {
+      return rgbMap(rgb, c =&gt; c * ratio / 100);
+    }
+  }
+
+  ColorUtils.BrightnessCalc = BrightnessCalc;
+
+  class InvertCalc {
+    /*
+       https://www.w3.org/TR/filter-effects-1/#invertEquivalent
+       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
+    */
+    static calcRgb(ratio, rgb) {
+      return rgb.map(c =&gt; {
+        return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);
+      });
+    }
+  }
+
+  ColorUtils.InvertCalc = InvertCalc;
+
+  class HueRotateCalc {
+    /*
+       https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate
+       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
+    */
+    static calcRgb(deg, rgb) {
+      return rgbMap(this.calcRotation(deg).multiply(rgb));
+    }
+
+    static degToRad(deg) {
+      return Math.PI * deg / 180;
+    }
+
+    static calcRotation(deg) {
+      const rad = this.degToRad(deg);
+      const cosPartResult = this.cosPart.multiply(Math.cos(rad));
+      const sinPartResult = this.sinPart.multiply(Math.sin(rad));
+      return this.constPart.add(cosPartResult).add(sinPartResult);
+    }
+  }
+
+  HueRotateCalc.constPart = new Matrix([[0.213, 0.715, 0.072],
+                                        [0.213, 0.715, 0.072],
+                                        [0.213, 0.715, 0.072]]);
+
+  HueRotateCalc.cosPart = new Matrix([[0.787, -0.715, -0.072],
+                                      [-0.213,0.285, -0.072],
+                                      [-0.213, -0.715, 0.928]]);
+
+  HueRotateCalc.sinPart = new Matrix([[-0.213, -0.715, 0.928],
+                                      [0.143, 0.140, -0.283],
+                                      [-0.787, 0.715, 0.072]]);
+
+  ColorUtils.HueRotateCalc = HueRotateCalc;
+
+  class SaturateCalc {
+    /*
+       https://www.w3.org/TR/filter-effects/#funcdef-saturate
+       https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
+     */
+    static calcRgb(s, rgb) {
+      return rgbMap(this.calcSaturation(s).multiply(rgb));
+    }
+
+    static calcSaturation(s) {
+      return this.constPart.add(this.saturatePart.multiply(s / 100));
+    }
+  }
+
+  SaturateCalc.constPart = HueRotateCalc.constPart;
+  SaturateCalc.saturatePart = HueRotateCalc.cosPart;
+
+  ColorUtils.SaturateCalc = SaturateCalc;
+
+  class GrayscaleCalc {
+    /*
+       https://www.w3.org/TR/filter-effects/#funcdef-grayscale
+       https://www.w3.org/TR/filter-effects/#grayscaleEquivalent
+       https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
+    */
+    static calcRgb(s, rgb) {
+      return rgbMap(this.calcGrayscale(s).multiply(rgb));
+    }
+
+    static calcGrayscale(s) {
+      const r = 1 - Math.min(100, s) / 100;
+      return this.constPart.add(this.ratioPart.multiply(r));
+    }
+  }
+
+  GrayscaleCalc.constPart = new Matrix([[0.2126, 0.7152, 0.0722],
+                                        [0.2126, 0.7152, 0.0722],
+                                        [0.2126, 0.7152, 0.0722]]);
+
+  GrayscaleCalc.ratioPart = new Matrix([[0.7874, -0.7152, -0.0722],
+                                        [-0.2126, 0.2848, -0.0722],
+                                        [-0.2126, -0.7152, 0.9278]]);
+
+  ColorUtils.GrayscaleCalc = GrayscaleCalc;
+})();
 
 ColorUtils.setup();
 
