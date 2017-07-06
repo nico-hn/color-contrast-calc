@@ -235,7 +235,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#funcdef-contrast
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
-    static calcRgb(ratio, rgb) {
+    static calcRgb(rgb, ratio = 100) {
       return rgbMap(rgb, c =&gt; (c * ratio + 255 * (50 - ratio / 2)) / 100);
     }
   }
@@ -247,7 +247,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#funcdef-brightness
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
-    static calcRgb(ratio, rgb) {
+    static calcRgb(rgb, ratio = 100) {
       return rgbMap(rgb, c =&gt; c * ratio / 100);
     }
   }
@@ -259,7 +259,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects-1/#invertEquivalent
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
-    static calcRgb(ratio, rgb) {
+    static calcRgb(rgb, ratio) {
       return rgb.map(c =&gt; {
         return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);
       });
@@ -273,7 +273,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
-    static calcRgb(deg, rgb) {
+    static calcRgb(rgb, deg) {
       return rgbMap(this.calcRotation(deg).multiply(rgb));
     }
 
@@ -308,7 +308,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#funcdef-saturate
        https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
      */
-    static calcRgb(s, rgb) {
+    static calcRgb(rgb, s) {
       return rgbMap(this.calcSaturation(s).multiply(rgb));
     }
 
@@ -328,7 +328,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#grayscaleEquivalent
        https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
     */
-    static calcRgb(s, rgb) {
+    static calcRgb(rgb, s) {
       return rgbMap(this.calcGrayscale(s).multiply(rgb));
     }
 
