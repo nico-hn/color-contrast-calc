@@ -201,4 +201,52 @@ describe("ColorUtils", function() {
       expect(ColorUtils.isUpperCase("u")).to.be.false;
     });
   });
+
+  describe("Matrix", function() {
+    const m1 = new ColorUtils.Matrix([[1, 2, 3],
+                                             [2, 3, 4],
+                                             [3, 4, 5]]);
+
+    describe("add", function() {
+      it("expects to add two matrices", function() {
+        const m2 = new ColorUtils.Matrix([[3, 2, 1],
+                                                 [4, 3, 2],
+                                                 [5, 4, 3]]);
+        const r = new ColorUtils.Matrix([[4, 4, 4],
+                                                [6, 6, 6],
+                                                [8, 8, 8]]);
+
+        expect(m1.add(m2).matrix).to.deep.equal(r.matrix);
+      });
+    });
+
+    describe("multiplyByScalar", function() {
+      it("expects to multiply each element of a matrix a given argument", function() {
+        const r = new ColorUtils.Matrix([[2, 4, 6],
+                                                [4, 6, 8],
+                                                [6, 8, 10]]);
+
+        expect(m1.multiplyByScalar(2).matrix).to.deep.equal(r.matrix);
+      });
+    });
+
+    describe("productByVector", function() {
+      it("expects to return a vector", function() {
+        const v = [2, 3, 4];
+        expect(m1.productByVector(v)).to.deep.equal([20, 29, 38]);
+      });
+    });
+
+    describe("multiply", function() {
+      it("expects to be a shorthand method that can be used in place of .multiplyByScalar/.productByScalar", function() {
+        const r = new ColorUtils.Matrix([[2, 4, 6],
+                                                [4, 6, 8],
+                                                [6, 8, 10]]);
+        const v = [2, 3, 4];
+
+        expect(m1.multiply(2).matrix).to.deep.equal(r.matrix);
+        expect(m1.productByVector(v)).to.deep.equal([20, 29, 38]);
+      });
+    });
+  });
 });
