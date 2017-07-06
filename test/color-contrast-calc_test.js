@@ -106,8 +106,16 @@ describe("ColorContrastCalc", () => {
     });
 
     describe("getByHexCode", function() {
-      it("expects to return yellow", function() {
+      it("expects to return yellow when '#ffff00' is passed", function() {
         expect(ColorContrastCalc.getByHexCode("#ffff00").name).to.equal("yellow");
+      });
+
+      it("expect to return yellow even when the hex code is given in shorthand form", function() {
+        expect(ColorContrastCalc.getByHexCode("#ff0").name).to.equal("yellow");
+      });
+
+      it("expect to return yellow even when the hex code is written in uppercase letters", function() {
+        expect(ColorContrastCalc.getByHexCode("#FFFF00").name).to.equal("yellow");
       });
 
       it("expects to return a new instance if a given hex code is not registered", function() {
