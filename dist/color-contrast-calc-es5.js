@@ -122,8 +122,7 @@ var ColorContrastCalc = function () {
 
   }, {
     key: "newContrastColor",
-    value: function newContrastColor() {
-      var ratio = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
+    value: function newContrastColor(ratio) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       return this.generateNewColor(Utils.ContrastCalc, ratio, name);
@@ -137,8 +136,7 @@ var ColorContrastCalc = function () {
 
   }, {
     key: "newBrightnessColor",
-    value: function newBrightnessColor() {
-      var ratio = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
+    value: function newBrightnessColor(ratio) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       return this.generateNewColor(Utils.BrightnessCalc, ratio, name);
@@ -500,7 +498,7 @@ var ColorContrastCalc = function () {
     value: function generateNewColor(calc, ratio) {
       var name = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
-      var newRgb = calc.calcRgb(ratio, this.rgb);
+      var newRgb = calc.calcRgb(this.rgb, ratio);
       return new ColorContrastCalc(newRgb, name);
     }
   }], [{
@@ -1178,7 +1176,8 @@ var ColorUtils = function () {
     /**
      * Converts a hex color code to a 6-digit hexadecimal string
      * @param {string} hexString - String that represent a hex code
-     * @returns {string} 6-digit hexadecimal string without leading '#'
+     * @param {boolean} [prefix=true] - Append '#' to the head of return value if a truthy value is given
+     * @returns {string} 6-digit hexadecimal string with/without leading '#'
      */
 
   }, {
@@ -1427,7 +1426,9 @@ var ColorUtils = function () {
          https://www.w3.org/TR/filter-effects/#funcdef-contrast
          https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
       */
-      value: function calcRgb(ratio, rgb) {
+      value: function calcRgb(rgb) {
+        var ratio = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 100;
+
         return rgbMap(rgb, function (c) {
           return (c * ratio + 255 * (50 - ratio / 2)) / 100;
         });
@@ -1450,7 +1451,9 @@ var ColorUtils = function () {
          https://www.w3.org/TR/filter-effects/#funcdef-brightness
          https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
       */
-      value: function calcRgb(ratio, rgb) {
+      value: function calcRgb(rgb) {
+        var ratio = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 100;
+
         return rgbMap(rgb, function (c) {
           return c * ratio / 100;
         });
@@ -1473,7 +1476,7 @@ var ColorUtils = function () {
          https://www.w3.org/TR/filter-effects-1/#invertEquivalent
          https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
       */
-      value: function calcRgb(ratio, rgb) {
+      value: function calcRgb(rgb, ratio) {
         return rgb.map(function (c) {
           return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);
         });
@@ -1496,7 +1499,7 @@ var ColorUtils = function () {
          https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate
          https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
       */
-      value: function calcRgb(deg, rgb) {
+      value: function calcRgb(rgb, deg) {
         return rgbMap(this.calcRotation(deg).multiply(rgb));
       }
     }, {
@@ -1536,7 +1539,7 @@ var ColorUtils = function () {
          https://www.w3.org/TR/filter-effects/#funcdef-saturate
          https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
        */
-      value: function calcRgb(s, rgb) {
+      value: function calcRgb(rgb, s) {
         return rgbMap(this.calcSaturation(s).multiply(rgb));
       }
     }, {
@@ -1566,7 +1569,7 @@ var ColorUtils = function () {
          https://www.w3.org/TR/filter-effects/#grayscaleEquivalent
          https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
       */
-      value: function calcRgb(s, rgb) {
+      value: function calcRgb(rgb, s) {
         return rgbMap(this.calcGrayscale(s).multiply(rgb));
       }
     }, {

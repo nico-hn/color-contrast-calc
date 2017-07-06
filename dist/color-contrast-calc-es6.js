@@ -220,7 +220,7 @@ class ColorContrastCalc {
    * @param {string} [name=null] - Name of color
    * @returns {ColorContrastCalc}
    */
-  newContrastColor(ratio = 100, name = null) {
+  newContrastColor(ratio, name = null) {
     return this.generateNewColor(Utils.ContrastCalc, ratio, name);
   }
 
@@ -229,7 +229,7 @@ class ColorContrastCalc {
    * @param {string} [name=null] - Name of color
    * @returns {ColorContrastCalc}
    */
-  newBrightnessColor(ratio = 100, name = null) {
+  newBrightnessColor(ratio, name = null) {
     return this.generateNewColor(Utils.BrightnessCalc, ratio, name);
   }
 
@@ -472,7 +472,7 @@ class ColorContrastCalc {
    * @private
    */
   generateNewColor(calc, ratio, name = null) {
-    const newRgb = calc.calcRgb(ratio, this.rgb);
+    const newRgb = calc.calcRgb(this.rgb, ratio);
     return new ColorContrastCalc(newRgb, name);
   }
 }
@@ -814,7 +814,8 @@ class ColorUtils {
   /**
    * Converts a hex color code to a 6-digit hexadecimal string
    * @param {string} hexString - String that represent a hex code
-   * @returns {string} 6-digit hexadecimal string without leading '#'
+   * @param {boolean} [prefix=true] - Append '#' to the head of return value if a truthy value is given
+   * @returns {string} 6-digit hexadecimal string with/without leading '#'
    */
   static normalizeHexCode(hexString, prefix = true) {
     const hl = hexString.toLowerCase();
@@ -992,7 +993,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#funcdef-contrast
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
-    static calcRgb(ratio, rgb) {
+    static calcRgb(rgb, ratio = 100) {
       return rgbMap(rgb, c => (c * ratio + 255 * (50 - ratio / 2)) / 100);
     }
   }
@@ -1004,7 +1005,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#funcdef-brightness
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
-    static calcRgb(ratio, rgb) {
+    static calcRgb(rgb, ratio = 100) {
       return rgbMap(rgb, c => c * ratio / 100);
     }
   }
@@ -1016,7 +1017,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects-1/#invertEquivalent
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
-    static calcRgb(ratio, rgb) {
+    static calcRgb(rgb, ratio) {
       return rgb.map(c => {
         return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);
       });
@@ -1030,7 +1031,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate
        https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
-    static calcRgb(deg, rgb) {
+    static calcRgb(rgb, deg) {
       return rgbMap(this.calcRotation(deg).multiply(rgb));
     }
 
@@ -1065,7 +1066,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#funcdef-saturate
        https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
      */
-    static calcRgb(s, rgb) {
+    static calcRgb(rgb, s) {
       return rgbMap(this.calcSaturation(s).multiply(rgb));
     }
 
@@ -1085,7 +1086,7 @@ class ColorUtils {
        https://www.w3.org/TR/filter-effects/#grayscaleEquivalent
        https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
     */
-    static calcRgb(s, rgb) {
+    static calcRgb(rgb, s) {
       return rgbMap(this.calcGrayscale(s).multiply(rgb));
     }
 
