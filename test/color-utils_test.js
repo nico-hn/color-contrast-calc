@@ -30,16 +30,32 @@ describe("ColorUtils", function() {
   });
 
   describe("normalizeHexCode", function() {
-    it("expects to return 'ffa500' when '#ffa500' is passed", function() {
-      expect(ColorUtils.normalizeHexCode("#ffa500")).to.equal("ffa500");
+    context("When prefix is true", function() {
+      it("expects to return 'ffa500' when '#ffa500' is passed", function() {
+        expect(ColorUtils.normalizeHexCode("#ffa500")).to.equal("#ffa500");
+      });
+
+      it("expects to return 'FFA500' when '#FFA500' is passed", function() {
+        expect(ColorUtils.normalizeHexCode("#FFA500")).to.equal("#ffa500");
+      });
+
+      it("expects to return 'ffaa00' when '#fa0' is passed", function() {
+        expect(ColorUtils.normalizeHexCode("#fa0")).to.equal("#ffaa00");
+      });
     });
 
-    it("expects to return 'FFA500' when '#FFA500' is passed", function() {
-      expect(ColorUtils.normalizeHexCode("#FFA500")).to.equal("ffa500");
-    });
+    context("When prefix is false", function() {
+      it("expects to return 'ffa500' when '#ffa500' is passed", function() {
+        expect(ColorUtils.normalizeHexCode("#ffa500", false)).to.equal("ffa500");
+      });
 
-    it("expects to return 'ffaa00' when '#fa0' is passed", function() {
-      expect(ColorUtils.normalizeHexCode("#fa0")).to.equal("ffaa00");
+      it("expects to return 'FFA500' when '#FFA500' is passed", function() {
+        expect(ColorUtils.normalizeHexCode("#FFA500", false)).to.equal("ffa500");
+      });
+
+      it("expects to return 'ffaa00' when '#fa0' is passed", function() {
+        expect(ColorUtils.normalizeHexCode("#fa0", false)).to.equal("ffaa00");
+      });
     });
   });
 
