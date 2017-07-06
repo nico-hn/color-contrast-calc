@@ -833,8 +833,8 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       value: function compareColorFunction() {
         var colorOrder = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "rgb";
 
-        var rgbPos = Sorter.primaryColorPos(colorOrder);
-        var compFuncs = Sorter.chooseCompFunc(colorOrder);
+        var rgbPos = this.primaryColorPos(colorOrder);
+        var compFuncs = this.chooseCompFunc(colorOrder);
 
         return function (color1, color2) {
           return Sorter.compareRgbVal(color1.rgb, color2.rgb, rgbPos, compFuncs);
@@ -845,8 +845,8 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       value: function compareRgbFunction() {
         var colorOrder = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "rgb";
 
-        var rgbPos = Sorter.primaryColorPos(colorOrder);
-        var compFuncs = Sorter.chooseCompFunc(colorOrder);
+        var rgbPos = this.primaryColorPos(colorOrder);
+        var compFuncs = this.chooseCompFunc(colorOrder);
 
         return function (rgb1, rgb2) {
           return Sorter.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
@@ -857,8 +857,8 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       value: function compareHexFunction() {
         var colorOrder = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "rgb";
 
-        var rgbPos = Sorter.primaryColorPos(colorOrder);
-        var compFuncs = Sorter.chooseCompFunc(colorOrder);
+        var rgbPos = this.primaryColorPos(colorOrder);
+        var compFuncs = this.chooseCompFunc(colorOrder);
         var rgbCache = new _map2.default();
 
         return function (hex1, hex2) {

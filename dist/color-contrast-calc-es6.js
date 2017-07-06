@@ -540,8 +540,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
     }
 
     static compareColorFunction(colorOrder = "rgb") {
-      const rgbPos = Sorter.primaryColorPos(colorOrder);
-      const compFuncs = Sorter.chooseCompFunc(colorOrder);
+      const rgbPos = this.primaryColorPos(colorOrder);
+      const compFuncs = this.chooseCompFunc(colorOrder);
 
       return function(color1, color2) {
         return Sorter.compareRgbVal(color1.rgb, color2.rgb, rgbPos, compFuncs);
@@ -549,8 +549,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
     }
 
     static compareRgbFunction(colorOrder = "rgb") {
-      const rgbPos = Sorter.primaryColorPos(colorOrder);
-      const compFuncs = Sorter.chooseCompFunc(colorOrder);
+      const rgbPos = this.primaryColorPos(colorOrder);
+      const compFuncs = this.chooseCompFunc(colorOrder);
 
       return function(rgb1, rgb2) {
         return Sorter.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
@@ -558,8 +558,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
     }
 
     static compareHexFunction(colorOrder = "rgb") {
-      const rgbPos = Sorter.primaryColorPos(colorOrder);
-      const compFuncs = Sorter.chooseCompFunc(colorOrder);
+      const rgbPos = this.primaryColorPos(colorOrder);
+      const compFuncs = this.chooseCompFunc(colorOrder);
       const rgbCache = new Map();
 
       return function(hex1, hex2) {
