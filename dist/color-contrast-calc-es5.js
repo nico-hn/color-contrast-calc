@@ -122,15 +122,11 @@ var ColorContrastCalc = function () {
 
   }, {
     key: "newContrastColor",
-    value: function newContrastColor(ratio) {
-      var _this2 = this;
-
+    value: function newContrastColor() {
+      var ratio = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
-      var newRgb = this.rgb.map(function (c) {
-        return _this2.calcNewContrast(c, ratio);
-      });
-      return new ColorContrastCalc(newRgb, name);
+      return this.generateNewColor(Utils.ContrastCalc, ratio, name);
     }
 
     /**
@@ -141,15 +137,11 @@ var ColorContrastCalc = function () {
 
   }, {
     key: "newBrightnessColor",
-    value: function newBrightnessColor(ratio) {
-      var _this3 = this;
-
+    value: function newBrightnessColor() {
+      var ratio = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
-      var newRgb = this.rgb.map(function (c) {
-        return _this3.calcNewBrightness(c, ratio);
-      });
-      return new ColorContrastCalc(newRgb, name);
+      return this.generateNewColor(Utils.BrightnessCalc, ratio, name);
     }
 
     /**
@@ -163,15 +155,7 @@ var ColorContrastCalc = function () {
     value: function newInvertColor(ratio) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
-      /*
-         https://www.w3.org/TR/filter-effects-1/#invertEquivalent
-         https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
-      */
-      var newRgb = this.rgb.map(function (c) {
-        return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);
-      });
-
-      return new ColorContrastCalc(newRgb, name);
+      return this.generateNewColor(Utils.InvertCalc, ratio, name);
     }
 
     /**
@@ -185,7 +169,7 @@ var ColorContrastCalc = function () {
     value: function newHueRotateColor(degree) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
-      return this.generateNewColor(this.constructor.HueRotateCalc, degree, name);
+      return this.generateNewColor(Utils.HueRotateCalc, degree, name);
     }
 
     /**
@@ -199,7 +183,7 @@ var ColorContrastCalc = function () {
     value: function newSaturateColor(ratio) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
-      return this.generateNewColor(this.constructor.SaturateCalc, ratio, name);
+      return this.generateNewColor(Utils.SaturateCalc, ratio, name);
     }
 
     /**
@@ -213,7 +197,7 @@ var ColorContrastCalc = function () {
     value: function newGrayscaleColor(ratio) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
-      return this.generateNewColor(this.constructor.GrayscaleCalc, ratio, name);
+      return this.generateNewColor(Utils.GrayscaleCalc, ratio, name);
     }
 
     /**
@@ -322,10 +306,10 @@ var ColorContrastCalc = function () {
   }, {
     key: "isMinContrast",
     value: function isMinContrast() {
-      var _this4 = this;
+      var _this2 = this;
 
       return this.rgb.every(function (primaryColor, i) {
-        return _this4.GRAY.rgb[i] === primaryColor;
+        return _this2.GRAY.rgb[i] === primaryColor;
       });
     }
 
@@ -366,39 +350,6 @@ var ColorContrastCalc = function () {
       } else if (level === "AAA" || level === 3) {
         return 7.0;
       }
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: "calcNewContrast",
-    value: function calcNewContrast(origColor) {
-      var ratio = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 100;
-
-      /*
-         https://www.w3.org/TR/filter-effects/#funcdef-contrast
-         https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
-      */
-      var newColor = Math.round((origColor * ratio + 255 * (50 - ratio / 2)) / 100);
-      return this.clampToRange(newColor, 0, 255);
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: "calcNewBrightness",
-    value: function calcNewBrightness(origColor) {
-      var ratio = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 100;
-
-      /*
-         https://www.w3.org/TR/filter-effects/#funcdef-brightness
-         https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
-      */
-      return this.clampToRange(Math.round(origColor * ratio / 100), 0, 255);
     }
 
     /**
@@ -545,31 +496,12 @@ var ColorContrastCalc = function () {
      */
 
   }, {
-    key: "clampToRange",
-    value: function clampToRange(value, lowerBound, upperBound) {
-      if (value <= lowerBound) {
-        return lowerBound;
-      } else if (value > upperBound) {
-        return upperBound;
-      }
-      return value;
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
     key: "generateNewColor",
     value: function generateNewColor(calc, ratio) {
-      var _this5 = this;
-
       var name = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
       var newRgb = calc.calcRgb(ratio, this.rgb);
-      return new ColorContrastCalc(newRgb.map(function (c) {
-        return _this5.clampToRange(Math.round(c), 0, 255);
-      }), name);
+      return new ColorContrastCalc(newRgb, name);
     }
   }], [{
     key: "tristimulusValue",
@@ -593,7 +525,7 @@ var ColorContrastCalc = function () {
   }, {
     key: "relativeLuminance",
     value: function relativeLuminance() {
-      var _this6 = this;
+      var _this3 = this;
 
       var rgb = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [255, 255, 255];
 
@@ -602,7 +534,7 @@ var ColorContrastCalc = function () {
       }
 
       var _rgb$map = rgb.map(function (c) {
-        return _this6.tristimulusValue(c);
+        return _this3.tristimulusValue(c);
       }),
           _rgb$map2 = (0, _slicedToArray3.default)(_rgb$map, 3),
           r = _rgb$map2[0],
@@ -622,10 +554,10 @@ var ColorContrastCalc = function () {
   }, {
     key: "contrastRatio",
     value: function contrastRatio(foreground, background) {
-      var _this7 = this;
+      var _this4 = this;
 
       var _map$sort = [foreground, background].map(function (c) {
-        return _this7.relativeLuminance(c);
+        return _this4.relativeLuminance(c);
       }).sort(function (f, b) {
         return b - f;
       }),
@@ -657,8 +589,9 @@ var ColorContrastCalc = function () {
   }, {
     key: "getByHexCode",
     value: function getByHexCode(code) {
-      var registeredCode = this.HEX_TO_COLOR.get(code);
-      return registeredCode ? registeredCode : new ColorContrastCalc(code);
+      var hexCode = Utils.normalizeHexCode(code);
+      var registeredCode = this.HEX_TO_COLOR.get(hexCode);
+      return registeredCode ? registeredCode : new ColorContrastCalc(hexCode);
     }
 
     /**
@@ -666,7 +599,7 @@ var ColorContrastCalc = function () {
      * @param {string} [colorOrder="rgb"] - A left side primary color has a higher sorting precedence
      * @param {string} [keyType="color"] - Type of keys used for sorting: "color", "hex" or "rgb"
      * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted
-     * @returns {function} Function that compares two given colors
+     * @returns {function} Function that compares given two colors
      */
 
   }, {
@@ -717,7 +650,7 @@ var ColorContrastCalc = function () {
   }, {
     key: "loadColorKeywords",
     value: function loadColorKeywords(colorKeywordsJSON) {
-      var _this8 = this;
+      var _this5 = this;
 
       /**
        * Array of named colors defined at https://www.w3.org/TR/SVG/types.html#ColorKeywords
@@ -734,9 +667,9 @@ var ColorContrastCalc = function () {
             hex = _color[1];
 
         var calc = new ColorContrastCalc(hex, name);
-        _this8.NAMED_COLORS.push(calc);
-        _this8.NAME_TO_COLOR.set(name, calc);
-        _this8.HEX_TO_COLOR.set(hex, calc);
+        _this5.NAMED_COLORS.push(calc);
+        _this5.NAME_TO_COLOR.set(name, calc);
+        _this5.HEX_TO_COLOR.set(hex, calc);
       });
 
       (0, _freeze2.default)(this.NAMED_COLORS);
@@ -829,162 +762,6 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
 });
 
 (function () {
-  var Matrix = function () {
-    function Matrix(matrix) {
-      (0, _classCallCheck3.default)(this, Matrix);
-
-      this.matrix = matrix;
-    }
-
-    (0, _createClass3.default)(Matrix, [{
-      key: "add",
-      value: function add(otherMatrix) {
-        var newMatrix = this.matrix.map(function (row, i) {
-          var otherRow = otherMatrix.matrix[i];
-          return row.map(function (s, j) {
-            return s + otherRow[j];
-          });
-        });
-
-        return new Matrix(newMatrix);
-      }
-    }, {
-      key: "multiply",
-      value: function multiply(n) {
-        if (typeof n === "number") {
-          return this.multiplyByScalar(n);
-        } else {
-          return this.productByVector(n);
-        }
-      }
-    }, {
-      key: "multiplyByScalar",
-      value: function multiplyByScalar(n) {
-        var newMatrix = this.matrix.map(function (row) {
-          return row.map(function (c) {
-            return c * n;
-          });
-        });
-        return new Matrix(newMatrix);
-      }
-    }, {
-      key: "productByVector",
-      value: function productByVector(vector) {
-        return this.matrix.map(function (row) {
-          var s = 0;
-          row.forEach(function (c, i) {
-            return s += c * vector[i];
-          });
-          return s;
-        });
-      }
-    }]);
-    return Matrix;
-  }();
-
-  ColorContrastCalc.Matrix = Matrix;
-
-  var HueRotateCalc = function () {
-    function HueRotateCalc() {
-      (0, _classCallCheck3.default)(this, HueRotateCalc);
-    }
-
-    (0, _createClass3.default)(HueRotateCalc, null, [{
-      key: "calcRgb",
-
-      /*
-         https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate
-         https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
-      */
-      value: function calcRgb(deg, rgb) {
-        return this.calcRotation(deg).multiply(rgb);
-      }
-    }, {
-      key: "degToRad",
-      value: function degToRad(deg) {
-        return Math.PI * deg / 180;
-      }
-    }, {
-      key: "calcRotation",
-      value: function calcRotation(deg) {
-        var rad = this.degToRad(deg);
-        var cosPartResult = this.cosPart.multiply(Math.cos(rad));
-        var sinPartResult = this.sinPart.multiply(Math.sin(rad));
-        return this.constPart.add(cosPartResult).add(sinPartResult);
-      }
-    }]);
-    return HueRotateCalc;
-  }();
-
-  HueRotateCalc.constPart = new Matrix([[0.213, 0.715, 0.072], [0.213, 0.715, 0.072], [0.213, 0.715, 0.072]]);
-
-  HueRotateCalc.cosPart = new Matrix([[0.787, -0.715, -0.072], [-0.213, 0.285, -0.072], [-0.213, -0.715, 0.928]]);
-
-  HueRotateCalc.sinPart = new Matrix([[-0.213, -0.715, 0.928], [0.143, 0.140, -0.283], [-0.787, 0.715, 0.072]]);
-
-  ColorContrastCalc.HueRotateCalc = HueRotateCalc;
-
-  var SaturateCalc = function () {
-    function SaturateCalc() {
-      (0, _classCallCheck3.default)(this, SaturateCalc);
-    }
-
-    (0, _createClass3.default)(SaturateCalc, null, [{
-      key: "calcRgb",
-
-      /*
-         https://www.w3.org/TR/filter-effects/#funcdef-saturate
-         https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
-       */
-      value: function calcRgb(s, rgb) {
-        return this.calcSaturation(s).multiply(rgb);
-      }
-    }, {
-      key: "calcSaturation",
-      value: function calcSaturation(s) {
-        return this.constPart.add(this.saturatePart.multiply(s / 100));
-      }
-    }]);
-    return SaturateCalc;
-  }();
-
-  SaturateCalc.constPart = HueRotateCalc.constPart;
-  SaturateCalc.saturatePart = HueRotateCalc.cosPart;
-
-  ColorContrastCalc.SaturateCalc = SaturateCalc;
-
-  var GrayscaleCalc = function () {
-    function GrayscaleCalc() {
-      (0, _classCallCheck3.default)(this, GrayscaleCalc);
-    }
-
-    (0, _createClass3.default)(GrayscaleCalc, null, [{
-      key: "calcRgb",
-
-      /*
-         https://www.w3.org/TR/filter-effects/#funcdef-grayscale
-         https://www.w3.org/TR/filter-effects/#grayscaleEquivalent
-         https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
-      */
-      value: function calcRgb(s, rgb) {
-        return this.calcGrayscale(s).multiply(rgb);
-      }
-    }, {
-      key: "calcGrayscale",
-      value: function calcGrayscale(s) {
-        var r = 1 - Math.min(100, s) / 100;
-        return this.constPart.add(this.ratioPart.multiply(r));
-      }
-    }]);
-    return GrayscaleCalc;
-  }();
-
-  GrayscaleCalc.constPart = new Matrix([[0.2126, 0.7152, 0.0722], [0.2126, 0.7152, 0.0722], [0.2126, 0.7152, 0.0722]]);
-
-  GrayscaleCalc.ratioPart = new Matrix([[0.7874, -0.7152, -0.0722], [-0.2126, 0.2848, -0.0722], [-0.2126, -0.7152, 0.9278]]);
-
-  ColorContrastCalc.GrayscaleCalc = GrayscaleCalc;
-
   var Sorter = function () {
     function Sorter() {
       (0, _classCallCheck3.default)(this, Sorter);
@@ -1134,10 +911,10 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
     }, {
       key: "primaryColorPos",
       value: function primaryColorPos(colorOrder) {
-        var _this9 = this;
+        var _this6 = this;
 
         return colorOrder.toLowerCase().split("").map(function (primary) {
-          return _this9.RGB_IDENTIFIERS.indexOf(primary);
+          return _this6.RGB_IDENTIFIERS.indexOf(primary);
         });
       }
     }, {
@@ -1153,16 +930,16 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
     }, {
       key: "chooseCompFunc",
       value: function chooseCompFunc(colorOrder) {
-        var _this10 = this;
+        var _this7 = this;
 
         var primaryColors = colorOrder.split("").sort(this.caseInsensitiveComp).reverse();
 
         return primaryColors.map(function (primary) {
           if (Utils.isUpperCase(primary)) {
-            return _this10.descendComp;
+            return _this7.descendComp;
           }
 
-          return _this10.ascendComp;
+          return _this7.ascendComp;
         });
       }
     }, {
@@ -1390,7 +1167,7 @@ var ColorUtils = function () {
      * @returns {Array<number, number, number>} RGB value represented as an array of numbers
      */
     value: function hexCodeToDecimal(hexCode) {
-      var h = this.normalizeHexCode(hexCode);
+      var h = this.normalizeHexCode(hexCode, false);
       return [0, 2, 4].map(function (s) {
         return h.substr(s, 2);
       }).map(function (primaryColor) {
@@ -1407,15 +1184,18 @@ var ColorUtils = function () {
   }, {
     key: "normalizeHexCode",
     value: function normalizeHexCode(hexString) {
+      var prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
       var hl = hexString.toLowerCase();
       var h = hl.startsWith("#") ? hl.replace("#", "") : hl;
+      var hexPart = h;
       if (h.length === 3) {
-        return [0, 1, 2].map(function (s) {
+        hexPart = [0, 1, 2].map(function (s) {
           return h.substr(s, 1).repeat(2);
         }).join("");
-      } else {
-        return h;
       }
+
+      return prefix ? "#" + hexPart : hexPart;
     }
 
     /**
@@ -1540,9 +1320,271 @@ var ColorUtils = function () {
       /** @private */
       this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;
     }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "clampToRange",
+    value: function clampToRange(value, lowerBound, upperBound) {
+      if (value <= lowerBound) {
+        return lowerBound;
+      } else if (value > upperBound) {
+        return upperBound;
+      }
+      return value;
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "rgbMap",
+    value: function rgbMap(values) {
+      var func = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+      if (func) {
+        return values.map(function (val) {
+          return ColorUtils.clampToRange(Math.round(func(val)), 0, 255);
+        });
+      } else {
+        return values.map(function (val) {
+          return ColorUtils.clampToRange(Math.round(val), 0, 255);
+        });
+      }
+    }
   }]);
   return ColorUtils;
 }();
+
+(function () {
+  var Matrix = function () {
+    function Matrix(matrix) {
+      (0, _classCallCheck3.default)(this, Matrix);
+
+      this.matrix = matrix;
+    }
+
+    (0, _createClass3.default)(Matrix, [{
+      key: "add",
+      value: function add(otherMatrix) {
+        var newMatrix = this.matrix.map(function (row, i) {
+          var otherRow = otherMatrix.matrix[i];
+          return row.map(function (s, j) {
+            return s + otherRow[j];
+          });
+        });
+
+        return new Matrix(newMatrix);
+      }
+    }, {
+      key: "multiply",
+      value: function multiply(n) {
+        if (typeof n === "number") {
+          return this.multiplyByScalar(n);
+        } else {
+          return this.productByVector(n);
+        }
+      }
+    }, {
+      key: "multiplyByScalar",
+      value: function multiplyByScalar(n) {
+        var newMatrix = this.matrix.map(function (row) {
+          return row.map(function (c) {
+            return c * n;
+          });
+        });
+        return new Matrix(newMatrix);
+      }
+    }, {
+      key: "productByVector",
+      value: function productByVector(vector) {
+        return this.matrix.map(function (row) {
+          return row.reduce(function (s, c, i) {
+            return s += c * vector[i];
+          }, 0);
+        });
+      }
+    }]);
+    return Matrix;
+  }();
+
+  ColorUtils.Matrix = Matrix;
+
+  var rgbMap = ColorUtils.rgbMap;
+
+  var ContrastCalc = function () {
+    function ContrastCalc() {
+      (0, _classCallCheck3.default)(this, ContrastCalc);
+    }
+
+    (0, _createClass3.default)(ContrastCalc, null, [{
+      key: "calcRgb",
+
+      /*
+         https://www.w3.org/TR/filter-effects/#funcdef-contrast
+         https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
+      */
+      value: function calcRgb(ratio, rgb) {
+        return rgbMap(rgb, function (c) {
+          return (c * ratio + 255 * (50 - ratio / 2)) / 100;
+        });
+      }
+    }]);
+    return ContrastCalc;
+  }();
+
+  ColorUtils.ContrastCalc = ContrastCalc;
+
+  var BrightnessCalc = function () {
+    function BrightnessCalc() {
+      (0, _classCallCheck3.default)(this, BrightnessCalc);
+    }
+
+    (0, _createClass3.default)(BrightnessCalc, null, [{
+      key: "calcRgb",
+
+      /*
+         https://www.w3.org/TR/filter-effects/#funcdef-brightness
+         https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
+      */
+      value: function calcRgb(ratio, rgb) {
+        return rgbMap(rgb, function (c) {
+          return c * ratio / 100;
+        });
+      }
+    }]);
+    return BrightnessCalc;
+  }();
+
+  ColorUtils.BrightnessCalc = BrightnessCalc;
+
+  var InvertCalc = function () {
+    function InvertCalc() {
+      (0, _classCallCheck3.default)(this, InvertCalc);
+    }
+
+    (0, _createClass3.default)(InvertCalc, null, [{
+      key: "calcRgb",
+
+      /*
+         https://www.w3.org/TR/filter-effects-1/#invertEquivalent
+         https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
+      */
+      value: function calcRgb(ratio, rgb) {
+        return rgb.map(function (c) {
+          return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);
+        });
+      }
+    }]);
+    return InvertCalc;
+  }();
+
+  ColorUtils.InvertCalc = InvertCalc;
+
+  var HueRotateCalc = function () {
+    function HueRotateCalc() {
+      (0, _classCallCheck3.default)(this, HueRotateCalc);
+    }
+
+    (0, _createClass3.default)(HueRotateCalc, null, [{
+      key: "calcRgb",
+
+      /*
+         https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate
+         https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
+      */
+      value: function calcRgb(deg, rgb) {
+        return rgbMap(this.calcRotation(deg).multiply(rgb));
+      }
+    }, {
+      key: "degToRad",
+      value: function degToRad(deg) {
+        return Math.PI * deg / 180;
+      }
+    }, {
+      key: "calcRotation",
+      value: function calcRotation(deg) {
+        var rad = this.degToRad(deg);
+        var cosPartResult = this.cosPart.multiply(Math.cos(rad));
+        var sinPartResult = this.sinPart.multiply(Math.sin(rad));
+        return this.constPart.add(cosPartResult).add(sinPartResult);
+      }
+    }]);
+    return HueRotateCalc;
+  }();
+
+  HueRotateCalc.constPart = new Matrix([[0.213, 0.715, 0.072], [0.213, 0.715, 0.072], [0.213, 0.715, 0.072]]);
+
+  HueRotateCalc.cosPart = new Matrix([[0.787, -0.715, -0.072], [-0.213, 0.285, -0.072], [-0.213, -0.715, 0.928]]);
+
+  HueRotateCalc.sinPart = new Matrix([[-0.213, -0.715, 0.928], [0.143, 0.140, -0.283], [-0.787, 0.715, 0.072]]);
+
+  ColorUtils.HueRotateCalc = HueRotateCalc;
+
+  var SaturateCalc = function () {
+    function SaturateCalc() {
+      (0, _classCallCheck3.default)(this, SaturateCalc);
+    }
+
+    (0, _createClass3.default)(SaturateCalc, null, [{
+      key: "calcRgb",
+
+      /*
+         https://www.w3.org/TR/filter-effects/#funcdef-saturate
+         https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
+       */
+      value: function calcRgb(s, rgb) {
+        return rgbMap(this.calcSaturation(s).multiply(rgb));
+      }
+    }, {
+      key: "calcSaturation",
+      value: function calcSaturation(s) {
+        return this.constPart.add(this.saturatePart.multiply(s / 100));
+      }
+    }]);
+    return SaturateCalc;
+  }();
+
+  SaturateCalc.constPart = HueRotateCalc.constPart;
+  SaturateCalc.saturatePart = HueRotateCalc.cosPart;
+
+  ColorUtils.SaturateCalc = SaturateCalc;
+
+  var GrayscaleCalc = function () {
+    function GrayscaleCalc() {
+      (0, _classCallCheck3.default)(this, GrayscaleCalc);
+    }
+
+    (0, _createClass3.default)(GrayscaleCalc, null, [{
+      key: "calcRgb",
+
+      /*
+         https://www.w3.org/TR/filter-effects/#funcdef-grayscale
+         https://www.w3.org/TR/filter-effects/#grayscaleEquivalent
+         https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
+      */
+      value: function calcRgb(s, rgb) {
+        return rgbMap(this.calcGrayscale(s).multiply(rgb));
+      }
+    }, {
+      key: "calcGrayscale",
+      value: function calcGrayscale(s) {
+        var r = 1 - Math.min(100, s) / 100;
+        return this.constPart.add(this.ratioPart.multiply(r));
+      }
+    }]);
+    return GrayscaleCalc;
+  }();
+
+  GrayscaleCalc.constPart = new Matrix([[0.2126, 0.7152, 0.0722], [0.2126, 0.7152, 0.0722], [0.2126, 0.7152, 0.0722]]);
+
+  GrayscaleCalc.ratioPart = new Matrix([[0.7874, -0.7152, -0.0722], [-0.2126, 0.2848, -0.0722], [-0.2126, -0.7152, 0.9278]]);
+
+  ColorUtils.GrayscaleCalc = GrayscaleCalc;
+})();
 
 ColorUtils.setup();
 
