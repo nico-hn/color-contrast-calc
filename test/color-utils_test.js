@@ -83,6 +83,24 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("hslToHexCode", function() {
+    it("expects to return '#ff0000' when [0, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToHexCode([0, 100, 50])).to.deep.equal("#ff0000");
+    });
+
+    it("expects to return '#ffff00' when [60, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToHexCode([60, 100, 50])).to.deep.equal("#ffff00");
+    });
+
+    it("expects to return '#00ff00' when [120, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToHexCode([120, 100, 50])).to.deep.equal("#00ff00");
+    });
+
+    it("expects to return '#0000ff' when [240, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToHexCode([240, 100, 50])).to.deep.equal("#0000ff");
+    });
+  });
+
   describe("decimalRound", function() {
     it("expects to return 3.14 when 3.14159 and 2 are passed", function() {
       expect(ColorUtils.decimalRound(3.14159, 2)).to.equal(3.14);
