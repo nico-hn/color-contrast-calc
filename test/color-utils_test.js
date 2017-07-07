@@ -92,6 +92,10 @@ describe("ColorUtils", function() {
       expect(ColorUtils.hslToHexCode([0, 100, 50])).to.deep.equal("#ff0000");
     });
 
+    it("expects to return '#ff8000' when [30, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToHexCode([30, 100, 50])).to.deep.equal("#ff8000");
+    });
+
     it("expects to return '#ffff00' when [60, 100, 50] is passed", function() {
       expect(ColorUtils.hslToHexCode([60, 100, 50])).to.deep.equal("#ffff00");
     });
