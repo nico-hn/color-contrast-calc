@@ -70,6 +70,10 @@ describe("ColorUtils", function() {
       expect(ColorUtils.hslToRgb([0, 100, 50])).to.deep.equal([255, 0, 0]);
     });
 
+    it("expects to return [255, 128, 0] when [30, 128, 50] is passed", function() {
+      expect(ColorUtils.hslToRgb([30, 100, 50])).to.deep.equal([255, 128, 0]);
+    });
+
     it("expects to return [255, 255, 0] when [60, 100, 50] is passed", function() {
       expect(ColorUtils.hslToRgb([60, 100, 50])).to.deep.equal([255, 255, 0]);
     });
