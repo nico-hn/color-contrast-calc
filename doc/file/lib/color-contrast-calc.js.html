@@ -147,6 +147,15 @@ class ColorContrastCalc {
   }
 
   /**
+   * Creates an instance of ColorContractCalc from an HSL value
+   * @param {Array&lt;number,number, number&gt;} hsl - an array of numbers that represents an HSL value
+   * @returns {ColorContrastCalc} An instance of ColorContrastCalc
+   */
+  static newHslColor(hsl) {
+    return this.getByHexCode(Utils.hslToHexCode(hsl));
+  }
+
+  /**
    * @private
    */
   static setup(colorKeywordsJSON) {

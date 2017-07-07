@@ -540,6 +540,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "lib/color-contrast-calc.js~colorcontrastcalc.newhslcolor",
+    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-newHslColor",
+    "lib/color-contrast-calc.js~ColorContrastCalc.newHslColor",
+    "method"
+  ],
+  [
     "lib/color-contrast-calc.js~colorcontrastcalc.relativeluminance",
     "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-relativeLuminance",
     "lib/color-contrast-calc.js~ColorContrastCalc.relativeLuminance",
@@ -573,6 +579,18 @@ window.esdocSearchIndex = [
     "lib/color-utils.js~colorutils.hexcodetodecimal",
     "class/lib/color-utils.js~ColorUtils.html#static-method-hexCodeToDecimal",
     "lib/color-utils.js~ColorUtils.hexCodeToDecimal",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.hsltohexcode",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-hslToHexCode",
+    "lib/color-utils.js~ColorUtils.hslToHexCode",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.hsltorgb",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-hslToRgb",
+    "lib/color-utils.js~ColorUtils.hslToRgb",
     "method"
   ],
   [
