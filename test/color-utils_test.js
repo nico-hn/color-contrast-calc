@@ -65,6 +65,24 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("hslToRgb", function() {
+    it("expects to return [255, 0, 0] when [0, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToRgb([0, 100, 50])).to.deep.equal([255, 0, 0]);
+    });
+
+    it("expects to return [255, 255, 0] when [60, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToRgb([60, 100, 50])).to.deep.equal([255, 255, 0]);
+    });
+
+    it("expects to return [0, 255, 0] when [120, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToRgb([120, 100, 50])).to.deep.equal([0, 255, 0]);
+    });
+
+    it("expects to return [0, 0, 255] when [240, 100, 50] is passed", function() {
+      expect(ColorUtils.hslToRgb([240, 100, 50])).to.deep.equal([0, 0, 255]);
+    });
+  });
+
   describe("decimalRound", function() {
     it("expects to return 3.14 when 3.14159 and 2 are passed", function() {
       expect(ColorUtils.decimalRound(3.14159, 2)).to.equal(3.14);
