@@ -112,6 +112,15 @@ class ColorContrastCalc {
   }
 
   /**
+   * Creates an instance of ColorContractCalc from an HSL value
+   * @param {Array<number,number, number>} hsl - an array of numbers that represents an HSL value
+   * @returns {ColorContrastCalc} An instance of ColorContrastCalc
+   */
+  static newHslColor(hsl) {
+    return this.getByHexCode(Utils.hslToHexCode(hsl));
+  }
+
+  /**
    * @private
    */
   static setup(colorKeywordsJSON) {
@@ -838,6 +847,48 @@ class ColorUtils {
       const h = d.toString(16);
       return h.length === 1 ? "0" + h : h;
     }).join("");
+  }
+
+  /**
+   * Converts HSL value to RGB value
+   * @param {Array<number, number, number>} hsl - An array of numbers that represents HSL value
+   * @returns {Array<number, number, number>} An array of numbers that represents RGB value
+   */
+  static hslToRgb(hsl) {
+    /*
+       https://www.w3.org/TR/css3-color/#hsl-color
+     */
+    const h = hsl[0] / 360;
+    const s = hsl[1] / 100;
+    const l = hsl[2] / 100;
+    const m2 = l <= 0.5 ? l * (s + 1): l + s - l * s;
+    const m1 = l * 2 - m2;
+    const r = this.hueToRgb(m1, m2, h + 1 / 3) * 255;
+    const g = this.hueToRgb(m1, m2, h) * 255;
+    const b = this.hueToRgb(m1, m2, h - 1 / 3) * 255;
+    return [r, g, b].map(c => Math.round(c));
+  }
+
+  /**
+   * @private
+   */
+  static hueToRgb(m1, m2, hInit) {
+    let h = hInit;
+    if (h < 0) { h = h + 1; }
+    if (h > 1) { h = h - 1; }
+    if (h * 6 < 1) { return m1 + (m2 - m1) * h * 6; }
+    if (h * 2 < 1) { return m2; }
+    if (h * 3 < 2) { return m1 + (m2 - m1) * (2 / 3 - h) * 6; }
+    return m1;
+  }
+
+  /**
+   * Converts HSL value to hex code
+   * @param {Array<number, number, number>} hsl - An array of numbers that represents HSL value
+   * @returns {string} Hex code
+   */
+  static hslToHexCode(hsl) {
+    return this.decimalToHexCode(this.hslToRgb(hsl));
   }
 
   /**

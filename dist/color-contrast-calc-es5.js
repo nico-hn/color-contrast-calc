@@ -630,6 +630,18 @@ var ColorContrastCalc = function () {
     }
 
     /**
+     * Creates an instance of ColorContractCalc from an HSL value
+     * @param {Array<number,number, number>} hsl - an array of numbers that represents an HSL value
+     * @returns {ColorContrastCalc} An instance of ColorContrastCalc
+     */
+
+  }, {
+    key: "newHslColor",
+    value: function newHslColor(hsl) {
+      return this.getByHexCode(Utils.hslToHexCode(hsl));
+    }
+
+    /**
      * @private
      */
 
@@ -1210,6 +1222,69 @@ var ColorUtils = function () {
         var h = d.toString(16);
         return h.length === 1 ? "0" + h : h;
       }).join("");
+    }
+
+    /**
+     * Converts HSL value to RGB value
+     * @param {Array<number, number, number>} hsl - An array of numbers that represents HSL value
+     * @returns {Array<number, number, number>} An array of numbers that represents RGB value
+     */
+
+  }, {
+    key: "hslToRgb",
+    value: function hslToRgb(hsl) {
+      /*
+         https://www.w3.org/TR/css3-color/#hsl-color
+       */
+      var h = hsl[0] / 360;
+      var s = hsl[1] / 100;
+      var l = hsl[2] / 100;
+      var m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
+      var m1 = l * 2 - m2;
+      var r = this.hueToRgb(m1, m2, h + 1 / 3) * 255;
+      var g = this.hueToRgb(m1, m2, h) * 255;
+      var b = this.hueToRgb(m1, m2, h - 1 / 3) * 255;
+      return [r, g, b].map(function (c) {
+        return Math.round(c);
+      });
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "hueToRgb",
+    value: function hueToRgb(m1, m2, hInit) {
+      var h = hInit;
+      if (h < 0) {
+        h = h + 1;
+      }
+      if (h > 1) {
+        h = h - 1;
+      }
+      if (h * 6 < 1) {
+        return m1 + (m2 - m1) * h * 6;
+      }
+      if (h * 2 < 1) {
+        return m2;
+      }
+      if (h * 3 < 2) {
+        return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+      }
+      return m1;
+    }
+
+    /**
+     * Converts HSL value to hex code
+     * @param {Array<number, number, number>} hsl - An array of numbers that represents HSL value
+     * @returns {string} Hex code
+     */
+
+  }, {
+    key: "hslToHexCode",
+    value: function hslToHexCode(hsl) {
+      return this.decimalToHexCode(this.hslToRgb(hsl));
     }
 
     /**
