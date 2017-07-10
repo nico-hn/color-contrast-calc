@@ -252,11 +252,11 @@ describe("ColorUtils", function() {
       expect(ColorUtils.isValidHexCode("ff0")).to.be.true;
     });
 
-    it("expects to return true for '#101a500'", function() {
+    it("expects to return false for '#101a500'", function() {
       expect(ColorUtils.isValidHexCode("#101a500")).to.be.false;
     });
 
-    it("expects to return true for '#fga500'", function() {
+    it("expects to return false for '#fga500'", function() {
       expect(ColorUtils.isValidHexCode("#fga500")).to.be.false;
     });
   });
