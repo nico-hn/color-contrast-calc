@@ -109,6 +109,44 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("rgbToHsl", function() {
+    it("expects to return [0, 100, 50] when [255, 0, 0] is passed", function() {
+      expect(ColorUtils.rgbToHsl([255, 0, 0])).to.deep.equal([0, 100, 50]);
+    });
+
+    it("expects to return [60, 100, 50] when [255, 255, 0] is passed", function() {
+      expect(ColorUtils.rgbToHsl([255, 255, 0])).to.deep.equal([60, 100, 50]);
+    });
+
+    it("expects to return [120, 100, 50] when [0, 255, 0] is passed", function() {
+      expect(ColorUtils.rgbToHsl([0, 255, 0])).to.deep.equal([120, 100, 50]);
+    });
+
+    it("expects to return [120, 100, 25] when [0, 128, 0] is passed", function() {
+      const hsl = ColorUtils.rgbToHsl([0, 128, 0]);
+
+      expect(hsl[0]).to.equal(120);
+      expect(hsl[1]).to.equal(100);
+      expect(hsl[2]).to.is.closeTo(25, 0.1);
+    });
+
+    it("expects to return [180, 100, 50] when [0, 255, 255] is passed", function() {
+      expect(ColorUtils.rgbToHsl([0, 255, 255])).to.deep.equal([180, 100, 50]);
+    });
+
+    it("expects to return [180, 100, 25] when [0, 128, 128] is passed", function() {
+      const hsl = ColorUtils.rgbToHsl([0, 128, 128]);
+
+      expect(hsl[0]).to.equal(180);
+      expect(hsl[1]).to.equal(100);
+      expect(hsl[2]).to.is.closeTo(25, 0.1);
+    });
+
+    it("expects to return [240, 100, 50] when [0, 0, 255] is passed", function() {
+      expect(ColorUtils.rgbToHsl([0, 0, 255])).to.deep.equal([240, 100, 50]);
+    });
+  });
+
   describe("rgbToHue", function() {
     it("expects to return 0 when [255, 0, 0] is passed", function() {
       expect(ColorUtils.rgbToHue([255, 0, 0])).to.equal(0);
