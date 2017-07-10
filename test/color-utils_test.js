@@ -107,6 +107,14 @@ describe("ColorUtils", function() {
     it("expects to return '#0000ff' when [240, 100, 50] is passed", function() {
       expect(ColorUtils.hslToHexCode([240, 100, 50])).to.deep.equal("#0000ff");
     });
+
+    it("expects to return '#adff2f' when [83.653, 100, 59.215] is passed", function() {
+      expect(ColorUtils.hslToHexCode([83.653, 100, 59.215])).to.deep.equal("#adff2f");
+    });
+
+    it("expects to return '#cd5c5c' when [0, 53, 58.2352] is passed", function() {
+      expect(ColorUtils.hslToHexCode([0, 53, 58.2352])).to.deep.equal("#cd5c5c");
+    });
   });
 
   describe("rgbToHsl", function() {
@@ -170,6 +178,20 @@ describe("ColorUtils", function() {
 
     it("expects to return 240 when [0, 0, 255] is passed", function() {
       expect(ColorUtils.rgbToHue([0, 0, 255])).to.equal(240);
+    });
+  });
+
+  describe("hexCodeToHsl", function() {
+    it("expects to return [0, 100, 50] when '#ff0000' is passed", function() {
+      expect(ColorUtils.hexCodeToHsl("#ff0000")).to.deep.equal([0, 100, 50]);
+    });
+
+    ["#ffffff", "#808080", "#d2691e", "#cd5c5c", "#adff2f"].forEach(function(origColor) {
+      it(`expects to return a value which can be converted again to the original value ${origColor}`, function() {
+        const hsl = ColorUtils.hexCodeToHsl(origColor);
+
+        expect(ColorUtils.hslToHexCode(hsl)).to.equal(origColor);
+      });
     });
   });
 
