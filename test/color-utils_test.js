@@ -109,6 +109,32 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("rgbToHue", function() {
+    it("expects to return 0 when [255, 0, 0] is passed", function() {
+      expect(ColorUtils.rgbToHue([255, 0, 0])).to.equal(0);
+    });
+
+    it("expects to return 60 when [255, 255, 0] is passed", function() {
+      expect(ColorUtils.rgbToHue([255, 255, 0])).to.equal(60);
+    });
+
+    it("expects to return 120 when [0, 255, 0] is passed", function() {
+      expect(ColorUtils.rgbToHue([0, 255, 0])).to.equal(120);
+    });
+
+    it("expects to return 120 when [0, 128, 0] is passed", function() {
+      expect(ColorUtils.rgbToHue([0, 128, 0])).to.equal(120);
+    });
+
+    it("expects to return 180 when [0, 255, 255] is passed", function() {
+      expect(ColorUtils.rgbToHue([0, 255, 255])).to.equal(180);
+    });
+
+    it("expects to return 240 when [0, 0, 255] is passed", function() {
+      expect(ColorUtils.rgbToHue([0, 0, 255])).to.equal(240);
+    });
+  });
+
   describe("decimalRound", function() {
     it("expects to return 3.14 when 3.14159 and 2 are passed", function() {
       expect(ColorUtils.decimalRound(3.14159, 2)).to.equal(3.14);
