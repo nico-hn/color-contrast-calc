@@ -892,6 +892,74 @@ class ColorUtils {
   }
 
   /**
+   * @private
+   */
+  static rgbToHsl(rgb) {
+    const l = this.rgbToLightness(rgb) * 100;
+    const s = this.rgbToSaturation(rgb) * 100;
+    const h = this.rgbToHue(rgb);
+
+    return [h, s, l];
+  }
+
+  /**
+   * @private
+   */
+  static rgbToLightness(rgb) {
+    return (Math.max(...rgb) + Math.min(...rgb)) / 510;
+  }
+
+  /**
+   * @private
+   */
+  static rgbToHue(rgb) {
+    /**
+     References:
+     Agoston, Max K. (2005).
+     "Computer Graphics and Geometric Modeling: Implementation and Algorithms".
+     London: Springer
+
+     https://accessibility.kde.org/hsl-adjusted.php#hue
+     */
+    const max = Math.max(...rgb);
+    const min = Math.min(...rgb);
+
+    /* you can return whatever you like */
+    if (max === min) { return 0; }
+
+    const d = max - min;
+    const mi = rgb.reduce((m, v, i) => rgb[m] > v ? m : i, 0); /* maxIndex */
+    const h = mi * 120 + (rgb[(mi + 1) % 3] - rgb[(mi + 2) % 3]) * 60 / d;
+
+    return h < 0 ? h + 360 : h;
+  }
+
+  /**
+   * @private
+   */
+  static rgbToSaturation(rgb) {
+    const l = this.rgbToLightness(rgb);
+    const max = Math.max(...rgb);
+    const min = Math.min(...rgb);
+    const d = max - min;
+
+    if (max === min) { return 0; }
+
+    if (l <= 0.5) {
+      return d / (max + min);
+    } else {
+      return d / (510 - max - min);
+    }
+  }
+
+  /**
+   * @private
+   */
+  static hexCodeToHsl(hexCode) {
+    return this.rgbToHsl(this.hexCodeToDecimal(hexCode));
+  }
+
+  /**
    * Decimal rounding with a given precision
    * @param {number} number - Number to be rounded off
    * @param {number} precision - Number of digits after the decimal point
