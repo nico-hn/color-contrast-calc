@@ -237,6 +237,118 @@ var ColorContrastCalc = function () {
     }
 
     /**
+     * Tries to find a color whose contrast against the base color is close to a given level.
+     *
+     * The returned color is gained by modifying the lightness of otherColor.
+     * Even when a color that satisfies the level is not found, it returns a new color anyway.
+     * @param {ColorContrastCalc} otherColor - The color before the modification of lightness
+     * @param {string} [level="AA"] - A, AA or AAA
+     * @returns {ColorContrastCalc} A color whose contrast against the base color is close to a specified level
+     */
+
+  }, {
+    key: "findLightnessThreshold",
+    value: function findLightnessThreshold(otherColor) {
+      var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "AA";
+
+      var targetRatio = this.levelToContrastRatio(level);
+      var criteria = this.brightnessThresholdCriteria(targetRatio, otherColor);
+
+      var _Utils$rgbToHsl = Utils.rgbToHsl(otherColor.rgb),
+          _Utils$rgbToHsl2 = (0, _slicedToArray3.default)(_Utils$rgbToHsl, 3),
+          h = _Utils$rgbToHsl2[0],
+          s = _Utils$rgbToHsl2[1],
+          initL = _Utils$rgbToHsl2[2];
+
+      var _ref = this.shouldScanDarkerSide(otherColor) ? [initL, 0] : [100, initL],
+          _ref2 = (0, _slicedToArray3.default)(_ref, 2),
+          max = _ref2[0],
+          min = _ref2[1];
+
+      var boundaryColor = this.lightnessBoundaryColor(max, min, level);
+
+      if (boundaryColor) {
+        return boundaryColor;
+      }
+
+      var l = (max + min) / 2;
+      var lastSufficientLightness = null;
+
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = (0, _getIterator3.default)(ColorContrastCalc.binarySearchWidth(max - min, 0.01)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var d = _step.value;
+
+          var newColor = Utils.hslToRgb([h, s, l]);
+          var contrastRatio = this.contrastRatioAgainst(newColor);
+
+          if (contrastRatio >= targetRatio) {
+            lastSufficientLightness = l;
+          }
+          if (contrastRatio === targetRatio) {
+            break;
+          }
+          l += criteria.incrementCondition(contrastRatio) ? d : -d;
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      var nearlestColor = ColorContrastCalc.newHslColor([h, s, l]);
+
+      if (lastSufficientLightness && nearlestColor.contrastRatioAgainst(this) < targetRatio) {
+        return ColorContrastCalc.newHslColor([h, s, lastSufficientLightness]);
+      }
+
+      return nearlestColor;
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "shouldScanDarkerSide",
+    value: function shouldScanDarkerSide(otherColor) {
+      if (this.isBrighterThan(otherColor) || this.isSameColor(otherColor) && this.isLightColor()) {
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "lightnessBoundaryColor",
+    value: function lightnessBoundaryColor(max, min, level) {
+      if (min === 0 && !this.hasSufficientContrast(this.BLACK, level)) {
+        return this.BLACK;
+      }
+
+      if (max === 100 && !this.hasSufficientContrast(this.WHITE, level)) {
+        return this.WHITE;
+      }
+
+      return null;
+    }
+
+    /**
      * @param {ColorContrastCalc} otherColor
      * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of WCAG 2.0, otherwise "-"
      */
@@ -360,13 +472,13 @@ var ColorContrastCalc = function () {
       var r = w;
       var lastSufficentRatio = null;
 
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator = (0, _getIterator3.default)(ColorContrastCalc.binarySearchWidth(w, 0.01)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var d = _step.value;
+        for (var _iterator2 = (0, _getIterator3.default)(ColorContrastCalc.binarySearchWidth(w, 0.01)), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var d = _step2.value;
 
           var newColor = otherColor.newBrightnessColor(r);
           var contrastRatio = newColor.contrastRatioAgainst(this);
@@ -380,16 +492,16 @@ var ColorContrastCalc = function () {
           r += criteria.incrementCondition(contrastRatio) ? d : -d;
         }
       } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
           }
         } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
+          if (_didIteratorError2) {
+            throw _iteratorError2;
           }
         }
       }
@@ -880,13 +992,13 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       value: function compareRgbVal(rgb1, rgb2) {
         var rgbPos = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 1, 2];
         var compFuncs = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.defaultCompFuncs;
-        var _iteratorNormalCompletion2 = true;
-        var _didIteratorError2 = false;
-        var _iteratorError2 = undefined;
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
 
         try {
-          for (var _iterator2 = (0, _getIterator3.default)(rgbPos), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-            var i = _step2.value;
+          for (var _iterator3 = (0, _getIterator3.default)(rgbPos), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            var i = _step3.value;
 
             var result = compFuncs[i](rgb1[i], rgb2[i]);
             if (result !== 0) {
@@ -894,16 +1006,16 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
             }
           }
         } catch (err) {
-          _didIteratorError2 = true;
-          _iteratorError2 = err;
+          _didIteratorError3 = true;
+          _iteratorError3 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-              _iterator2.return();
+            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+              _iterator3.return();
             }
           } finally {
-            if (_didIteratorError2) {
-              throw _iteratorError2;
+            if (_didIteratorError3) {
+              throw _iteratorError3;
             }
           }
         }
@@ -1332,10 +1444,9 @@ var ColorUtils = function () {
       var max = Math.max.apply(Math, (0, _toConsumableArray3.default)(rgb));
       var min = Math.min.apply(Math, (0, _toConsumableArray3.default)(rgb));
 
-      /* you can return whatever you like */
       if (max === min) {
         return 0;
-      }
+      } /* you can return whatever you like */
 
       var d = max - min;
       var mi = rgb.reduce(function (m, v, i) {

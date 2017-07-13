@@ -309,6 +309,71 @@ class ColorContrastCalc {
   }
 
   /**
+   * Tries to find a color whose contrast against the base color is close to a given level.
+   *
+   * The returned color is gained by modifying the lightness of otherColor.
+   * Even when a color that satisfies the level is not found, it returns a new color anyway.
+   * @param {ColorContrastCalc} otherColor - The color before the modification of lightness
+   * @param {string} [level="AA"] - A, AA or AAA
+   * @returns {ColorContrastCalc} A color whose contrast against the base color is close to a specified level
+   */
+  findLightnessThreshold(otherColor, level = "AA") {
+    const targetRatio = this.levelToContrastRatio(level);
+    const criteria = this.brightnessThresholdCriteria(targetRatio, otherColor);
+    const [h, s, initL] = Utils.rgbToHsl(otherColor.rgb);
+    const [max, min] = this.shouldScanDarkerSide(otherColor) ? [initL, 0] : [100, initL];
+    const boundaryColor = this.lightnessBoundaryColor(max, min, level);
+
+    if (boundaryColor) { return boundaryColor; }
+
+    let l = (max + min) / 2;
+    let lastSufficientLightness = null;
+
+    for (let d of ColorContrastCalc.binarySearchWidth(max - min, 0.01)) {
+      let newColor = Utils.hslToRgb([h, s, l]);
+      let contrastRatio = this.contrastRatioAgainst(newColor);
+
+      if (contrastRatio >= targetRatio) { lastSufficientLightness = l; }
+      if (contrastRatio === targetRatio) { break; }
+      l += criteria.incrementCondition(contrastRatio) ? d : -d;
+    }
+
+    const nearlestColor = ColorContrastCalc.newHslColor([h, s, l]);
+
+    if (lastSufficientLightness && nearlestColor.contrastRatioAgainst(this) < targetRatio) {
+      return ColorContrastCalc.newHslColor([h, s, lastSufficientLightness]);
+    }
+
+    return nearlestColor;
+  }
+
+  /**
+   * @private
+   */
+  shouldScanDarkerSide(otherColor) {
+    if (this.isBrighterThan(otherColor) ||
+        this.isSameColor(otherColor) && this.isLightColor()) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @private
+   */
+  lightnessBoundaryColor(max, min, level) {
+    if (min === 0 && ! this.hasSufficientContrast(this.BLACK, level)) {
+      return this.BLACK;
+    }
+
+    if (max === 100 && ! this.hasSufficientContrast(this.WHITE, level)) {
+      return this.WHITE;
+    }
+
+    return null;
+  }
+
+  /**
    * @param {ColorContrastCalc} otherColor
    * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of WCAG 2.0, otherwise "-"
    */
@@ -924,8 +989,7 @@ class ColorUtils {
     const max = Math.max(...rgb);
     const min = Math.min(...rgb);
 
-    /* you can return whatever you like */
-    if (max === min) { return 0; }
+    if (max === min) { return 0; } /* you can return whatever you like */
 
     const d = max - min;
     const mi = rgb.reduce((m, v, i) => rgb[m] > v ? m : i, 0); /* maxIndex */
