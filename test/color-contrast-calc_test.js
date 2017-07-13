@@ -991,8 +991,22 @@ describe("ColorContrastCalc", () => {
 
   describe("findLightnessThreshold", function() {
     const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+    const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
     const white = ColorContrastCalc.WHITE;
     const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
+    const fuchsia = ColorContrastCalc.NAME_TO_COLOR.get("fuchsia");
+    const azure = ColorContrastCalc.NAME_TO_COLOR.get("azure");
+
+    context("when the required level is 'A'", function() {
+      it("expects to return a darker color when azure is passed to fuchsia", function() {
+        const newColor = fuchsia.findLightnessThreshold(azure, "A");
+        expect(azure.isBrighterThan(fuchsia)).to.be.true;
+        expect(azure.isBrighterThan(newColor)).to.be.true;
+        expect(newColor.hexCode).to.equal("#e9ffff");
+        expect(newColor.contrastRatioAgainst(fuchsia)).to.be.greaterThan(3.0);
+        expect(newColor.contrastRatioAgainst(fuchsia)).to.be.closeTo(3.0, 0.1);
+      });
+    });
 
     context("when the required level is 'AA'", function() {
       it("expects to return a darker orange when orange is passed to white", function() {
@@ -1007,6 +1021,13 @@ describe("ColorContrastCalc", () => {
         expect(newColor.hexCode).to.equal("#008a00");
         expect(newColor.contrastRatioAgainst(white)).to.be.greaterThan(4.5);
         expect(newColor.contrastRatioAgainst(white)).to.be.closeTo(4.5, 0.1);
+      });
+
+      it("expects to return a lighter orange when orange is passed to blueviolet", function() {
+        const newColor = blueviolet.findLightnessThreshold(orange);
+        expect(newColor.hexCode).to.equal("#ffdc9a");
+        expect(newColor.contrastRatioAgainst(blueviolet)).to.be.greaterThan(4.5);
+        expect(newColor.contrastRatioAgainst(blueviolet)).to.be.closeTo(4.5, 0.1);
       });
     });
 
