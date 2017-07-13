@@ -994,6 +994,9 @@ describe("ColorContrastCalc", () => {
     const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
     const blue = ColorContrastCalc.NAME_TO_COLOR.get("blue");
     const white = ColorContrastCalc.WHITE;
+    const black = ColorContrastCalc.BLACK;
+    const darkgreen = ColorContrastCalc.NAME_TO_COLOR.get("darkgreen");
+    const springgreen = ColorContrastCalc.NAME_TO_COLOR.get("springgreen");
     const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
     const mintcream = ColorContrastCalc.NAME_TO_COLOR.get("mintcream");
     const yellow = ColorContrastCalc.NAME_TO_COLOR.get("yellow");
@@ -1008,6 +1011,19 @@ describe("ColorContrastCalc", () => {
         expect(newColor.hexCode).to.equal("#e9ffff");
         expect(newColor.contrastRatioAgainst(fuchsia)).to.be.greaterThan(3.0);
         expect(newColor.contrastRatioAgainst(fuchsia)).to.be.closeTo(3.0, 0.1);
+      });
+
+      it("expects to return a lighter green when darkgreen is passed to darkgreen", function() {
+        const contrastAgainstWhite = darkgreen.contrastRatioAgainst(white);
+        const contrastAgainstBlack = darkgreen.contrastRatioAgainst(black);
+        const newColor = darkgreen.findLightnessThreshold(darkgreen, "A");
+
+        expect(darkgreen.isLightColor()).to.be.false;
+        expect(contrastAgainstWhite).to.be.greaterThan(contrastAgainstBlack);
+        expect(newColor.hexCode).to.equal("#00c000");
+        expect(newColor.relativeLuminance).to.be.greaterThan(darkgreen.relativeLuminance);
+        expect(newColor.contrastRatioAgainst(darkgreen)).to.be.greaterThan(3.0);
+        expect(newColor.contrastRatioAgainst(darkgreen)).to.be.closeTo(3.0, 0.1);
       });
     });
 
@@ -1031,6 +1047,32 @@ describe("ColorContrastCalc", () => {
         expect(newColor.hexCode).to.equal("#ffdc9a");
         expect(newColor.contrastRatioAgainst(blueviolet)).to.be.greaterThan(4.5);
         expect(newColor.contrastRatioAgainst(blueviolet)).to.be.closeTo(4.5, 0.1);
+      });
+
+      it("expects to return a lighter green when darkgreen is passed to darkgreen", function() {
+        const contrastAgainstWhite = darkgreen.contrastRatioAgainst(white);
+        const contrastAgainstBlack = darkgreen.contrastRatioAgainst(black);
+        const newColor = darkgreen.findLightnessThreshold(darkgreen);
+
+        expect(darkgreen.isLightColor()).to.be.false;
+        expect(contrastAgainstWhite).to.be.greaterThan(contrastAgainstBlack);
+        expect(newColor.relativeLuminance).to.be.greaterThan(darkgreen.relativeLuminance);
+        expect(newColor.hexCode).to.equal("#00ea00");
+        expect(newColor.contrastRatioAgainst(darkgreen)).to.be.greaterThan(4.5);
+        expect(newColor.contrastRatioAgainst(darkgreen)).to.be.closeTo(4.5, 0.1);
+      });
+
+      it("expects to return a darker green when springgreen is passed to springgreen", function() {
+        const contrastAgainstWhite = springgreen.contrastRatioAgainst(white);
+        const contrastAgainstBlack = springgreen.contrastRatioAgainst(black);
+        const newColor = springgreen.findLightnessThreshold(springgreen);
+
+        expect(springgreen.isLightColor()).to.be.true;
+        expect(contrastAgainstWhite).to.be.lessThan(contrastAgainstBlack);
+        expect(newColor.relativeLuminance).to.be.lessThan(springgreen.relativeLuminance);
+        expect(newColor.hexCode).to.equal("#007239");
+        expect(newColor.contrastRatioAgainst(springgreen)).to.be.greaterThan(4.5);
+        expect(newColor.contrastRatioAgainst(springgreen)).to.be.closeTo(4.5, 0.1);
       });
 
       it("expects to return white when yellow is passed to orange", function() {
