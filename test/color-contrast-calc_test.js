@@ -989,6 +989,44 @@ describe("ColorContrastCalc", () => {
     });
   });
 
+  describe("findLightnessThreshold", function() {
+    const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+    const white = ColorContrastCalc.WHITE;
+    const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
+
+    context("when the required level is 'AA'", function() {
+      it("expects to return a darker orange when orange is passed to white", function() {
+        const newColor = white.findLightnessThreshold(orange);
+        expect(newColor.hexCode).to.equal("#a56a00");
+        expect(newColor.contrastRatioAgainst(white)).to.be.greaterThan(4.5);
+        expect(newColor.contrastRatioAgainst(white)).to.be.closeTo(4.5, 0.1);
+      });
+
+      it("expects to return a darker gree when green is passed to white", function() {
+        const newColor = white.findLightnessThreshold(green);
+        expect(newColor.hexCode).to.equal("#008a00");
+        expect(newColor.contrastRatioAgainst(white)).to.be.greaterThan(4.5);
+        expect(newColor.contrastRatioAgainst(white)).to.be.closeTo(4.5, 0.1);
+      });
+    });
+
+    context("when the required level is 'AAA'", function() {
+      it("expects to return a darker orange when orange is passed to white", function() {
+        const newColor = white.findLightnessThreshold(orange, "AAA");
+        expect(newColor.hexCode).to.equal("#7b5000");
+        expect(newColor.contrastRatioAgainst(white)).to.be.greaterThan(7.0);
+        expect(newColor.contrastRatioAgainst(white)).to.be.closeTo(7.0, 0.1);
+      });
+
+      it("expects to return a darker gree when green is passed to white", function() {
+        const newColor = white.findLightnessThreshold(green, "AAA");
+        expect(newColor.hexCode).to.equal("#006800");
+        expect(newColor.contrastRatioAgainst(white)).to.be.greaterThan(7.0);
+        expect(newColor.contrastRatioAgainst(white)).to.be.closeTo(7.0, 0.1);
+      });
+    });
+  });
+
   describe("contrastLevel", function() {
     const white = ColorContrastCalc.WHITE;
     const black = ColorContrastCalc.BLACK;
