@@ -992,8 +992,11 @@ describe("ColorContrastCalc", () => {
   describe("findLightnessThreshold", function() {
     const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
     const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+    const blue = ColorContrastCalc.NAME_TO_COLOR.get("blue");
     const white = ColorContrastCalc.WHITE;
     const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
+    const mintcream = ColorContrastCalc.NAME_TO_COLOR.get("mintcream");
+    const yellow = ColorContrastCalc.NAME_TO_COLOR.get("yellow");
     const fuchsia = ColorContrastCalc.NAME_TO_COLOR.get("fuchsia");
     const azure = ColorContrastCalc.NAME_TO_COLOR.get("azure");
 
@@ -1029,6 +1032,18 @@ describe("ColorContrastCalc", () => {
         expect(newColor.contrastRatioAgainst(blueviolet)).to.be.greaterThan(4.5);
         expect(newColor.contrastRatioAgainst(blueviolet)).to.be.closeTo(4.5, 0.1);
       });
+
+      it("expects to return white when yellow is passed to orange", function() {
+        const newColor = orange.findLightnessThreshold(yellow);
+        expect(newColor.hexCode).to.equal("#ffffff");
+        expect(newColor.contrastRatioAgainst(orange)).to.be.lessThan(4.5);
+      });
+
+      it("expects to return white when mintcream is passed to yellow", function() {
+        const newColor = yellow.findLightnessThreshold(mintcream);
+        expect(newColor.hexCode).to.equal("#ffffff");
+        expect(newColor.contrastRatioAgainst(yellow)).to.be.lessThan(4.5);
+      });
     });
 
     context("when the required level is 'AAA'", function() {
@@ -1044,6 +1059,12 @@ describe("ColorContrastCalc", () => {
         expect(newColor.hexCode).to.equal("#006800");
         expect(newColor.contrastRatioAgainst(white)).to.be.greaterThan(7.0);
         expect(newColor.contrastRatioAgainst(white)).to.be.closeTo(7.0, 0.1);
+      });
+
+      it("expects to return black when blue is passed to green", function() {
+        const newColor = green.findLightnessThreshold(blue, "AAA");
+        expect(newColor.hexCode).to.equal("#000000");
+        expect(newColor.contrastRatioAgainst(green)).to.be.lessThan(7.0);
       });
     });
   });
