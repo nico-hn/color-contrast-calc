@@ -621,6 +621,30 @@ describe("ColorContrastCalc", () => {
     });
   });
 
+  describe("hsl", function() {
+    it("expects to return [60, 100, 50] when the color is yellow", function() {
+      const yellow = ColorContrastCalc.getByName("yellow");
+      expect(yellow.hsl).to.deep.equal([60, 100, 50]);
+      expect(yellow.hsl).to.deep.equal([60, 100, 50]);
+    });
+
+    it("expects to return [300, 100, 50] when the color is fuchsia", function() {
+      const fuchsia = ColorContrastCalc.getByName("fuchsia");
+      expect(fuchsia.hsl).to.deep.equal([300, 100, 50]);
+      expect(fuchsia.hsl).to.deep.equal([300, 100, 50]);
+    });
+
+    it("expects to return [0, 100, 50] when the color is black", function() {
+      const black = ColorContrastCalc.getByName("black");
+      expect(black.hsl).to.deep.equal([0, 0, 0]);
+    });
+
+    it("expects to return [0, 0, 100] when the color is white", function() {
+      const white = ColorContrastCalc.getByName("white");
+      expect(white.hsl).to.deep.equal([0, 0, 100]);
+    });
+  });
+
   describe("contrastRatioAgainst", function() {
     const rgb = [127, 127, 32];
     const contrast = 4.23;
