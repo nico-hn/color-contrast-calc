@@ -29,6 +29,7 @@ class ColorContrastCalc {
     /** @property {string} hexCode - The RGB value in hex code notation */
     this.hexCode = Utils.decimalToHexCode(this.rgb);
     this.freezeProperties();
+    this._hsl = null;
   }
 
   /**
@@ -127,6 +128,7 @@ class ColorContrastCalc {
     this.loadColorKeywords(colorKeywordsJSON);
     this.assignColorConstants();
     this.generateWebSafeColors();
+    Object.freeze(this);
   }
 
   /**
@@ -166,12 +168,6 @@ class ColorContrastCalc {
     this.prototype.BLACK = this.BLACK;
     this.prototype.WHITE = this.WHITE;
     this.prototype.GRAY = this.GRAY;
-    Object.freeze(this.BLACK);
-    Object.freeze(this.WHITE);
-    Object.freeze(this.GRAY);
-    Object.freeze(this.prototype.BLACK);
-    Object.freeze(this.prototype.WHITE);
-    Object.freeze(this.prototype.GRAY);
   }
 
   /**
@@ -194,6 +190,15 @@ class ColorContrastCalc {
         }
       }
     }
+  }
+
+  /**
+   * @property {Array<number, number, number>} hsl - HSL value repsented as an array of decimal numbers
+   */
+  get hsl() {
+    if (this._hsl) { return this._hsl; }
+    this._hsl = Utils.rgbToHsl(this.rgb);
+    return this._hsl;
   }
 
   /**

@@ -63,6 +63,7 @@ var ColorContrastCalc = function () {
     /** @property {string} hexCode - The RGB value in hex code notation */
     this.hexCode = Utils.decimalToHexCode(this.rgb);
     this.freezeProperties();
+    this._hsl = null;
   }
 
   /**
@@ -613,6 +614,20 @@ var ColorContrastCalc = function () {
       var newRgb = calc.calcRgb(this.rgb, ratio);
       return new ColorContrastCalc(newRgb, name);
     }
+  }, {
+    key: "hsl",
+
+
+    /**
+     * @property {Array<number, number, number>} hsl - HSL value repsented as an array of decimal numbers
+     */
+    get: function get() {
+      if (this._hsl) {
+        return this._hsl;
+      }
+      this._hsl = Utils.rgbToHsl(this.rgb);
+      return this._hsl;
+    }
   }], [{
     key: "tristimulusValue",
     value: function tristimulusValue(primaryColor) {
@@ -763,6 +778,7 @@ var ColorContrastCalc = function () {
       this.loadColorKeywords(colorKeywordsJSON);
       this.assignColorConstants();
       this.generateWebSafeColors();
+      (0, _freeze2.default)(this);
     }
 
     /**
@@ -813,12 +829,6 @@ var ColorContrastCalc = function () {
       this.prototype.BLACK = this.BLACK;
       this.prototype.WHITE = this.WHITE;
       this.prototype.GRAY = this.GRAY;
-      (0, _freeze2.default)(this.BLACK);
-      (0, _freeze2.default)(this.WHITE);
-      (0, _freeze2.default)(this.GRAY);
-      (0, _freeze2.default)(this.prototype.BLACK);
-      (0, _freeze2.default)(this.prototype.WHITE);
-      (0, _freeze2.default)(this.prototype.GRAY);
     }
 
     /**
