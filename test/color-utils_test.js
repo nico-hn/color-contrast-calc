@@ -153,6 +153,14 @@ describe("ColorUtils", function() {
     it("expects to return [240, 100, 50] when [0, 0, 255] is passed", function() {
       expect(ColorUtils.rgbToHsl([0, 0, 255])).to.deep.equal([240, 100, 50]);
     });
+
+    it("expects to return [0, 0, 0] when [0, 0, 0] is passed", function() {
+      expect(ColorUtils.rgbToHsl([0, 0, 0])).to.deep.equal([0, 0, 0]);
+    });
+
+    it("expects to return [0, 0, 100] when [255, 255, 255] is passed", function() {
+      expect(ColorUtils.rgbToHsl([255, 255, 255])).to.deep.equal([0, 0, 100]);
+    });
   });
 
   describe("rgbToHue", function() {
