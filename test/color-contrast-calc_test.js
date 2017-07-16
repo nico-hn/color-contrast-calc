@@ -538,6 +538,18 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("Sorter.hslComponentPos", function() {
+      const sorter = ColorContrastCalc.Sorter;
+
+      it("expects to return [0, 1, 2] when 'hsl' is passed", function() {
+        expect(sorter.hslComponentPos("hsl")).to.deep.equal([0, 1, 2]);
+      });
+
+      it("expects to return [0, 2, 1] when 'hLs' is passed", function() {
+        expect(sorter.hslComponentPos("hLs")).to.deep.equal([0, 2, 1]);
+      });
+    });
+
     describe("Sorter.caseInsensitiveComp", function() {
       const caseInsensitiveComp = ColorContrastCalc.Sorter.caseInsensitiveComp;
 
