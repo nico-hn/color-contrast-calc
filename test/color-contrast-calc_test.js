@@ -550,6 +550,20 @@ describe("ColorContrastCalc", () => {
       });
     });
 
+    describe("Sorter.chooseHslCompFunc", function() {
+      const sorter = ColorContrastCalc.Sorter;
+      const ascendComp = sorter.ascendComp;
+      const descendComp = sorter.descendComp;
+
+      it("expects to return [ascendComp, ascendComp, ascendComp] when 'hsl' is passed", function() {
+        expect(sorter.chooseHslCompFunc("hsl")).to.deep.equal([ascendComp, ascendComp, ascendComp]);
+      });
+
+      it("expects to return [ascendComp, ascendComp, descendComp] when 'hLs' is passed", function() {
+        expect(sorter.chooseHslCompFunc("hLs")).to.deep.equal([ascendComp, ascendComp, descendComp]);
+      });
+    });
+
     describe("Sorter.caseInsensitiveComp", function() {
       const caseInsensitiveComp = ColorContrastCalc.Sorter.caseInsensitiveComp;
 
