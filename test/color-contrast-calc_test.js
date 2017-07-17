@@ -279,6 +279,37 @@ describe("ColorContrastCalc", () => {
           });
         });
       });
+
+      describe("when colorOrder is 'hLS'", function() {
+        context("When colors are given as hex codes", function() {
+          const  [white, red, yellow, lime, blue]= ["#ffffff", "#ff0000", "#ffff00", "#00ff00", "#0000ff"];
+          const colors = [blue, yellow, white, red, lime];
+
+          it("expects to return [white, red, yellow, lime, blue] when [blue, yellow, white, red, lime] is passed", function() {
+            expect(ColorContrastCalc.sort(colors, "hLS")).to.deep.equal([white, red, yellow, lime, blue]);
+          });
+        });
+
+        context("When colors are given as insttances of ColorContrastCalc", function() {
+          const  [white, red, yellow, lime, blue]= ["#ffffff", "#ff0000", "#ffff00", "#00ff00", "#0000ff"].map(hex => {
+            return ColorContrastCalc.getByHexCode(hex);
+          });
+          const colors = [blue, yellow, white, red, lime];
+
+          it("expects to return [white, red, yellow, lime, blue] when [blue, yellow, white, red, lime] is passed", function() {
+            expect(ColorContrastCalc.sort(colors, "hLS")).to.deep.equal([white, red, yellow, lime, blue]);
+          });
+        });
+
+        context("When colors are given as HSL values'", function() {
+          const  [white, red, yellow, lime, blue]= [[0, 100, 100], [0, 100, 50], [60, 100, 50], [120, 100, 50], [240, 100, 50]];
+          const colors = [blue, yellow, white, red, lime];
+
+          it("expects to return [white, red, yellow, lime, blue] when [blue, yellow, white, red, lime] is passed", function() {
+            expect(ColorContrastCalc.sort(colors, "hLS")).to.deep.equal([white, red, yellow, lime, blue]);
+          });
+        });
+      });
     });
 
     describe("compare", function() {
@@ -534,6 +565,30 @@ describe("ColorContrastCalc", () => {
 
         it("expects to return a positive number when deepskyblue and springgreen are passed", function() {
           expect(compare(deepskyblue, springgreen)).to.be.greaterThan(0);
+        });
+      });
+
+      context("when colorOrder is 'hsl'", function() {
+        const compare = ColorContrastCalc.Sorter.compareHexFunction("hsl");
+
+        it("expects to return a positive number when yellow and orange are passed", function() {
+          expect(compare(yellow, orange)).to.be.greaterThan(0);
+        });
+
+        it("expects to return a positive number when yellow and orange are passed", function() {
+          expect(compare(deepskyblue, orange)).to.be.greaterThan(0);
+        });
+      });
+
+      context("when colorOrder is 'Hsl'", function() {
+        const compare = ColorContrastCalc.Sorter.compareHexFunction("Hsl");
+
+        it("expects to return a positive number when yellow and orange are passed", function() {
+          expect(compare(yellow, orange)).to.be.lessThan(0);
+        });
+
+        it("expects to return a positive number when yellow and orange are passed", function() {
+          expect(compare(deepskyblue, orange)).to.be.lessThan(0);
         });
       });
     });
