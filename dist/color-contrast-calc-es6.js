@@ -29,6 +29,7 @@ class ColorContrastCalc {
     /** @property {string} hexCode - The RGB value in hex code notation */
     this.hexCode = Utils.decimalToHexCode(this.rgb);
     this.freezeProperties();
+    /** @private */
     this._hsl = null;
   }
 
@@ -103,7 +104,7 @@ class ColorContrastCalc {
   /**
    * Sorts colors in an array and returns the result as a new array
    * @param {ColorContrastCalc[]|String[]} colors - List of colors
-   * @param {string} [colorOrder="rgb"] - A left side primary color has a higher sorting precedence
+   * @param {string} [colorOrder="rgb"] - A left side primary color has a higher sorting precedence, and an uppercase letter means descending order
    * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted
    * @param {string} [mode="auto"] - If set to "hex", key values are handled as hex code strings
    * @returns {ColorContrastCalc[]} An array of sorted colors
@@ -583,8 +584,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
       if (keyType === this.KEY_TYPE.HEX) {
         compare = this.compareHexFunction(colorOrder);
-      } else if (keyType === this.KEY_TYPE.RGB) {
-        compare = this.compareRgbFunction(colorOrder);
+      } else if (this.isComponentType(keyType)) {
+        compare = this.compareComponentsFunction(colorOrder);
       } else {
         compare = this.compareColorFunction(colorOrder);
       }
@@ -606,11 +607,19 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
       if (mode === this.KEY_TYPE.HEX ||
           mode === "auto" && this.isStringKey(color, keyMapper)) {
         return this.KEY_TYPE.HEX;
-      } else if (mode === this.KEY_TYPE.RGB) {
-        return this.KEY_TYPE.RGB;
+      } else if (this.isComponentType(mode) || Array.isArray(color)) {
+        return this.KEY_TYPE.COMPONENTS;
       } else {
         return this.KEY_TYPE.COLOR;
       }
+    }
+
+    static isComponentType(keyType) {
+      return [
+        this.KEY_TYPE.RGB,
+        this.KEY_TYPE.HSL,
+        this.KEY_TYPE.COMPONENTS
+      ].includes(keyType);
     }
 
     static isStringKey(color, keyMapper) {
@@ -619,65 +628,76 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
     }
 
     static compareColorFunction(colorOrder = "rgb") {
-      const rgbPos = this.primaryColorPos(colorOrder);
-      const compFuncs = this.chooseCompFunc(colorOrder);
+      const order = this.parseColorOrder(colorOrder);
+      const type = order.type;
 
       return function(color1, color2) {
-        return Sorter.compareRgbVal(color1.rgb, color2.rgb, rgbPos, compFuncs);
+        return Sorter.compareColorComponents(color1[type], color2[type], order.pos, order.funcs);
       };
     }
 
-    static compareRgbFunction(colorOrder = "rgb") {
-      const rgbPos = this.primaryColorPos(colorOrder);
-      const compFuncs = this.chooseCompFunc(colorOrder);
+    static compareComponentsFunction(colorOrder = "rgb") {
+      const order = this.parseColorOrder(colorOrder);
 
       return function(rgb1, rgb2) {
-        return Sorter.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
+        return Sorter.compareColorComponents(rgb1, rgb2, order.pos, order.funcs);
       };
     }
 
     static compareHexFunction(colorOrder = "rgb") {
-      const rgbPos = this.primaryColorPos(colorOrder);
-      const compFuncs = this.chooseCompFunc(colorOrder);
-      const rgbCache = new Map();
+      const order = this.parseColorOrder(colorOrder);
+      const componentsCache = new Map();
 
       return function(hex1, hex2) {
-        return Sorter.compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache);
+        const color1 = Sorter.hexToComponents(hex1, order, componentsCache);
+        const color2 = Sorter.hexToComponents(hex2, order, componentsCache);
+
+        return Sorter.compareColorComponents(color1, color2,
+                                             order.pos, order.funcs);
       };
     }
 
-    static compareRgbVal(rgb1, rgb2, rgbPos = [0, 1, 2],
-                         compFuncs = this.defaultCompFuncs) {
-      for (let i of rgbPos) {
-        const result = compFuncs[i](rgb1[i], rgb2[i]);
+    static compareColorComponents(color1, color2, componentPos = [0, 1, 2],
+                                  compFuncs = this.defaultCompFuncs) {
+      for (let i of componentPos) {
+        const result = compFuncs[i](color1[i], color2[i]);
         if (result !== 0) { return result; }
       }
 
       return 0;
     }
 
-    static compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache) {
-      const rgb1 = rgbCache.get(hex1) || Utils.hexCodeToDecimal(hex1);
-      const rgb2 = rgbCache.get(hex2) || Utils.hexCodeToDecimal(hex2);
+    static hexToComponents(hex, order, cache) {
+      const cachedComponents = cache.get(hex);
+      if (cachedComponents) { return cachedComponents; }
 
-      return this.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
+      const components = order.toComponents(hex);
+      cache.set(hex, components);
+
+      return components;
     }
 
-    static primaryColorPos(colorOrder) {
+    static rgbComponentPos(colorOrder) {
       return colorOrder.toLowerCase().split("").map((primary) => {
         return this.RGB_IDENTIFIERS.indexOf(primary);
       });
     }
 
-    static ascendComp(primaryColor1, primaryColor2) {
-      return primaryColor1 - primaryColor2;
+    static hslComponentPos(hslOrder) {
+      return hslOrder.toLowerCase().split("").map(component => {
+        return this.HSL_IDENTIFIERS.indexOf(component);
+      });
     }
 
-    static descendComp(primaryColor1, primaryColor2) {
-      return primaryColor2 - primaryColor1;
+    static ascendComp(component1, component2) {
+      return component1 - component2;
     }
 
-    static chooseCompFunc(colorOrder) {
+    static descendComp(component1, component2) {
+      return component2 - component1;
+    }
+
+    static chooseRgbCompFunc(colorOrder) {
       const primaryColors = colorOrder.split("")
               .sort(this.caseInsensitiveComp).reverse();
 
@@ -688,6 +708,35 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
         return this.ascendComp;
       });
+    }
+
+    static chooseHslCompFunc(hslOrder) {
+      return this.HSL_RES.map(re => {
+        const pos = hslOrder.search(re);
+        if (Utils.isUpperCase(hslOrder[pos])) {
+          return this.descendComp;
+        }
+
+        return this.ascendComp;
+      });
+    }
+
+    static parseColorOrder(colorOrder) {
+      if (/[rgb]{3}/i.test(colorOrder)) {
+        return {
+          pos: this.rgbComponentPos(colorOrder),
+          funcs: this.chooseRgbCompFunc(colorOrder),
+          toComponents: hexCode => Utils.hexCodeToDecimal(hexCode),
+          type: "rgb"
+        };
+      } else {
+        return {
+          pos: this.hslComponentPos(colorOrder),
+          funcs: this.chooseHslCompFunc(colorOrder),
+          toComponents: hexCode => Utils.hexCodeToHsl(hexCode),
+          type: "hsl"
+        };
+      }
     }
 
     static caseInsensitiveComp(str1, str2) {
@@ -701,13 +750,17 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
     static setup() {
       this.RGB_IDENTIFIERS = ["r", "g", "b"];
+      this.HSL_IDENTIFIERS = ["h", "s", "l"];
+      this.HSL_RES = [/h/i, /s/i, /l/i];
       this.defaultCompFuncs = [
         Sorter.ascendComp,
         Sorter.ascendComp,
         Sorter.ascendComp
       ];
       this.KEY_TYPE = {
+        COMPONENTS: "components",
         RGB: "rgb",
+        HSL: "hsl",
         HEX: "hex",
         COLOR: "color"
       };
@@ -1048,6 +1101,18 @@ class ColorUtils {
     return rgb.length === 3 &&
       rgb.every(c => c >= 0 && c <= 255 &&
                 Number.isInteger(c));
+  }
+
+  /**
+   * Checks if a given array is a valid representation of HSL color.
+   * @param {Array<number, number, number>} hsl - HSL value represented as an array of numbers
+   * @returns {boolean} true if the argument is a valid HSL color
+   */
+  static isValidHsl(hsl) {
+    const upperLimits = [360, 100, 100];
+    return hsl.length === 3 &&
+      hsl.every((c, i) => typeof c === "number" &&
+                c >= 0 && c <= upperLimits[i]);
   }
 
   /**

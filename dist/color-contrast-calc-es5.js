@@ -63,6 +63,7 @@ var ColorContrastCalc = function () {
     /** @property {string} hexCode - The RGB value in hex code notation */
     this.hexCode = Utils.decimalToHexCode(this.rgb);
     this.freezeProperties();
+    /** @private */
     this._hsl = null;
   }
 
@@ -740,7 +741,7 @@ var ColorContrastCalc = function () {
     /**
      * Sorts colors in an array and returns the result as a new array
      * @param {ColorContrastCalc[]|String[]} colors - List of colors
-     * @param {string} [colorOrder="rgb"] - A left side primary color has a higher sorting precedence
+     * @param {string} [colorOrder="rgb"] - A left side primary color has a higher sorting precedence, and an uppercase letter means descending order
      * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted
      * @param {string} [mode="auto"] - If set to "hex", key values are handled as hex code strings
      * @returns {ColorContrastCalc[]} An array of sorted colors
@@ -922,8 +923,8 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
 
         if (keyType === this.KEY_TYPE.HEX) {
           compare = this.compareHexFunction(colorOrder);
-        } else if (keyType === this.KEY_TYPE.RGB) {
-          compare = this.compareRgbFunction(colorOrder);
+        } else if (this.isComponentType(keyType)) {
+          compare = this.compareComponentsFunction(colorOrder);
         } else {
           compare = this.compareColorFunction(colorOrder);
         }
@@ -948,11 +949,16 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       value: function guessKeyType(mode, color, keyMapper) {
         if (mode === this.KEY_TYPE.HEX || mode === "auto" && this.isStringKey(color, keyMapper)) {
           return this.KEY_TYPE.HEX;
-        } else if (mode === this.KEY_TYPE.RGB) {
-          return this.KEY_TYPE.RGB;
+        } else if (this.isComponentType(mode) || Array.isArray(color)) {
+          return this.KEY_TYPE.COMPONENTS;
         } else {
           return this.KEY_TYPE.COLOR;
         }
+      }
+    }, {
+      key: "isComponentType",
+      value: function isComponentType(keyType) {
+        return [this.KEY_TYPE.RGB, this.KEY_TYPE.HSL, this.KEY_TYPE.COMPONENTS].includes(keyType);
       }
     }, {
       key: "isStringKey",
@@ -965,23 +971,22 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       value: function compareColorFunction() {
         var colorOrder = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "rgb";
 
-        var rgbPos = this.primaryColorPos(colorOrder);
-        var compFuncs = this.chooseCompFunc(colorOrder);
+        var order = this.parseColorOrder(colorOrder);
+        var type = order.type;
 
         return function (color1, color2) {
-          return Sorter.compareRgbVal(color1.rgb, color2.rgb, rgbPos, compFuncs);
+          return Sorter.compareColorComponents(color1[type], color2[type], order.pos, order.funcs);
         };
       }
     }, {
-      key: "compareRgbFunction",
-      value: function compareRgbFunction() {
+      key: "compareComponentsFunction",
+      value: function compareComponentsFunction() {
         var colorOrder = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "rgb";
 
-        var rgbPos = this.primaryColorPos(colorOrder);
-        var compFuncs = this.chooseCompFunc(colorOrder);
+        var order = this.parseColorOrder(colorOrder);
 
         return function (rgb1, rgb2) {
-          return Sorter.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
+          return Sorter.compareColorComponents(rgb1, rgb2, order.pos, order.funcs);
         };
       }
     }, {
@@ -989,28 +994,30 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       value: function compareHexFunction() {
         var colorOrder = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "rgb";
 
-        var rgbPos = this.primaryColorPos(colorOrder);
-        var compFuncs = this.chooseCompFunc(colorOrder);
-        var rgbCache = new _map2.default();
+        var order = this.parseColorOrder(colorOrder);
+        var componentsCache = new _map2.default();
 
         return function (hex1, hex2) {
-          return Sorter.compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache);
+          var color1 = Sorter.hexToComponents(hex1, order, componentsCache);
+          var color2 = Sorter.hexToComponents(hex2, order, componentsCache);
+
+          return Sorter.compareColorComponents(color1, color2, order.pos, order.funcs);
         };
       }
     }, {
-      key: "compareRgbVal",
-      value: function compareRgbVal(rgb1, rgb2) {
-        var rgbPos = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 1, 2];
+      key: "compareColorComponents",
+      value: function compareColorComponents(color1, color2) {
+        var componentPos = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 1, 2];
         var compFuncs = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.defaultCompFuncs;
         var _iteratorNormalCompletion3 = true;
         var _didIteratorError3 = false;
         var _iteratorError3 = undefined;
 
         try {
-          for (var _iterator3 = (0, _getIterator3.default)(rgbPos), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          for (var _iterator3 = (0, _getIterator3.default)(componentPos), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
             var i = _step3.value;
 
-            var result = compFuncs[i](rgb1[i], rgb2[i]);
+            var result = compFuncs[i](color1[i], color2[i]);
             if (result !== 0) {
               return result;
             }
@@ -1033,16 +1040,21 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
         return 0;
       }
     }, {
-      key: "compareHexVal",
-      value: function compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache) {
-        var rgb1 = rgbCache.get(hex1) || Utils.hexCodeToDecimal(hex1);
-        var rgb2 = rgbCache.get(hex2) || Utils.hexCodeToDecimal(hex2);
+      key: "hexToComponents",
+      value: function hexToComponents(hex, order, cache) {
+        var cachedComponents = cache.get(hex);
+        if (cachedComponents) {
+          return cachedComponents;
+        }
 
-        return this.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
+        var components = order.toComponents(hex);
+        cache.set(hex, components);
+
+        return components;
       }
     }, {
-      key: "primaryColorPos",
-      value: function primaryColorPos(colorOrder) {
+      key: "rgbComponentPos",
+      value: function rgbComponentPos(colorOrder) {
         var _this6 = this;
 
         return colorOrder.toLowerCase().split("").map(function (primary) {
@@ -1050,29 +1062,75 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
         });
       }
     }, {
+      key: "hslComponentPos",
+      value: function hslComponentPos(hslOrder) {
+        var _this7 = this;
+
+        return hslOrder.toLowerCase().split("").map(function (component) {
+          return _this7.HSL_IDENTIFIERS.indexOf(component);
+        });
+      }
+    }, {
       key: "ascendComp",
-      value: function ascendComp(primaryColor1, primaryColor2) {
-        return primaryColor1 - primaryColor2;
+      value: function ascendComp(component1, component2) {
+        return component1 - component2;
       }
     }, {
       key: "descendComp",
-      value: function descendComp(primaryColor1, primaryColor2) {
-        return primaryColor2 - primaryColor1;
+      value: function descendComp(component1, component2) {
+        return component2 - component1;
       }
     }, {
-      key: "chooseCompFunc",
-      value: function chooseCompFunc(colorOrder) {
-        var _this7 = this;
+      key: "chooseRgbCompFunc",
+      value: function chooseRgbCompFunc(colorOrder) {
+        var _this8 = this;
 
         var primaryColors = colorOrder.split("").sort(this.caseInsensitiveComp).reverse();
 
         return primaryColors.map(function (primary) {
           if (Utils.isUpperCase(primary)) {
-            return _this7.descendComp;
+            return _this8.descendComp;
           }
 
-          return _this7.ascendComp;
+          return _this8.ascendComp;
         });
+      }
+    }, {
+      key: "chooseHslCompFunc",
+      value: function chooseHslCompFunc(hslOrder) {
+        var _this9 = this;
+
+        return this.HSL_RES.map(function (re) {
+          var pos = hslOrder.search(re);
+          if (Utils.isUpperCase(hslOrder[pos])) {
+            return _this9.descendComp;
+          }
+
+          return _this9.ascendComp;
+        });
+      }
+    }, {
+      key: "parseColorOrder",
+      value: function parseColorOrder(colorOrder) {
+        if (/[rgb]{3}/i.test(colorOrder)) {
+          return {
+            pos: this.rgbComponentPos(colorOrder),
+            funcs: this.chooseRgbCompFunc(colorOrder),
+            toComponents: function toComponents(hexCode) {
+              return Utils.hexCodeToDecimal(hexCode);
+            },
+            type: "rgb"
+          };
+        } else {
+          return {
+            pos: this.hslComponentPos(colorOrder),
+            funcs: this.chooseHslCompFunc(colorOrder),
+            toComponents: function toComponents(hexCode) {
+              return Utils.hexCodeToHsl(hexCode);
+            },
+            type: "hsl"
+          };
+        }
       }
     }, {
       key: "caseInsensitiveComp",
@@ -1092,9 +1150,13 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
       key: "setup",
       value: function setup() {
         this.RGB_IDENTIFIERS = ["r", "g", "b"];
+        this.HSL_IDENTIFIERS = ["h", "s", "l"];
+        this.HSL_RES = [/h/i, /s/i, /l/i];
         this.defaultCompFuncs = [Sorter.ascendComp, Sorter.ascendComp, Sorter.ascendComp];
         this.KEY_TYPE = {
+          COMPONENTS: "components",
           RGB: "rgb",
+          HSL: "hsl",
           HEX: "hex",
           COLOR: "color"
         };
@@ -1525,6 +1587,21 @@ var ColorUtils = function () {
     value: function isValidRgb(rgb) {
       return rgb.length === 3 && rgb.every(function (c) {
         return c >= 0 && c <= 255 && (0, _isInteger2.default)(c);
+      });
+    }
+
+    /**
+     * Checks if a given array is a valid representation of HSL color.
+     * @param {Array<number, number, number>} hsl - HSL value represented as an array of numbers
+     * @returns {boolean} true if the argument is a valid HSL color
+     */
+
+  }, {
+    key: "isValidHsl",
+    value: function isValidHsl(hsl) {
+      var upperLimits = [360, 100, 100];
+      return hsl.length === 3 && hsl.every(function (c, i) {
+        return typeof c === "number" && c >= 0 && c <= upperLimits[i];
       });
     }
 
