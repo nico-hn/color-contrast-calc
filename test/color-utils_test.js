@@ -235,6 +235,48 @@ describe("ColorUtils", function() {
     });
   });
 
+  describe("isValidHsl", function() {
+    it("expects to return true for [0, 0, 0]", function() {
+      expect(ColorUtils.isValidHsl([0, 0, 0])).to.be.true;
+    });
+
+    it("expects to return true for [60, 100, 50]", function() {
+      expect(ColorUtils.isValidHsl([60, 100, 50])).to.be.true;
+    });
+
+    it("expects to return true for [0, 0, 100]", function() {
+      expect(ColorUtils.isValidHsl([0, 0, 100])).to.be.true;
+    });
+
+    it("expects to return false for [-1, 100, 50]", function() {
+      expect(ColorUtils.isValidHsl([-1, 100, 50])).to.be.false;
+    });
+
+    it("expects to return false for [361, 100, 50]", function() {
+      expect(ColorUtils.isValidHsl([361, 100, 50])).to.be.false;
+    });
+
+    it("expects to return false for [60, -1, 50]", function() {
+      expect(ColorUtils.isValidHsl([60, -1, 50])).to.be.false;
+    });
+
+    it("expects to return false for [60, 101, 50]", function() {
+      expect(ColorUtils.isValidHsl([60, 101, 50])).to.be.false;
+    });
+
+    it("expects to return false for [60, 100, -1]", function() {
+      expect(ColorUtils.isValidHsl([60, 100, -1])).to.be.false;
+    });
+
+    it("expects to return false for [60, 100, 101]", function() {
+      expect(ColorUtils.isValidHsl([60, 100, 101])).to.be.false;
+    });
+
+    it("expects to return false for ['60', 100, 50]", function() {
+      expect(ColorUtils.isValidHsl(["60", 100, 50])).to.be.false;
+    });
+  });
+
   describe("isValidHexCode", function() {
     it("expects to return true for '#ffa500'", function() {
       expect(ColorUtils.isValidHexCode("#ffa500")).to.be.true;
