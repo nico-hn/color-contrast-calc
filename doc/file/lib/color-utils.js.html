@@ -125,6 +125,73 @@ class ColorUtils {
   }
 
   /**
+   * @private
+   */
+  static rgbToHsl(rgb) {
+    const l = this.rgbToLightness(rgb) * 100;
+    const s = this.rgbToSaturation(rgb) * 100;
+    const h = this.rgbToHue(rgb);
+
+    return [h, s, l];
+  }
+
+  /**
+   * @private
+   */
+  static rgbToLightness(rgb) {
+    return (Math.max(...rgb) + Math.min(...rgb)) / 510;
+  }
+
+  /**
+   * @private
+   */
+  static rgbToHue(rgb) {
+    /**
+     References:
+     Agoston, Max K. (2005).
+     &quot;Computer Graphics and Geometric Modeling: Implementation and Algorithms&quot;.
+     London: Springer
+
+     https://accessibility.kde.org/hsl-adjusted.php#hue
+     */
+    const max = Math.max(...rgb);
+    const min = Math.min(...rgb);
+
+    if (max === min) { return 0; } /* you can return whatever you like */
+
+    const d = max - min;
+    const mi = rgb.reduce((m, v, i) =&gt; rgb[m] &gt; v ? m : i, 0); /* maxIndex */
+    const h = mi * 120 + (rgb[(mi + 1) % 3] - rgb[(mi + 2) % 3]) * 60 / d;
+
+    return h &lt; 0 ? h + 360 : h;
+  }
+
+  /**
+   * @private
+   */
+  static rgbToSaturation(rgb) {
+    const l = this.rgbToLightness(rgb);
+    const max = Math.max(...rgb);
+    const min = Math.min(...rgb);
+    const d = max - min;
+
+    if (max === min) { return 0; }
+
+    if (l &lt;= 0.5) {
+      return d / (max + min);
+    } else {
+      return d / (510 - max - min);
+    }
+  }
+
+  /**
+   * @private
+   */
+  static hexCodeToHsl(hexCode) {
+    return this.rgbToHsl(this.hexCodeToDecimal(hexCode));
+  }
+
+  /**
    * Decimal rounding with a given precision
    * @param {number} number - Number to be rounded off
    * @param {number} precision - Number of digits after the decimal point
@@ -144,6 +211,18 @@ class ColorUtils {
     return rgb.length === 3 &amp;&amp;
       rgb.every(c =&gt; c &gt;= 0 &amp;&amp; c &lt;= 255 &amp;&amp;
                 Number.isInteger(c));
+  }
+
+  /**
+   * Checks if a given array is a valid representation of HSL color.
+   * @param {Array&lt;number, number, number&gt;} hsl - HSL value represented as an array of numbers
+   * @returns {boolean} true if the argument is a valid HSL color
+   */
+  static isValidHsl(hsl) {
+    const upperLimits = [360, 100, 100];
+    return hsl.length === 3 &amp;&amp;
+      hsl.every((c, i) =&gt; typeof c === &quot;number&quot; &amp;&amp;
+                c &gt;= 0 &amp;&amp; c &lt;= upperLimits[i]);
   }
 
   /**
@@ -394,7 +473,6 @@ class ColorUtils {
 ColorUtils.setup();
 
 //module.exports.ColorUtils = ColorUtils;
-
 export { ColorUtils };
 </code></pre>
 

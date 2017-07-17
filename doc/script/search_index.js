@@ -378,6 +378,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "lib/color-contrast-calc.js~colorcontrastcalc#findlightnessthreshold",
+    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#instance-method-findLightnessThreshold",
+    "lib/color-contrast-calc.js~ColorContrastCalc#findLightnessThreshold",
+    "method"
+  ],
+  [
     "lib/color-contrast-calc.js~colorcontrastcalc#hassameluminance",
     "class/lib/color-contrast-calc.js~ColorContrastCalc.html#instance-method-hasSameLuminance",
     "lib/color-contrast-calc.js~ColorContrastCalc#hasSameLuminance",
@@ -393,6 +399,12 @@ window.esdocSearchIndex = [
     "lib/color-contrast-calc.js~colorcontrastcalc#hexcode",
     "class/lib/color-contrast-calc.js~ColorContrastCalc.html#instance-member-hexCode",
     "lib/color-contrast-calc.js~ColorContrastCalc#hexCode",
+    "member"
+  ],
+  [
+    "lib/color-contrast-calc.js~colorcontrastcalc#hsl",
+    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#instance-get-hsl",
+    "lib/color-contrast-calc.js~ColorContrastCalc#hsl",
     "member"
   ],
   [
@@ -621,6 +633,12 @@ window.esdocSearchIndex = [
     "lib/color-utils.js~colorutils.isvalidhexcode",
     "class/lib/color-utils.js~ColorUtils.html#static-method-isValidHexCode",
     "lib/color-utils.js~ColorUtils.isValidHexCode",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.isvalidhsl",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-isValidHsl",
+    "lib/color-utils.js~ColorUtils.isValidHsl",
     "method"
   ],
   [

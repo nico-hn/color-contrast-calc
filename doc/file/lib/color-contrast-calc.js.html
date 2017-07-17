@@ -64,6 +64,8 @@ class ColorContrastCalc {
     /** @property {string} hexCode - The RGB value in hex code notation */
     this.hexCode = Utils.decimalToHexCode(this.rgb);
     this.freezeProperties();
+    /** @private */
+    this._hsl = null;
   }
 
   /**
@@ -137,7 +139,7 @@ class ColorContrastCalc {
   /**
    * Sorts colors in an array and returns the result as a new array
    * @param {ColorContrastCalc[]|String[]} colors - List of colors
-   * @param {string} [colorOrder=&quot;rgb&quot;] - A left side primary color has a higher sorting precedence
+   * @param {string} [colorOrder=&quot;rgb&quot;] - A left side primary color has a higher sorting precedence, and an uppercase letter means descending order
    * @param {function} [keyMapper=null] - A function used to retrive key values from elements to be sorted
    * @param {string} [mode=&quot;auto&quot;] - If set to &quot;hex&quot;, key values are handled as hex code strings
    * @returns {ColorContrastCalc[]} An array of sorted colors
@@ -162,6 +164,7 @@ class ColorContrastCalc {
     this.loadColorKeywords(colorKeywordsJSON);
     this.assignColorConstants();
     this.generateWebSafeColors();
+    Object.freeze(this);
   }
 
   /**
@@ -201,12 +204,6 @@ class ColorContrastCalc {
     this.prototype.BLACK = this.BLACK;
     this.prototype.WHITE = this.WHITE;
     this.prototype.GRAY = this.GRAY;
-    Object.freeze(this.BLACK);
-    Object.freeze(this.WHITE);
-    Object.freeze(this.GRAY);
-    Object.freeze(this.prototype.BLACK);
-    Object.freeze(this.prototype.WHITE);
-    Object.freeze(this.prototype.GRAY);
   }
 
   /**
@@ -229,6 +226,15 @@ class ColorContrastCalc {
         }
       }
     }
+  }
+
+  /**
+   * @property {Array&lt;number, number, number&gt;} hsl - HSL value repsented as an array of decimal numbers
+   */
+  get hsl() {
+    if (this._hsl) { return this._hsl; }
+    this._hsl = Utils.rgbToHsl(this.rgb);
+    return this._hsl;
   }
 
   /**
@@ -341,6 +347,71 @@ class ColorContrastCalc {
     }
 
     return nearestColor;
+  }
+
+  /**
+   * Tries to find a color whose contrast against the base color is close to a given level.
+   *
+   * The returned color is gained by modifying the lightness of otherColor.
+   * Even when a color that satisfies the level is not found, it returns a new color anyway.
+   * @param {ColorContrastCalc} otherColor - The color before the modification of lightness
+   * @param {string} [level=&quot;AA&quot;] - A, AA or AAA
+   * @returns {ColorContrastCalc} A color whose contrast against the base color is close to a specified level
+   */
+  findLightnessThreshold(otherColor, level = &quot;AA&quot;) {
+    const targetRatio = this.levelToContrastRatio(level);
+    const criteria = this.brightnessThresholdCriteria(targetRatio, otherColor);
+    const [h, s, initL] = Utils.rgbToHsl(otherColor.rgb);
+    const [max, min] = this.shouldScanDarkerSide(otherColor) ? [initL, 0] : [100, initL];
+    const boundaryColor = this.lightnessBoundaryColor(max, min, level);
+
+    if (boundaryColor) { return boundaryColor; }
+
+    let l = (max + min) / 2;
+    let lastSufficientLightness = null;
+
+    for (let d of ColorContrastCalc.binarySearchWidth(max - min, 0.01)) {
+      let newColor = Utils.hslToRgb([h, s, l]);
+      let contrastRatio = this.contrastRatioAgainst(newColor);
+
+      if (contrastRatio &gt;= targetRatio) { lastSufficientLightness = l; }
+      if (contrastRatio === targetRatio) { break; }
+      l += criteria.incrementCondition(contrastRatio) ? d : -d;
+    }
+
+    const nearlestColor = ColorContrastCalc.newHslColor([h, s, l]);
+
+    if (lastSufficientLightness &amp;&amp; nearlestColor.contrastRatioAgainst(this) &lt; targetRatio) {
+      return ColorContrastCalc.newHslColor([h, s, lastSufficientLightness]);
+    }
+
+    return nearlestColor;
+  }
+
+  /**
+   * @private
+   */
+  shouldScanDarkerSide(otherColor) {
+    if (this.isBrighterThan(otherColor) ||
+        this.isSameColor(otherColor) &amp;&amp; this.isLightColor()) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @private
+   */
+  lightnessBoundaryColor(max, min, level) {
+    if (min === 0 &amp;&amp; ! this.hasSufficientContrast(this.BLACK, level)) {
+      return this.BLACK;
+    }
+
+    if (max === 100 &amp;&amp; ! this.hasSufficientContrast(this.WHITE, level)) {
+      return this.WHITE;
+    }
+
+    return null;
   }
 
   /**
@@ -548,8 +619,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
       if (keyType === this.KEY_TYPE.HEX) {
         compare = this.compareHexFunction(colorOrder);
-      } else if (keyType === this.KEY_TYPE.RGB) {
-        compare = this.compareRgbFunction(colorOrder);
+      } else if (this.isComponentType(keyType)) {
+        compare = this.compareComponentsFunction(colorOrder);
       } else {
         compare = this.compareColorFunction(colorOrder);
       }
@@ -571,11 +642,19 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
       if (mode === this.KEY_TYPE.HEX ||
           mode === &quot;auto&quot; &amp;&amp; this.isStringKey(color, keyMapper)) {
         return this.KEY_TYPE.HEX;
-      } else if (mode === this.KEY_TYPE.RGB) {
-        return this.KEY_TYPE.RGB;
+      } else if (this.isComponentType(mode) || Array.isArray(color)) {
+        return this.KEY_TYPE.COMPONENTS;
       } else {
         return this.KEY_TYPE.COLOR;
       }
+    }
+
+    static isComponentType(keyType) {
+      return [
+        this.KEY_TYPE.RGB,
+        this.KEY_TYPE.HSL,
+        this.KEY_TYPE.COMPONENTS
+      ].includes(keyType);
     }
 
     static isStringKey(color, keyMapper) {
@@ -584,65 +663,76 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
     }
 
     static compareColorFunction(colorOrder = &quot;rgb&quot;) {
-      const rgbPos = this.primaryColorPos(colorOrder);
-      const compFuncs = this.chooseCompFunc(colorOrder);
+      const order = this.parseColorOrder(colorOrder);
+      const type = order.type;
 
       return function(color1, color2) {
-        return Sorter.compareRgbVal(color1.rgb, color2.rgb, rgbPos, compFuncs);
+        return Sorter.compareColorComponents(color1[type], color2[type], order.pos, order.funcs);
       };
     }
 
-    static compareRgbFunction(colorOrder = &quot;rgb&quot;) {
-      const rgbPos = this.primaryColorPos(colorOrder);
-      const compFuncs = this.chooseCompFunc(colorOrder);
+    static compareComponentsFunction(colorOrder = &quot;rgb&quot;) {
+      const order = this.parseColorOrder(colorOrder);
 
       return function(rgb1, rgb2) {
-        return Sorter.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
+        return Sorter.compareColorComponents(rgb1, rgb2, order.pos, order.funcs);
       };
     }
 
     static compareHexFunction(colorOrder = &quot;rgb&quot;) {
-      const rgbPos = this.primaryColorPos(colorOrder);
-      const compFuncs = this.chooseCompFunc(colorOrder);
-      const rgbCache = new Map();
+      const order = this.parseColorOrder(colorOrder);
+      const componentsCache = new Map();
 
       return function(hex1, hex2) {
-        return Sorter.compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache);
+        const color1 = Sorter.hexToComponents(hex1, order, componentsCache);
+        const color2 = Sorter.hexToComponents(hex2, order, componentsCache);
+
+        return Sorter.compareColorComponents(color1, color2,
+                                             order.pos, order.funcs);
       };
     }
 
-    static compareRgbVal(rgb1, rgb2, rgbPos = [0, 1, 2],
-                         compFuncs = this.defaultCompFuncs) {
-      for (let i of rgbPos) {
-        const result = compFuncs[i](rgb1[i], rgb2[i]);
+    static compareColorComponents(color1, color2, componentPos = [0, 1, 2],
+                                  compFuncs = this.defaultCompFuncs) {
+      for (let i of componentPos) {
+        const result = compFuncs[i](color1[i], color2[i]);
         if (result !== 0) { return result; }
       }
 
       return 0;
     }
 
-    static compareHexVal(hex1, hex2, rgbPos, compFuncs, rgbCache) {
-      const rgb1 = rgbCache.get(hex1) || Utils.hexCodeToDecimal(hex1);
-      const rgb2 = rgbCache.get(hex2) || Utils.hexCodeToDecimal(hex2);
+    static hexToComponents(hex, order, cache) {
+      const cachedComponents = cache.get(hex);
+      if (cachedComponents) { return cachedComponents; }
 
-      return this.compareRgbVal(rgb1, rgb2, rgbPos, compFuncs);
+      const components = order.toComponents(hex);
+      cache.set(hex, components);
+
+      return components;
     }
 
-    static primaryColorPos(colorOrder) {
+    static rgbComponentPos(colorOrder) {
       return colorOrder.toLowerCase().split(&quot;&quot;).map((primary) =&gt; {
         return this.RGB_IDENTIFIERS.indexOf(primary);
       });
     }
 
-    static ascendComp(primaryColor1, primaryColor2) {
-      return primaryColor1 - primaryColor2;
+    static hslComponentPos(hslOrder) {
+      return hslOrder.toLowerCase().split(&quot;&quot;).map(component =&gt; {
+        return this.HSL_IDENTIFIERS.indexOf(component);
+      });
     }
 
-    static descendComp(primaryColor1, primaryColor2) {
-      return primaryColor2 - primaryColor1;
+    static ascendComp(component1, component2) {
+      return component1 - component2;
     }
 
-    static chooseCompFunc(colorOrder) {
+    static descendComp(component1, component2) {
+      return component2 - component1;
+    }
+
+    static chooseRgbCompFunc(colorOrder) {
       const primaryColors = colorOrder.split(&quot;&quot;)
               .sort(this.caseInsensitiveComp).reverse();
 
@@ -653,6 +743,35 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
         return this.ascendComp;
       });
+    }
+
+    static chooseHslCompFunc(hslOrder) {
+      return this.HSL_RES.map(re =&gt; {
+        const pos = hslOrder.search(re);
+        if (Utils.isUpperCase(hslOrder[pos])) {
+          return this.descendComp;
+        }
+
+        return this.ascendComp;
+      });
+    }
+
+    static parseColorOrder(colorOrder) {
+      if (/[rgb]{3}/i.test(colorOrder)) {
+        return {
+          pos: this.rgbComponentPos(colorOrder),
+          funcs: this.chooseRgbCompFunc(colorOrder),
+          toComponents: hexCode =&gt; Utils.hexCodeToDecimal(hexCode),
+          type: &quot;rgb&quot;
+        };
+      } else {
+        return {
+          pos: this.hslComponentPos(colorOrder),
+          funcs: this.chooseHslCompFunc(colorOrder),
+          toComponents: hexCode =&gt; Utils.hexCodeToHsl(hexCode),
+          type: &quot;hsl&quot;
+        };
+      }
     }
 
     static caseInsensitiveComp(str1, str2) {
@@ -666,13 +785,17 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
     static setup() {
       this.RGB_IDENTIFIERS = [&quot;r&quot;, &quot;g&quot;, &quot;b&quot;];
+      this.HSL_IDENTIFIERS = [&quot;h&quot;, &quot;s&quot;, &quot;l&quot;];
+      this.HSL_RES = [/h/i, /s/i, /l/i];
       this.defaultCompFuncs = [
         Sorter.ascendComp,
         Sorter.ascendComp,
         Sorter.ascendComp
       ];
       this.KEY_TYPE = {
+        COMPONENTS: &quot;components&quot;,
         RGB: &quot;rgb&quot;,
+        HSL: &quot;hsl&quot;,
         HEX: &quot;hex&quot;,
         COLOR: &quot;color&quot;
       };
@@ -688,7 +811,6 @@ ColorContrastCalc.setup(require(&quot;./color-keywords.json&quot;));
 
 //module.exports.ColorUtils = ColorUtils;
 //module.exports.ColorContrastCalc = ColorContrastCalc;
-
 export { ColorContrastCalc };
 </code></pre>
 
