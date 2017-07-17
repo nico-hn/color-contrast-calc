@@ -290,7 +290,7 @@ describe("ColorContrastCalc", () => {
           });
         });
 
-        context("When colors are given as insttances of ColorContrastCalc", function() {
+        context("When colors are given as instances of ColorContrastCalc", function() {
           const  [white, red, yellow, lime, blue]= ["#ffffff", "#ff0000", "#ffff00", "#00ff00", "#0000ff"].map(hex => {
             return ColorContrastCalc.getByHexCode(hex);
           });
