@@ -471,6 +471,7 @@ var ColorContrastCalc = function () {
   }, {
     key: "calcBrightnessRatio",
     value: function calcBrightnessRatio(otherColor, targetRatio, criteria, w) {
+      var otherRgb = otherColor.rgb;
       var r = w;
       var lastSufficentRatio = null;
 
@@ -482,8 +483,8 @@ var ColorContrastCalc = function () {
         for (var _iterator2 = (0, _getIterator3.default)(ColorContrastCalc.binarySearchWidth(w, 0.01)), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
           var d = _step2.value;
 
-          var newColor = otherColor.newBrightnessColor(r);
-          var contrastRatio = newColor.contrastRatioAgainst(this);
+          var newRgb = Utils.BrightnessCalc.calcRgb(otherRgb, r);
+          var contrastRatio = this.calcContrastRatio(newRgb);
 
           if (contrastRatio >= targetRatio) {
             lastSufficentRatio = r;
@@ -509,6 +510,25 @@ var ColorContrastCalc = function () {
       }
 
       return [r, lastSufficentRatio];
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "calcContrastRatio",
+    value: function calcContrastRatio(otherRgb) {
+      var otherLuminance = ColorContrastCalc.relativeLuminance(otherRgb);
+
+      var _sort3 = [this.relativeLuminance, otherLuminance].sort(function (f, b) {
+        return b - f;
+      }),
+          _sort4 = (0, _slicedToArray3.default)(_sort3, 2),
+          l1 = _sort4[0],
+          l2 = _sort4[1];
+
+      return (l1 + 0.05) / (l2 + 0.05);
     }
 
     /**

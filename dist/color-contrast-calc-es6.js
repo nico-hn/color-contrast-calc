@@ -468,12 +468,13 @@ class ColorContrastCalc {
    * @private
    */
   calcBrightnessRatio(otherColor, targetRatio, criteria, w) {
+    const otherRgb = otherColor.rgb;
     let r = w;
     let lastSufficentRatio = null;
 
     for (let d of ColorContrastCalc.binarySearchWidth(w, 0.01)) {
-      let newColor = otherColor.newBrightnessColor(r);
-      let contrastRatio = newColor.contrastRatioAgainst(this);
+      const newRgb = Utils.BrightnessCalc.calcRgb(otherRgb, r);
+      const contrastRatio = this.calcContrastRatio(newRgb);
 
       if (contrastRatio >= targetRatio) { lastSufficentRatio = r; }
       if (contrastRatio === targetRatio) { break; }
@@ -482,6 +483,17 @@ class ColorContrastCalc {
 
     return [r, lastSufficentRatio];
   }
+
+  /**
+   * @private
+   */
+  calcContrastRatio(otherRgb) {
+    const otherLuminance = ColorContrastCalc.relativeLuminance(otherRgb);
+    const [l1, l2] = [this.relativeLuminance, otherLuminance]
+            .sort((f, b) => b - f);
+    return (l1 + 0.05) / (l2 + 0.05);
+  }
+
 
   /**
    * @private
