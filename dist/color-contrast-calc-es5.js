@@ -10,9 +10,9 @@ var _regenerator = require("babel-runtime/regenerator");
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
 
-var _map = require("babel-runtime/core-js/map");
+var _map3 = require("babel-runtime/core-js/map");
 
-var _map2 = _interopRequireDefault(_map);
+var _map4 = _interopRequireDefault(_map3);
 
 var _freeze = require("babel-runtime/core-js/object/freeze");
 
@@ -82,18 +82,13 @@ var ColorContrastCalc = function () {
      * @returns {number}
      */
     value: function contrastRatioAgainst(color) {
+      var ownClass = this.constructor;
+
       if (!(color instanceof ColorContrastCalc)) {
-        return this.constructor.contrastRatio(this.rgb, color);
+        return ownClass.contrastRatio(this.rgb, color);
       }
 
-      var _sort = [this.relativeLuminance, color.relativeLuminance].sort(function (s, o) {
-        return o - s;
-      }),
-          _sort2 = (0, _slicedToArray3.default)(_sort, 2),
-          l1 = _sort2[0],
-          l2 = _sort2[1];
-
-      return (l1 + 0.05) / (l2 + 0.05);
+      return ownClass.luminanceToContrastRatio(this.relativeLuminance, color.relativeLuminance);
     }
 
     /**
@@ -520,15 +515,7 @@ var ColorContrastCalc = function () {
     key: "calcContrastRatio",
     value: function calcContrastRatio(otherRgb) {
       var otherLuminance = ColorContrastCalc.relativeLuminance(otherRgb);
-
-      var _sort3 = [this.relativeLuminance, otherLuminance].sort(function (f, b) {
-        return b - f;
-      }),
-          _sort4 = (0, _slicedToArray3.default)(_sort3, 2),
-          l1 = _sort4[0],
-          l2 = _sort4[1];
-
-      return (l1 + 0.05) / (l2 + 0.05);
+      return ColorContrastCalc.luminanceToContrastRatio(this.relativeLuminance, otherLuminance);
     }
 
     /**
@@ -702,16 +689,14 @@ var ColorContrastCalc = function () {
     value: function contrastRatio(foreground, background) {
       var _this4 = this;
 
-      var _map$sort = [foreground, background].map(function (c) {
+      var _map = [foreground, background].map(function (c) {
         return _this4.relativeLuminance(c);
-      }).sort(function (f, b) {
-        return b - f;
       }),
-          _map$sort2 = (0, _slicedToArray3.default)(_map$sort, 2),
-          l1 = _map$sort2[0],
-          l2 = _map$sort2[1];
+          _map2 = (0, _slicedToArray3.default)(_map, 2),
+          l1 = _map2[0],
+          l2 = _map2[1];
 
-      return (l1 + 0.05) / (l2 + 0.05);
+      return this.luminanceToContrastRatio(l1, l2);
     }
 
     /**
@@ -794,6 +779,23 @@ var ColorContrastCalc = function () {
      */
 
   }, {
+    key: "luminanceToContrastRatio",
+    value: function luminanceToContrastRatio(luminance1, luminance2) {
+      var _sort = [luminance1, luminance2].sort(function (f, s) {
+        return s - f;
+      }),
+          _sort2 = (0, _slicedToArray3.default)(_sort, 2),
+          l1 = _sort2[0],
+          l2 = _sort2[1];
+
+      return (l1 + 0.05) / (l2 + 0.05);
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
     key: "setup",
     value: function setup(colorKeywordsJSON) {
       this.loadColorKeywords(colorKeywordsJSON);
@@ -817,9 +819,9 @@ var ColorContrastCalc = function () {
        */
       this.NAMED_COLORS = [];
       /** @private */
-      this.NAME_TO_COLOR = new _map2.default();
+      this.NAME_TO_COLOR = new _map4.default();
       /** @private */
-      this.HEX_TO_COLOR = new _map2.default();
+      this.HEX_TO_COLOR = new _map4.default();
       colorKeywordsJSON.forEach(function (color) {
         var _color = (0, _slicedToArray3.default)(color, 2),
             name = _color[0],
@@ -1015,7 +1017,7 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
         var colorOrder = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "rgb";
 
         var order = this.parseColorOrder(colorOrder);
-        var componentsCache = new _map2.default();
+        var componentsCache = new _map4.default();
 
         return function (hex1, hex2) {
           var color1 = Sorter.hexToComponents(hex1, order, componentsCache);

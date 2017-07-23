@@ -65,9 +65,8 @@ class ColorContrastCalc {
    */
   static contrastRatio(foreground, background) {
     const [l1, l2] = [foreground, background]
-          .map(c => this.relativeLuminance(c))
-          .sort((f, b) => b - f);
-    return (l1 + 0.05) / (l2 + 0.05);
+            .map(c => this.relativeLuminance(c));
+    return this.luminanceToContrastRatio(l1, l2);
   }
 
   /**
@@ -120,6 +119,15 @@ class ColorContrastCalc {
    */
   static newHslColor(hsl) {
     return this.getByHexCode(Utils.hslToHexCode(hsl));
+  }
+
+  /**
+   * @private
+   */
+  static luminanceToContrastRatio(luminance1, luminance2) {
+    const [l1, l2] = [luminance1, luminance2]
+            .sort((f, s) => s - f);
+    return (l1 + 0.05) / (l2 + 0.05);
   }
 
   /**
@@ -208,13 +216,14 @@ class ColorContrastCalc {
    * @returns {number}
    */
   contrastRatioAgainst(color) {
+    const ownClass = this.constructor;
+
     if (!(color instanceof ColorContrastCalc)) {
-      return this.constructor.contrastRatio(this.rgb, color);
+      return ownClass.contrastRatio(this.rgb, color);
     }
 
-    const [l1, l2] = [this.relativeLuminance, color.relativeLuminance]
-          .sort((s, o) => o - s);
-    return (l1 + 0.05) / (l2 + 0.05);
+    return ownClass.luminanceToContrastRatio(this.relativeLuminance,
+                                             color.relativeLuminance);
   }
 
   /**
@@ -489,9 +498,8 @@ class ColorContrastCalc {
    */
   calcContrastRatio(otherRgb) {
     const otherLuminance = ColorContrastCalc.relativeLuminance(otherRgb);
-    const [l1, l2] = [this.relativeLuminance, otherLuminance]
-            .sort((f, b) => b - f);
-    return (l1 + 0.05) / (l2 + 0.05);
+    return ColorContrastCalc.luminanceToContrastRatio(this.relativeLuminance,
+                                                      otherLuminance);
   }
 
 
