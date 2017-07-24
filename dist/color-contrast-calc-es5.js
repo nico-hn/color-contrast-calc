@@ -997,7 +997,7 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
         var type = order.type;
 
         return function (color1, color2) {
-          return Sorter.compareColorComponents(color1[type], color2[type], order.pos, order.funcs);
+          return Sorter.compareColorComponents(color1[type], color2[type], order);
         };
       }
     }, {
@@ -1008,7 +1008,7 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
         var order = this.parseColorOrder(colorOrder);
 
         return function (rgb1, rgb2) {
-          return Sorter.compareColorComponents(rgb1, rgb2, order.pos, order.funcs);
+          return Sorter.compareColorComponents(rgb1, rgb2, order);
         };
       }
     }, {
@@ -1023,23 +1023,22 @@ ColorContrastCalc.binarySearchWidth = _regenerator2.default.mark(function _calle
           var color1 = Sorter.hexToComponents(hex1, order, componentsCache);
           var color2 = Sorter.hexToComponents(hex2, order, componentsCache);
 
-          return Sorter.compareColorComponents(color1, color2, order.pos, order.funcs);
+          return Sorter.compareColorComponents(color1, color2, order);
         };
       }
     }, {
       key: "compareColorComponents",
       value: function compareColorComponents(color1, color2) {
-        var componentPos = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [0, 1, 2];
-        var compFuncs = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.defaultCompFuncs;
+        var order = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.parseColorOrder("rgb");
         var _iteratorNormalCompletion3 = true;
         var _didIteratorError3 = false;
         var _iteratorError3 = undefined;
 
         try {
-          for (var _iterator3 = (0, _getIterator3.default)(componentPos), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          for (var _iterator3 = (0, _getIterator3.default)(order.pos), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
             var i = _step3.value;
 
-            var result = compFuncs[i](color1[i], color2[i]);
+            var result = order.funcs[i](color1[i], color2[i]);
             if (result !== 0) {
               return result;
             }
