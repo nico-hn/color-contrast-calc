@@ -100,9 +100,8 @@ class ColorContrastCalc {
    */
   static contrastRatio(foreground, background) {
     const [l1, l2] = [foreground, background]
-          .map(c =&gt; this.relativeLuminance(c))
-          .sort((f, b) =&gt; b - f);
-    return (l1 + 0.05) / (l2 + 0.05);
+            .map(c =&gt; this.relativeLuminance(c));
+    return this.luminanceToContrastRatio(l1, l2);
   }
 
   /**
@@ -155,6 +154,15 @@ class ColorContrastCalc {
    */
   static newHslColor(hsl) {
     return this.getByHexCode(Utils.hslToHexCode(hsl));
+  }
+
+  /**
+   * @private
+   */
+  static luminanceToContrastRatio(luminance1, luminance2) {
+    const [l1, l2] = [luminance1, luminance2]
+            .sort((f, s) =&gt; s - f);
+    return (l1 + 0.05) / (l2 + 0.05);
   }
 
   /**
@@ -243,13 +251,14 @@ class ColorContrastCalc {
    * @returns {number}
    */
   contrastRatioAgainst(color) {
+    const ownClass = this.constructor;
+
     if (!(color instanceof ColorContrastCalc)) {
-      return this.constructor.contrastRatio(this.rgb, color);
+      return ownClass.contrastRatio(this.rgb, color);
     }
 
-    const [l1, l2] = [this.relativeLuminance, color.relativeLuminance]
-          .sort((s, o) =&gt; o - s);
-    return (l1 + 0.05) / (l2 + 0.05);
+    return ownClass.luminanceToContrastRatio(this.relativeLuminance,
+                                             color.relativeLuminance);
   }
 
   /**
@@ -524,9 +533,8 @@ class ColorContrastCalc {
    */
   calcContrastRatio(otherRgb) {
     const otherLuminance = ColorContrastCalc.relativeLuminance(otherRgb);
-    const [l1, l2] = [this.relativeLuminance, otherLuminance]
-            .sort((f, b) =&gt; b - f);
-    return (l1 + 0.05) / (l2 + 0.05);
+    return ColorContrastCalc.luminanceToContrastRatio(this.relativeLuminance,
+                                                      otherLuminance);
   }
 
 
@@ -679,7 +687,7 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
       const type = order.type;
 
       return function(color1, color2) {
-        return Sorter.compareColorComponents(color1[type], color2[type], order.pos, order.funcs);
+        return Sorter.compareColorComponents(color1[type], color2[type], order);
       };
     }
 
@@ -687,7 +695,7 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
       const order = this.parseColorOrder(colorOrder);
 
       return function(rgb1, rgb2) {
-        return Sorter.compareColorComponents(rgb1, rgb2, order.pos, order.funcs);
+        return Sorter.compareColorComponents(rgb1, rgb2, order);
       };
     }
 
@@ -699,15 +707,14 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
         const color1 = Sorter.hexToComponents(hex1, order, componentsCache);
         const color2 = Sorter.hexToComponents(hex2, order, componentsCache);
 
-        return Sorter.compareColorComponents(color1, color2,
-                                             order.pos, order.funcs);
+        return Sorter.compareColorComponents(color1, color2, order);
       };
     }
 
-    static compareColorComponents(color1, color2, componentPos = [0, 1, 2],
-                                  compFuncs = this.defaultCompFuncs) {
-      for (let i of componentPos) {
-        const result = compFuncs[i](color1[i], color2[i]);
+    static compareColorComponents(color1, color2,
+                                  order = this.parseColorOrder(&quot;rgb&quot;)) {
+      for (let i of order.pos) {
+        const result = order.funcs[i](color1[i], color2[i]);
         if (result !== 0) { return result; }
       }
 
@@ -821,9 +828,8 @@ ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
 
 ColorContrastCalc.setup(require(&quot;./color-keywords.json&quot;));
 
-//module.exports.ColorUtils = ColorUtils;
-//module.exports.ColorContrastCalc = ColorContrastCalc;
-export { ColorContrastCalc };
+module.exports.ColorUtils = ColorUtils;
+module.exports.ColorContrastCalc = ColorContrastCalc;
 </code></pre>
 
 </div>

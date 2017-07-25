@@ -1,28 +1,28 @@
 {
   "type": "File",
   "start": 0,
-  "end": 12628,
+  "end": 12586,
   "loc": {
     "start": {
       "line": 1,
       "column": 0
     },
     "end": {
-      "line": 436,
+      "line": 435,
       "column": 0
     }
   },
   "program": {
     "type": "Program",
     "start": 0,
-    "end": 12628,
+    "end": 12586,
     "loc": {
       "start": {
         "line": 1,
         "column": 0
       },
       "end": {
-        "line": 436,
+        "line": 435,
         "column": 0
       }
     },
@@ -26058,37 +26058,19 @@
             "computed": false
           },
           "arguments": []
-        },
-        "trailingComments": [
-          {
-            "type": "CommentLine",
-            "value": "module.exports.ColorUtils = ColorUtils;",
-            "start": 12563,
-            "end": 12604,
-            "loc": {
-              "start": {
-                "line": 434,
-                "column": 0
-              },
-              "end": {
-                "line": 434,
-                "column": 41
-              }
-            }
-          }
-        ]
+        }
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 12605,
-        "end": 12627,
+        "start": 12563,
+        "end": 12585,
         "loc": {
           "start": {
-            "line": 435,
+            "line": 434,
             "column": 0
           },
           "end": {
-            "line": 435,
+            "line": 434,
             "column": 22
           }
         },
@@ -26096,87 +26078,67 @@
         "specifiers": [
           {
             "type": "ExportSpecifier",
-            "start": 12614,
-            "end": 12624,
+            "start": 12572,
+            "end": 12582,
             "loc": {
               "start": {
-                "line": 435,
+                "line": 434,
                 "column": 9
               },
               "end": {
-                "line": 435,
+                "line": 434,
                 "column": 19
               }
             },
             "local": {
               "type": "Identifier",
-              "start": 12614,
-              "end": 12624,
+              "start": 12572,
+              "end": 12582,
               "loc": {
                 "start": {
-                  "line": 435,
+                  "line": 434,
                   "column": 9
                 },
                 "end": {
-                  "line": 435,
-                  "column": 19
-                },
-                "identifierName": "ColorUtils"
-              },
-              "name": "ColorUtils",
-              "leadingComments": null
-            },
-            "exported": {
-              "type": "Identifier",
-              "start": 12614,
-              "end": 12624,
-              "loc": {
-                "start": {
-                  "line": 435,
-                  "column": 9
-                },
-                "end": {
-                  "line": 435,
+                  "line": 434,
                   "column": 19
                 },
                 "identifierName": "ColorUtils"
               },
               "name": "ColorUtils"
             },
-            "leadingComments": null
-          }
-        ],
-        "source": null,
-        "leadingComments": [
-          {
-            "type": "CommentLine",
-            "value": "module.exports.ColorUtils = ColorUtils;",
-            "start": 12563,
-            "end": 12604,
-            "loc": {
-              "start": {
-                "line": 434,
-                "column": 0
+            "exported": {
+              "type": "Identifier",
+              "start": 12572,
+              "end": 12582,
+              "loc": {
+                "start": {
+                  "line": 434,
+                  "column": 9
+                },
+                "end": {
+                  "line": 434,
+                  "column": 19
+                },
+                "identifierName": "ColorUtils"
               },
-              "end": {
-                "line": 434,
-                "column": 41
-              }
+              "name": "ColorUtils"
             }
           }
-        ]
+        ],
+        "source": null
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 12605,
-        "end": 12627,
+        "start": 12563,
+        "end": 12585,
         "loc": {
           "start": {
-            "line": 435,
+            "line": 434,
             "column": 0
           },
           "end": {
-            "line": 435,
+            "line": 434,
             "column": 22
           }
         },
@@ -42502,22 +42464,6 @@
         "end": {
           "line": 410,
           "column": 6
-        }
-      }
-    },
-    {
-      "type": "CommentLine",
-      "value": "module.exports.ColorUtils = ColorUtils;",
-      "start": 12563,
-      "end": 12604,
-      "loc": {
-        "start": {
-          "line": 434,
-          "column": 0
-        },
-        "end": {
-          "line": 434,
-          "column": 41
         }
       }
     }
@@ -95070,22 +95016,6 @@
       }
     },
     {
-      "type": "CommentLine",
-      "value": "module.exports.ColorUtils = ColorUtils;",
-      "start": 12563,
-      "end": 12604,
-      "loc": {
-        "start": {
-          "line": 434,
-          "column": 0
-        },
-        "end": {
-          "line": 434,
-          "column": 41
-        }
-      }
-    },
-    {
       "type": {
         "label": "export",
         "keyword": "export",
@@ -95100,15 +95030,15 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 12605,
-      "end": 12611,
+      "start": 12563,
+      "end": 12569,
       "loc": {
         "start": {
-          "line": 435,
+          "line": 434,
           "column": 0
         },
         "end": {
-          "line": 435,
+          "line": 434,
           "column": 6
         }
       }
@@ -95125,15 +95055,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 12612,
-      "end": 12613,
+      "start": 12570,
+      "end": 12571,
       "loc": {
         "start": {
-          "line": 435,
+          "line": 434,
           "column": 7
         },
         "end": {
-          "line": 435,
+          "line": 434,
           "column": 8
         }
       }
@@ -95151,15 +95081,15 @@
         "binop": null
       },
       "value": "ColorUtils",
-      "start": 12614,
-      "end": 12624,
+      "start": 12572,
+      "end": 12582,
       "loc": {
         "start": {
-          "line": 435,
+          "line": 434,
           "column": 9
         },
         "end": {
-          "line": 435,
+          "line": 434,
           "column": 19
         }
       }
@@ -95176,15 +95106,15 @@
         "postfix": false,
         "binop": null
       },
-      "start": 12625,
-      "end": 12626,
+      "start": 12583,
+      "end": 12584,
       "loc": {
         "start": {
-          "line": 435,
+          "line": 434,
           "column": 20
         },
         "end": {
-          "line": 435,
+          "line": 434,
           "column": 21
         }
       }
@@ -95202,15 +95132,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 12626,
-      "end": 12627,
+      "start": 12584,
+      "end": 12585,
       "loc": {
         "start": {
-          "line": 435,
+          "line": 434,
           "column": 21
         },
         "end": {
-          "line": 435,
+          "line": 434,
           "column": 22
         }
       }
@@ -95228,15 +95158,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 12628,
-      "end": 12628,
+      "start": 12586,
+      "end": 12586,
       "loc": {
         "start": {
-          "line": 436,
+          "line": 435,
           "column": 0
         },
         "end": {
-          "line": 436,
+          "line": 435,
           "column": 0
         }
       }
