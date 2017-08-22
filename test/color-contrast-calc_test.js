@@ -687,7 +687,7 @@ describe("ColorContrastCalc", () => {
       expect(yellow.name).to.equal("yellow");
     });
 
-    it("expects to assign the hex notation of rgb to its name property if no name is specified", function() {
+    it("expects to assign the value of .hexCode to .name if no name is specified", function() {
       const yellow = new ColorContrastCalc(rgb_yellow);
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.name).to.equal("#ffff00");
