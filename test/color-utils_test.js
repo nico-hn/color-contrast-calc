@@ -223,7 +223,7 @@ describe("ColorUtils", function() {
     });
 
     it("expects to return false for [255, 165, -1]", function() {
-      expect(ColorUtils.isValidRgb([256, 165, 0])).to.be.false;
+      expect(ColorUtils.isValidRgb([256, 165, -1])).to.be.false;
     });
 
     it("expects to return false for [255, 165]", function() {
