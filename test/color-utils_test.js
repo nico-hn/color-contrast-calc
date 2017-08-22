@@ -31,15 +31,15 @@ describe("ColorUtils", function() {
 
   describe("normalizeHexCode", function() {
     context("When prefix is true", function() {
-      it("expects to return 'ffa500' when '#ffa500' is passed", function() {
+      it("expects to return '#ffa500' when '#ffa500' is passed", function() {
         expect(ColorUtils.normalizeHexCode("#ffa500")).to.equal("#ffa500");
       });
 
-      it("expects to return 'FFA500' when '#FFA500' is passed", function() {
+      it("expects to return '#ffa500' when '#FFA500' is passed", function() {
         expect(ColorUtils.normalizeHexCode("#FFA500")).to.equal("#ffa500");
       });
 
-      it("expects to return 'ffaa00' when '#fa0' is passed", function() {
+      it("expects to return '#ffaa00' when '#fa0' is passed", function() {
         expect(ColorUtils.normalizeHexCode("#fa0")).to.equal("#ffaa00");
       });
     });
@@ -49,7 +49,7 @@ describe("ColorUtils", function() {
         expect(ColorUtils.normalizeHexCode("#ffa500", false)).to.equal("ffa500");
       });
 
-      it("expects to return 'FFA500' when '#FFA500' is passed", function() {
+      it("expects to return 'ffa500' when '#FFA500' is passed", function() {
         expect(ColorUtils.normalizeHexCode("#FFA500", false)).to.equal("ffa500");
       });
 
@@ -70,7 +70,7 @@ describe("ColorUtils", function() {
       expect(ColorUtils.hslToRgb([0, 100, 50])).to.deep.equal([255, 0, 0]);
     });
 
-    it("expects to return [255, 128, 0] when [30, 128, 50] is passed", function() {
+    it("expects to return [255, 128, 0] when [30, 100, 50] is passed", function() {
       expect(ColorUtils.hslToRgb([30, 100, 50])).to.deep.equal([255, 128, 0]);
     });
 
@@ -223,7 +223,7 @@ describe("ColorUtils", function() {
     });
 
     it("expects to return false for [255, 165, -1]", function() {
-      expect(ColorUtils.isValidRgb([256, 165, 0])).to.be.false;
+      expect(ColorUtils.isValidRgb([256, 165, -1])).to.be.false;
     });
 
     it("expects to return false for [255, 165]", function() {
@@ -290,7 +290,7 @@ describe("ColorUtils", function() {
       expect(ColorUtils.isValidHexCode("ffa500")).to.be.true;
     });
 
-    it("expects to return true for 'ffa500'", function() {
+    it("expects to return true for '#999999'", function() {
       expect(ColorUtils.isValidHexCode("#999999")).to.be.true;
     });
 
@@ -298,7 +298,7 @@ describe("ColorUtils", function() {
       expect(ColorUtils.isValidHexCode("#ff0")).to.be.true;
     });
 
-    it("expects to return true for '#ff0'", function() {
+    it("expects to return true for 'ff0'", function() {
       expect(ColorUtils.isValidHexCode("ff0")).to.be.true;
     });
 

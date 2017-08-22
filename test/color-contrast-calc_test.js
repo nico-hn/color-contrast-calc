@@ -55,7 +55,7 @@ describe("ColorContrastCalc", () => {
     });
 
     describe("HEX_TO_COLOR", function() {
-      it("expects to return a corresponding instance for a passed hex color", function() {
+      it("expects to return a corresponding instance for a passed hex code", function() {
         const black = ColorContrastCalc.HEX_TO_COLOR.get("#000000");
         const white = ColorContrastCalc.HEX_TO_COLOR.get("#ffffff");
         expect(black.name).to.equal("black");
@@ -648,7 +648,7 @@ describe("ColorContrastCalc", () => {
     });
 
     describe("newHslColor", function() {
-      it("expects to return an instance with .hexCode '#ffff000' when [60, 100, 50]  is passed", function() {
+      it("expects to return an instance with .hexCode '#ffff00' when [60, 100, 50]  is passed", function() {
         expect(ColorContrastCalc.newHslColor([60, 100, 50]).hexCode).to.equal("#ffff00");
       });
 
@@ -687,7 +687,7 @@ describe("ColorContrastCalc", () => {
       expect(yellow.name).to.equal("yellow");
     });
 
-    it("expects to assign the hex notation of rgb to its name property if no name is specified", function() {
+    it("expects to assign the value of .hexCode to .name if no name is specified", function() {
       const yellow = new ColorContrastCalc(rgb_yellow);
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.name).to.equal("#ffff00");
@@ -885,7 +885,7 @@ describe("ColorContrastCalc", () => {
 
   describe("newInvertColor", function() {
     const yellow = new ColorContrastCalc([255, 255, 0], "yellow");
-    const blue = new ColorContrastCalc([0, 0, 255], "yellow");
+    const blue = new ColorContrastCalc([0, 0, 255], "blue");
 
     it("expects to return yellow if 0 is passed to yellow", function() {
       const newColor = yellow.newInvertColor(0);
@@ -970,7 +970,7 @@ describe("ColorContrastCalc", () => {
       expect(orange.newGrayscaleColor(0).isSameColor(orange)).to.be.true;
     });
 
-    it("expects to a gray color if 100 is passed", function() {
+    it("expects to return a gray color if 100 is passed", function() {
       expect(orange.newGrayscaleColor(100).hexCode).to.equal("#acacac");
     });
 
@@ -1263,7 +1263,7 @@ describe("ColorContrastCalc", () => {
       expect(orange.hasSufficientContrast(blueviolet)).to.be.false;
     });
 
-    it("expects to return false for orange and blueviolet when level is 'A'", function() {
+    it("expects to return true for orange and blueviolet when level is 'A'", function() {
       const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
       const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
       expect(orange.hasSufficientContrast(blueviolet, "A")).to.be.true;
