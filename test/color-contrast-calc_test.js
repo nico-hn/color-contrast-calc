@@ -1333,8 +1333,8 @@ describe("ColorContrastCalc", () => {
     });
 
     it("expects to return 100 for black", function() {
-      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("black");
-      expect(blueviolet.calcUpperRatioLimit()).to.equal(100);
+      const black = ColorContrastCalc.NAME_TO_COLOR.get("black");
+      expect(black.calcUpperRatioLimit()).to.equal(100);
     });
   });
 });
