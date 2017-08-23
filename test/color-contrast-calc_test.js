@@ -1322,7 +1322,7 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("calcUpperRatioLimit", function() {
-    it("expects to return 155 for ", function() {
+    it("expects to return 155 for orange", function() {
       const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
       expect(orange.calcUpperRatioLimit()).to.equal(155);
     });
