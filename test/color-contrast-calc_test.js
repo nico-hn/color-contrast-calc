@@ -36,7 +36,7 @@ describe("ColorContrastCalc", () => {
 
     describe("NAMED_COLORS", function() {
       it("expects to contain predefined instances of ColorContrastCalc", function() {
-        expect(ColorContrastCalc.NAMED_COLORS[0]).to.be.instanceof(ColorContrastCalc);
+        expect(ColorContrastCalc.NAMED_COLORS[0]).to.be.instanceof(Color);
         expect(ColorContrastCalc.NAMED_COLORS[0].name).to.equal("aliceblue");
         expect(ColorContrastCalc.NAMED_COLORS[0].rgb).to.deep.equal([240, 248, 255]);
         expect(ColorContrastCalc.NAMED_COLORS[0].hexCode).to.deep.equal("#f0f8ff");
