@@ -1084,6 +1084,7 @@ describe("ColorContrastCalc", () => {
 
     it("expects to return darker green when springgreen is passed to green", function() {
       const aColor = green.findBrightnessThreshold(springgreen, "A");
+      expect(springgreen.isBrighterThan(aColor)).to.be.true;
       expect(green.contrastRatioAgainst(aColor)).to.be.closeTo(3.0, 0.5);
     });
 
