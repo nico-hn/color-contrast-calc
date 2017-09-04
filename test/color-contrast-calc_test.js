@@ -2,6 +2,7 @@
 
 const expect = require("chai").expect;
 const ColorContrastCalc = require("../lib/color-contrast-calc").ColorContrastCalc;
+const Color = require("../lib/color-contrast-calc").Color;
 
 describe("ColorContrastCalc", () => {
   const MIN_CONTRAST = 1.0;
@@ -222,12 +223,12 @@ describe("ColorContrastCalc", () => {
 
       context("When an array of ColorContrastCalc instances is passed", function() {
         before(function() {
-          this.black = new ColorContrastCalc("#000000");
-          this.gray = new ColorContrastCalc("#808080");
-          this.blue = new ColorContrastCalc("#0000ff");
-          this.yellow = new ColorContrastCalc("#ffff00");
-          this.orange = new ColorContrastCalc("#ffa500");
-          this.springgreen = new ColorContrastCalc("#00ff7f");
+          this.black = new Color("#000000");
+          this.gray = new Color("#808080");
+          this.blue = new Color("#0000ff");
+          this.yellow = new Color("#ffff00");
+          this.orange = new Color("#ffa500");
+          this.springgreen = new Color("#00ff7f");
         });
 
         expectations();
@@ -412,10 +413,10 @@ describe("ColorContrastCalc", () => {
       };
 
       context("When colors are given as ColorContrastCalc instances", function() {
-        const yellow = new ColorContrastCalc("#ffff00");
-        const orange = new ColorContrastCalc("#ffa500");
-        const deepskyblue = new ColorContrastCalc("#00bfff");
-        const springgreen = new ColorContrastCalc("#00ff7f");
+        const yellow = new Color("#ffff00");
+        const orange = new Color("#ffa500");
+        const deepskyblue = new Color("#00bfff");
+        const springgreen = new Color("#00ff7f");
         const keyType = "color";
 
         context("when colorOrder is the default value of 'rgb'", function() {
@@ -673,7 +674,7 @@ describe("ColorContrastCalc", () => {
     const rgb_yellow = [255, 255, 0];
 
     it("expects to generate an instance with rgb and name properties", function() {
-      const yellow = new ColorContrastCalc(rgb_yellow, "yellow");
+      const yellow = new Color(rgb_yellow, "yellow");
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.relativeLuminance).to.be.closeTo(0.9278, 0.01);
       expect(yellow.name).to.equal("yellow");
@@ -681,20 +682,20 @@ describe("ColorContrastCalc", () => {
     });
 
     it("expects to generate an instance with rgb in hex notation and name properties", function() {
-      const yellow = new ColorContrastCalc("#ffff00", "yellow");
+      const yellow = new Color("#ffff00", "yellow");
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.relativeLuminance).to.be.closeTo(0.9278, 0.01);
       expect(yellow.name).to.equal("yellow");
     });
 
     it("expects to assign the value of .hexCode to .name if no name is specified", function() {
-      const yellow = new ColorContrastCalc(rgb_yellow);
+      const yellow = new Color(rgb_yellow);
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.name).to.equal("#ffff00");
     });
 
     it("properties of a returned object are frozen", function() {
-      const yellow = new ColorContrastCalc(rgb_yellow);
+      const yellow = new Color(rgb_yellow);
       expect(Object.isFrozen(yellow.rgb)).to.be.true;
       expect(Object.isFrozen(yellow.relativeLuminance)).to.be.true;
       expect(Object.isFrozen(yellow.name)).to.be.true;
@@ -731,25 +732,25 @@ describe("ColorContrastCalc", () => {
     const contrast = 4.23;
 
     it("expects to return 4.23 when own color is [127, 127, 32] and the other color is white", function() {
-      const color = new ColorContrastCalc(rgb);
+      const color = new Color(rgb);
       expect(color.contrastRatioAgainst(RGB_WHITE)).to.be.closeTo(contrast, 0.01);
     });
 
     it("expects to return 4.23 when own color is [127, 127, 32] and the other color is #ffffff", function() {
-      const color = new ColorContrastCalc(rgb);
+      const color = new Color(rgb);
       expect(color.contrastRatioAgainst("#ffffff")).to.be.closeTo(contrast, 0.01);
     });
 
     it("expects to return 4.23 when own color is [127, 127, 32] and the other is an instance of ColorContrastCalc which represents white", function() {
-      const color = new ColorContrastCalc(rgb);
-      const white = new ColorContrastCalc([255, 255, 255]);
+      const color = new Color(rgb);
+      const white = new Color([255, 255, 255]);
       expect(color.contrastRatioAgainst(white)).to.be.closeTo(contrast, 0.01);
       expect(white.contrastRatioAgainst(color)).to.be.closeTo(contrast, 0.01);
     });
   });
 
   describe("toString", function() {
-    const yellow = new ColorContrastCalc("#ffff00", "yellow");
+    const yellow = new Color("#ffff00", "yellow");
 
     it("expects to return hexCode when base is 16", function() {
       expect(yellow.toString(16)).to.equal("#ffff00");
@@ -765,8 +766,8 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("colorsWithSufficientContrast", function() {
-    const white = new ColorContrastCalc(RGB_WHITE, "white");
-    const black = new ColorContrastCalc(RGB_BLACK, "black");
+    const white = new Color(RGB_WHITE, "white");
+    const black = new Color(RGB_BLACK, "black");
 
     it("expects to return an array of colors that satisfy level AA of WCAG 2.0 by default", function() {
       expect(white.colorsWithSufficientContrast().length).to.equal(31);
@@ -789,9 +790,9 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("newContrastColor", function() {
-    const yellow = new ColorContrastCalc([255, 255, 0], "yellow");
-    const yellow2 = new ColorContrastCalc([254, 254, 0], "yellow2");
-    const orange = new ColorContrastCalc([255, 165, 0], "orange");
+    const yellow = new Color([255, 255, 0], "yellow");
+    const yellow2 = new Color([254, 254, 0], "yellow2");
+    const orange = new Color([255, 165, 0], "orange");
 
     it("expects to return the same rgb as the original if a given ratio is 100", function() {
       const hundred = yellow.newContrastColor(100, "yellow100");
@@ -831,10 +832,10 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("newBrightnessColor", function() {
-    const white = new ColorContrastCalc([255, 255, 255], "white");
-    const yellow = new ColorContrastCalc([255, 255, 0], "yellow");
-    const yellow2 = new ColorContrastCalc([254, 254, 0], "yellow2");
-    const orange = new ColorContrastCalc([255, 165, 0], "orange");
+    const white = new Color([255, 255, 255], "white");
+    const yellow = new Color([255, 255, 0], "yellow");
+    const yellow2 = new Color([254, 254, 0], "yellow2");
+    const orange = new Color([255, 165, 0], "orange");
 
     it("expects to return the same rgb as the original if a given ratio is 100", function() {
       const hundred = yellow.newBrightnessColor(100, "yellow100");
@@ -884,8 +885,8 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("newInvertColor", function() {
-    const yellow = new ColorContrastCalc([255, 255, 0], "yellow");
-    const blue = new ColorContrastCalc([0, 0, 255], "blue");
+    const yellow = new Color([255, 255, 0], "yellow");
+    const blue = new Color([0, 0, 255], "blue");
 
     it("expects to return yellow if 0 is passed to yellow", function() {
       const newColor = yellow.newInvertColor(0);
@@ -904,9 +905,9 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("newHueRotateColor", function() {
-    const yellow = new ColorContrastCalc([255, 255, 0], "yellow");
-    const blue = new ColorContrastCalc([0, 0, 255], "blue");
-    const orange = new ColorContrastCalc([255, 165, 0], "orange");
+    const yellow = new Color([255, 255, 0], "yellow");
+    const blue = new Color([0, 0, 255], "blue");
+    const orange = new Color([255, 165, 0], "orange");
 
     it("expects to return unchanged colors when 0 is passed", function() {
       expect(yellow.newHueRotateColor(0).rgb).to.deep.equal([255, 255, 0]);
@@ -941,7 +942,7 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("newSaturateColor", function() {
-    const orange = new ColorContrastCalc([255, 165, 0], "orange");
+    const orange = new Color([255, 165, 0], "orange");
 
     it("expects to return orange if 100 is passed", function() {
       expect(orange.newSaturateColor(100).rgb).to.deep.equal([255, 165, 0]);
@@ -964,7 +965,7 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("newGrayscaleColor", function() {
-    const orange = new ColorContrastCalc([255, 165, 0], "orange");
+    const orange = new Color([255, 165, 0], "orange");
 
     it("expects to the original color if 0 is passed", function() {
       expect(orange.newGrayscaleColor(0).isSameColor(orange)).to.be.true;
@@ -981,21 +982,21 @@ describe("ColorContrastCalc", () => {
 
   describe("BLACK", function() {
     it("expects to return an instance corresponding to black", function() {
-      const yellow = new ColorContrastCalc("#ffff00", "yellow");
+      const yellow = new Color("#ffff00", "yellow");
       expect(yellow.BLACK.name).to.equal("black");
     });
   });
 
   describe("WHITE", function() {
     it("expects to return an instance corresponding to white", function() {
-      const yellow = new ColorContrastCalc("#ffff00", "yellow");
+      const yellow = new Color("#ffff00", "yellow");
       expect(yellow.WHITE.name).to.equal("white");
     });
   });
 
   describe("GRAY", function() {
     it("expects to return an instance corresponding to #808080", function() {
-      const yellow = new ColorContrastCalc("#ffff00", "yellow");
+      const yellow = new Color("#ffff00", "yellow");
       expect(yellow.GRAY.name).to.equal("gray");
     });
   });
@@ -1291,8 +1292,8 @@ describe("ColorContrastCalc", () => {
     it("expects to be case insensitive", function() {
       const upperHexYellow = "#FFFF00";
       const lowerHexYellow = "#ffff00";
-      const upperYellow = new ColorContrastCalc(upperHexYellow);
-      const lowerYellow = new ColorContrastCalc(lowerHexYellow);
+      const upperYellow = new Color(upperHexYellow);
+      const lowerYellow = new Color(lowerHexYellow);
       expect(upperYellow.isSameColor(lowerYellow)).to.be.true;
     });
   });
