@@ -82,24 +82,6 @@ describe("ColorContrastCalc", () => {
       });
     });
 
-    describe("BLACK", function() {
-      it("expects to return an instance corresponding to black", function() {
-        expect(ColorContrastCalc.BLACK.name).to.equal("black");
-      });
-    });
-
-    describe("WHITE", function() {
-      it("expects to return an instance corresponding to white", function() {
-        expect(ColorContrastCalc.WHITE.name).to.equal("white");
-      });
-    });
-
-    describe("GRAY", function() {
-      it("expects to return an instance corresponding to #808080", function() {
-        expect(ColorContrastCalc.GRAY.hexCode).to.equal("#808080");
-      });
-    });
-
     describe("getByName", function() {
       it("expects to return yellow", function() {
         expect(ColorContrastCalc.getByName("yellow").rgb).to.deep.equal([255, 255, 0]);
