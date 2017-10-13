@@ -314,7 +314,7 @@ describe("Color", () => {
     const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
     const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
     const blue = ColorContrastCalc.NAME_TO_COLOR.get("blue");
-    const white = ColorContrastCalc.WHITE;
+    const white = Color.WHITE;
     const darkgreen = ColorContrastCalc.NAME_TO_COLOR.get("darkgreen");
     const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
     const mintcream = ColorContrastCalc.NAME_TO_COLOR.get("mintcream");
@@ -376,7 +376,7 @@ describe("Color", () => {
 
     it("expects to return black for AAA if blue is passed to green", function() {
       const newColor = green.findBrightnessThreshold(blue, "AAA");
-      expect(newColor.isSameColor(ColorContrastCalc.BLACK)).to.be.true;
+      expect(newColor.isSameColor(Color.BLACK)).to.be.true;
     });
 
     it("expects to return white when mintcream is passed to yellow", function() {
@@ -408,8 +408,8 @@ describe("Color", () => {
     const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
     const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
     const blue = ColorContrastCalc.NAME_TO_COLOR.get("blue");
-    const white = ColorContrastCalc.WHITE;
-    const black = ColorContrastCalc.BLACK;
+    const white = Color.WHITE;
+    const black = Color.BLACK;
     const darkgreen = ColorContrastCalc.NAME_TO_COLOR.get("darkgreen");
     const springgreen = ColorContrastCalc.NAME_TO_COLOR.get("springgreen");
     const green = ColorContrastCalc.NAME_TO_COLOR.get("green");
@@ -527,8 +527,8 @@ describe("Color", () => {
   });
 
   describe("contrastLevel", function() {
-    const white = ColorContrastCalc.WHITE;
-    const black = ColorContrastCalc.BLACK;
+    const white = Color.WHITE;
+    const black = Color.BLACK;
     const orange = ColorContrastCalc.getByName("orange");
     const royalblue = ColorContrastCalc.getByName("royalblue");
     const steelblue = ColorContrastCalc.getByName("steelblue");
@@ -552,8 +552,8 @@ describe("Color", () => {
 
   describe("hasSufficientContrast", function() {
     it("expects to return true for black and white", function() {
-      const black = ColorContrastCalc.BLACK;
-      const white = ColorContrastCalc.WHITE;
+      const black = Color.BLACK;
+      const white = Color.WHITE;
       expect(black.hasSufficientContrast(white)).to.be.true;
       expect(black.hasSufficientContrast(white, "A")).to.be.true;
       expect(black.hasSufficientContrast(white, "AAA")).to.be.true;
@@ -561,7 +561,7 @@ describe("Color", () => {
 
     it("expects to return false for orange and white", function() {
       const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
-      const white = ColorContrastCalc.WHITE;
+      const white = Color.WHITE;
       expect(orange.hasSufficientContrast(white)).to.be.false;
       expect(orange.hasSufficientContrast(white, "A")).to.be.false;
       expect(orange.hasSufficientContrast(white, "AAA")).to.be.false;
@@ -595,7 +595,7 @@ describe("Color", () => {
 
     it("expects to return fale if the values of hexCode are not same", function() {
       const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
-      expect(gray.isSameColor(ColorContrastCalc.WHITE)).to.be.false;
+      expect(gray.isSameColor(Color.WHITE)).to.be.false;
     });
 
     it("expects to be case insensitive", function() {
