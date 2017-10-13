@@ -700,43 +700,6 @@ describe("ColorContrastCalc", () => {
     });
   });
 
-  describe("newHueRotateColor", function() {
-    const yellow = new Color([255, 255, 0], "yellow");
-    const blue = new Color([0, 0, 255], "blue");
-    const orange = new Color([255, 165, 0], "orange");
-
-    it("expects to return unchanged colors when 0 is passed", function() {
-      expect(yellow.newHueRotateColor(0).rgb).to.deep.equal([255, 255, 0]);
-      expect(blue.newHueRotateColor(0).rgb).to.deep.equal([0, 0, 255]);
-      expect(orange.newHueRotateColor(0).rgb).to.deep.equal([255, 165, 0]);
-    });
-
-    it("expects to return unchanged colors when 360 is passed", function() {
-      expect(yellow.newHueRotateColor(360).rgb).to.deep.equal([255, 255, 0]);
-      expect(blue.newHueRotateColor(360).rgb).to.deep.equal([0, 0, 255]);
-      expect(orange.newHueRotateColor(360).rgb).to.deep.equal([255, 165, 0]);
-    });
-
-    it("expects to return new colors when 180 is passed", function() {
-      expect(Math.sin(Math.PI * 2.0)).to.be.closeTo(0, 0.001);
-      expect(yellow.newHueRotateColor(180).rgb).to.deep.equal([218, 218, 255]);
-      expect(yellow.newHueRotateColor(180).hexCode).to.equal("#dadaff");
-      expect(blue.newHueRotateColor(180).rgb).to.deep.equal([37, 37, 0]);
-      expect(blue.newHueRotateColor(180).hexCode).to.equal("#252500");
-      expect(orange.newHueRotateColor(180).rgb).to.deep.equal([90, 180, 255]);
-      expect(orange.newHueRotateColor(180).hexCode).to.equal("#5ab4ff");
-    });
-
-    it("expects to return new colors when 90 is passed", function() {
-      expect(yellow.newHueRotateColor(90).rgb).to.deep.equal([0, 255, 218]);
-      expect(yellow.newHueRotateColor(90).hexCode).to.equal("#00ffda");
-      expect(blue.newHueRotateColor(90).rgb).to.deep.equal([255, 0, 37]);
-      expect(blue.newHueRotateColor(90).hexCode).to.equal("#ff0025");
-      expect(orange.newHueRotateColor(90).rgb).to.deep.equal([0, 232, 90]);
-      expect(orange.newHueRotateColor(90).hexCode).to.equal("#00e85a");
-    });
-  });
-
   describe("newSaturateColor", function() {
     const orange = new Color([255, 165, 0], "orange");
 
