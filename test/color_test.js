@@ -139,5 +139,58 @@ describe("Color", () => {
       expect(orange120.name).to.equal("orange120");
     });
   });
+
+  describe("newBrightnessColor", function() {
+    const white = new Color([255, 255, 255], "white");
+    const yellow = new Color([255, 255, 0], "yellow");
+    const yellow2 = new Color([254, 254, 0], "yellow2");
+    const orange = new Color([255, 165, 0], "orange");
+
+    it("expects to return the same rgb as the original if a given ratio is 100", function() {
+      const hundred = yellow.newBrightnessColor(100, "yellow100");
+      const hundred2 = yellow2.newBrightnessColor(100, "yellow100_2");
+      const orange100 = yellow2.newBrightnessColor(100, "orange100");
+      expect(hundred.rgb).to.deep.equal([255, 255, 0]);
+      expect(hundred.name).to.equal("yellow100");
+      expect(hundred2.rgb).to.deep.equal([254, 254, 0]);
+      expect(hundred2.name).to.equal("yellow100_2");
+      expect(orange100.rgb).to.deep.equal([254, 254, 0]);
+      expect(orange100.name).to.equal("orange100");
+    });
+
+    it("expects to return the black color if a given ratio is 0", function() {
+      const zero = yellow.newBrightnessColor(0, "yellow0");
+      const zero2 = yellow2.newBrightnessColor(0, "yellow0_2");
+      const orange0 = orange.newBrightnessColor(0, "orange0");
+      expect(zero.rgb).to.deep.equal([0, 0, 0]);
+      expect(zero.name).to.equal("yellow0");
+      expect(zero2.rgb).to.deep.equal([0, 0, 0]);
+      expect(zero2.name).to.equal("yellow0_2");
+      expect(orange0.rgb).to.deep.equal([0, 0, 0]);
+      expect(orange0.name).to.equal("orange0");
+    });
+
+    it("expects to return a darker color if a given ratio is less than 100", function() {
+      const orange60 = orange.newBrightnessColor(60, "orange60");
+      expect(orange60.rgb).to.deep.equal([153, 99, 0]);
+      expect(orange60.name).to.equal("orange60");
+    });
+
+    it("expects to return a lighter color if a given ratio is greater than 100", function() {
+      const orange120 = orange.newBrightnessColor(120, "orange120");
+      expect(orange120.rgb).to.deep.equal([255, 198, 0]);
+      expect(orange120.name).to.equal("orange120");
+    });
+
+    it("expects to return white if white is combined with a ratio greater than 100", function() {
+      const white120 = white.newBrightnessColor(120, "white120");
+      expect(white120.hexCode).to.equal("#ffffff");
+    });
+
+    it("expects to return yellow if yellow is combined with a ratio greater than 100", function() {
+      const yellow120 = yellow.newBrightnessColor(120, "yellow120");
+      expect(yellow120.hexCode).to.equal("#ffff00");
+    });
+  });
 });
 
