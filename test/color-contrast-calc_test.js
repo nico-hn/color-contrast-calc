@@ -683,22 +683,5 @@ describe("ColorContrastCalc", () => {
       expect(ColorContrastCalc.colorsWithSufficientContrast(black, 3).length).to.equal(90);
     });
   });
-
-  describe("calcUpperRatioLimit", function() {
-    it("expects to return 155 for orange", function() {
-      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
-      expect(orange.calcUpperRatioLimit()).to.equal(155);
-    });
-
-    it("expects to return 594 for blueviolet", function() {
-      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
-      expect(blueviolet.calcUpperRatioLimit()).to.equal(594);
-    });
-
-    it("expects to return 100 for black", function() {
-      const black = ColorContrastCalc.NAME_TO_COLOR.get("black");
-      expect(black.calcUpperRatioLimit()).to.equal(100);
-    });
-  });
 });
 
