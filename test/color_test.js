@@ -549,5 +549,41 @@ describe("Color", () => {
       expect(orange.contrastLevel(white)).to.equal("-");
     });
   });
+
+  describe("hasSufficientContrast", function() {
+    it("expects to return true for black and white", function() {
+      const black = ColorContrastCalc.BLACK;
+      const white = ColorContrastCalc.WHITE;
+      expect(black.hasSufficientContrast(white)).to.be.true;
+      expect(black.hasSufficientContrast(white, "A")).to.be.true;
+      expect(black.hasSufficientContrast(white, "AAA")).to.be.true;
+    });
+
+    it("expects to return false for orange and white", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      const white = ColorContrastCalc.WHITE;
+      expect(orange.hasSufficientContrast(white)).to.be.false;
+      expect(orange.hasSufficientContrast(white, "A")).to.be.false;
+      expect(orange.hasSufficientContrast(white, "AAA")).to.be.false;
+    });
+
+    it("expects to return false for orange and blueviolet when level is 'AA'", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+      expect(orange.hasSufficientContrast(blueviolet)).to.be.false;
+    });
+
+    it("expects to return true for orange and blueviolet when level is 'A'", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+      expect(orange.hasSufficientContrast(blueviolet, "A")).to.be.true;
+    });
+
+    it("expects to return false for orange and blueviolet when level is 'AAA'", function() {
+      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
+      const blueviolet = ColorContrastCalc.NAME_TO_COLOR.get("blueviolet");
+      expect(orange.hasSufficientContrast(blueviolet, "AAA")).to.be.false;
+    });
+  });
 });
 
