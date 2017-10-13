@@ -630,5 +630,21 @@ describe("Color", () => {
       expect(orange.isMinContrast()).to.be.false;
     });
   });
+
+  describe("toString", function() {
+    const yellow = new Color("#ffff00", "yellow");
+
+    it("expects to return hexCode when base is 16", function() {
+      expect(yellow.toString(16)).to.equal("#ffff00");
+    });
+
+    it("expects to return rgb(255,255,0) when base is 10", function() {
+      expect(yellow.toString(10)).to.equal("rgb(255,255,0)");
+    });
+
+    it("expects to return 'yellow' when base is null", function() {
+      expect(yellow.toString(null)).to.equal("yellow");
+    });
+  });
 });
 
