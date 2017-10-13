@@ -272,5 +272,42 @@ describe("Color", () => {
       expect(orange.newSaturateColor(3000).hexCode).to.deep.equal("#ff0000");
     });
   });
+
+  describe("newGrayscaleColor", function() {
+    const orange = new Color([255, 165, 0], "orange");
+
+    it("expects to the original color if 0 is passed", function() {
+      expect(orange.newGrayscaleColor(0).isSameColor(orange)).to.be.true;
+    });
+
+    it("expects to return a gray color if 100 is passed", function() {
+      expect(orange.newGrayscaleColor(100).hexCode).to.equal("#acacac");
+    });
+
+    it("expects to return a graysh orange if 50 is passed", function() {
+      expect(orange.newGrayscaleColor(50).hexCode).to.equal("#d6a956");
+    });
+  });
+
+  describe("BLACK", function() {
+    it("expects to return an instance corresponding to black", function() {
+      const yellow = new Color("#ffff00", "yellow");
+      expect(yellow.BLACK.name).to.equal("black");
+    });
+  });
+
+  describe("WHITE", function() {
+    it("expects to return an instance corresponding to white", function() {
+      const yellow = new Color("#ffff00", "yellow");
+      expect(yellow.WHITE.name).to.equal("white");
+    });
+  });
+
+  describe("GRAY", function() {
+    it("expects to return an instance corresponding to #808080", function() {
+      const yellow = new Color("#ffff00", "yellow");
+      expect(yellow.GRAY.name).to.equal("gray");
+    });
+  });
 });
 
