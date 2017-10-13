@@ -17,6 +17,24 @@ describe("Color", () => {
         expect(Color.newHslColor([30, 100, 50]).hexCode).to.equal("#ff8000");
       });
     });
+
+    describe("BLACK", function() {
+      it("expects to return an instance corresponding to black", function() {
+        expect(Color.BLACK.name).to.equal("black");
+      });
+    });
+
+    describe("WHITE", function() {
+      it("expects to return an instance corresponding to white", function() {
+        expect(Color.WHITE.name).to.equal("white");
+      });
+    });
+
+    describe("GRAY", function() {
+      it("expects to return an instance corresponding to #808080", function() {
+        expect(Color.GRAY.hexCode).to.equal("#808080");
+      });
+    });
   });
 
   describe("hsl", function() {
