@@ -700,18 +700,6 @@ describe("ColorContrastCalc", () => {
     });
   });
 
-  describe("isMinContrast", function() {
-    it("expects to return true for gray", function() {
-      const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
-      expect(gray.isMinContrast()).to.be.true;
-    });
-
-    it("expects to return false for orange", function() {
-      const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
-      expect(orange.isMinContrast()).to.be.false;
-    });
-  });
-
   describe("calcUpperRatioLimit", function() {
     it("expects to return 155 for orange", function() {
       const orange = ColorContrastCalc.NAME_TO_COLOR.get("orange");
