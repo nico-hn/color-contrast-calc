@@ -700,29 +700,6 @@ describe("ColorContrastCalc", () => {
     });
   });
 
-  describe("newSaturateColor", function() {
-    const orange = new Color([255, 165, 0], "orange");
-
-    it("expects to return orange if 100 is passed", function() {
-      expect(orange.newSaturateColor(100).rgb).to.deep.equal([255, 165, 0]);
-    });
-
-    it("expects to return a gray color if 0 is passed", function() {
-      expect(orange.newSaturateColor(0).rgb).to.deep.equal([172, 172, 172]);
-      expect(orange.newSaturateColor(0).hexCode).to.deep.equal("#acacac");
-    });
-
-    it("expects to return red if 2357 is passed", function() {
-      expect(orange.newSaturateColor(2357).rgb).to.deep.equal([255, 0, 0]);
-      expect(orange.newSaturateColor(2357).hexCode).to.deep.equal("#ff0000");
-    });
-
-    it("expects to return red if 3000 is passed", function() {
-      expect(orange.newSaturateColor(3000).rgb).to.deep.equal([255, 0, 0]);
-      expect(orange.newSaturateColor(3000).hexCode).to.deep.equal("#ff0000");
-    });
-  });
-
   describe("newGrayscaleColor", function() {
     const orange = new Color([255, 165, 0], "orange");
 
