@@ -43,6 +43,39 @@ describe("Color", () => {
     });
   });
 
+  describe("new", function() {
+    const rgb_yellow = [255, 255, 0];
+
+    it("expects to generate an instance with rgb and name properties", function() {
+      const yellow = new Color(rgb_yellow, "yellow");
+      expect(yellow.rgb).to.deep.equal(rgb_yellow);
+      expect(yellow.relativeLuminance).to.be.closeTo(0.9278, 0.01);
+      expect(yellow.name).to.equal("yellow");
+      expect(yellow.hexCode).to.equal("#ffff00");
+    });
+
+    it("expects to generate an instance with rgb in hex notation and name properties", function() {
+      const yellow = new Color("#ffff00", "yellow");
+      expect(yellow.rgb).to.deep.equal(rgb_yellow);
+      expect(yellow.relativeLuminance).to.be.closeTo(0.9278, 0.01);
+      expect(yellow.name).to.equal("yellow");
+    });
+
+    it("expects to assign the value of .hexCode to .name if no name is specified", function() {
+      const yellow = new Color(rgb_yellow);
+      expect(yellow.rgb).to.deep.equal(rgb_yellow);
+      expect(yellow.name).to.equal("#ffff00");
+    });
+
+    it("properties of a returned object are frozen", function() {
+      const yellow = new Color(rgb_yellow);
+      expect(Object.isFrozen(yellow.rgb)).to.be.true;
+      expect(Object.isFrozen(yellow.relativeLuminance)).to.be.true;
+      expect(Object.isFrozen(yellow.name)).to.be.true;
+      expect(Object.isFrozen(yellow.hexCode)).to.be.true;
+    });
+  });
+
   describe("contrastRatioAgainst", function() {
     const rgb = [127, 127, 32];
     const contrast = 4.23;
