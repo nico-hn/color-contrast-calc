@@ -585,5 +585,26 @@ describe("Color", () => {
       expect(orange.hasSufficientContrast(blueviolet, "AAA")).to.be.false;
     });
   });
+
+  describe("isSameColor", function() {
+    it("expects to return true if the values of hexCode are same", function() {
+      const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
+      const grey = ColorContrastCalc.NAME_TO_COLOR.get("grey");
+      expect(gray.isSameColor(grey)).to.be.true;
+    });
+
+    it("expects to return fale if the values of hexCode are not same", function() {
+      const gray = ColorContrastCalc.NAME_TO_COLOR.get("gray");
+      expect(gray.isSameColor(ColorContrastCalc.WHITE)).to.be.false;
+    });
+
+    it("expects to be case insensitive", function() {
+      const upperHexYellow = "#FFFF00";
+      const lowerHexYellow = "#ffff00";
+      const upperYellow = new Color(upperHexYellow);
+      const lowerYellow = new Color(lowerHexYellow);
+      expect(upperYellow.isSameColor(lowerYellow)).to.be.true;
+    });
+  });
 });
 
