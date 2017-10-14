@@ -3,6 +3,7 @@
 const expect = require("chai").expect;
 const ColorContrastCalc = require("../lib/color-contrast-calc").ColorContrastCalc;
 const Color = require("../lib/color-contrast-calc").Color;
+const List = Color.List;
 
 describe("Color", () => {
   const RGB_WHITE = [255, 255, 255];
@@ -683,3 +684,36 @@ describe("Color", () => {
   });
 });
 
+describe("List", () => {
+  describe("static methods", function() {
+    describe("NAMED_COLORS", function() {
+      it("expects to contain predefined instances of ColorContrastCalc", function() {
+        expect(List.NAMED_COLORS[0]).to.be.instanceof(Color);
+        expect(List.NAMED_COLORS[0].name).to.equal("aliceblue");
+        expect(List.NAMED_COLORS[0].rgb).to.deep.equal([240, 248, 255]);
+        expect(List.NAMED_COLORS[0].hexCode).to.deep.equal("#f0f8ff");
+        expect(List.NAMED_COLORS.slice(-1)[0].name).to.equal("yellowgreen");
+        expect(List.NAMED_COLORS.slice(-1)[0].rgb).to.deep.equal([154, 205, 50]);
+        expect(List.NAMED_COLORS.slice(-1)[0].hexCode).to.deep.equal("#9acd32");
+      });
+    });
+
+    describe("NAME_TO_COLOR", function() {
+      it("expects to return a corresponding instance for a passed color name", function() {
+        const black = List.NAME_TO_COLOR.get("black");
+        const white = List.NAME_TO_COLOR.get("white");
+        expect(black.name).to.equal("black");
+        expect(white.name).to.equal("white");
+      });
+    });
+
+    describe("HEX_TO_COLOR", function() {
+      it("expects to return a corresponding instance for a passed hex code", function() {
+        const black = ColorContrastCalc.HEX_TO_COLOR.get("#000000");
+        const white = ColorContrastCalc.HEX_TO_COLOR.get("#ffffff");
+        expect(black.name).to.equal("black");
+        expect(white.name).to.equal("white");
+      });
+    });
+  });
+});
