@@ -715,5 +715,23 @@ describe("List", () => {
         expect(white.name).to.equal("white");
       });
     });
+
+    describe("WEB_SAFE_COLORS", function() {
+      it("expects to contain 216 items", function() {
+        expect(List.WEB_SAFE_COLORS.length).to.equal(216);
+      });
+
+      it("expects to be an array whose first element is black", function() {
+        expect(List.WEB_SAFE_COLORS[0].hexCode).to.equal("#000000");
+        expect(List.WEB_SAFE_COLORS[0].name).to.equal("black");
+      });
+
+      it("expects to be an array whose last element is white", function() {
+        const webSafeColors = List.WEB_SAFE_COLORS;
+        expect(webSafeColors.length).to.equal(216);
+        expect(webSafeColors[webSafeColors.length - 1].hexCode).to.equal("#ffffff");
+        expect(webSafeColors[webSafeColors.length - 1].name).to.equal("white");
+      });
+    });
   });
 });
