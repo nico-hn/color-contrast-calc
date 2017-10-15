@@ -9,6 +9,12 @@ describe("Color", () => {
   const RGB_WHITE = [255, 255, 255];
 
   describe("static methods", function() {
+    describe("getByName", function() {
+      it("expects to return yellow", function() {
+        expect(Color.getByName("yellow").rgb).to.deep.equal([255, 255, 0]);
+      });
+    });
+
     describe("newHslColor", function() {
       it("expects to return an instance with .hexCode '#ffff00' when [60, 100, 50]  is passed", function() {
         expect(Color.newHslColor([60, 100, 50]).hexCode).to.equal("#ffff00");
@@ -40,24 +46,24 @@ describe("Color", () => {
 
   describe("hsl", function() {
     it("expects to return [60, 100, 50] when the color is yellow", function() {
-      const yellow = ColorContrastCalc.getByName("yellow");
+      const yellow = Color.getByName("yellow");
       expect(yellow.hsl).to.deep.equal([60, 100, 50]);
       expect(yellow.hsl).to.deep.equal([60, 100, 50]);
     });
 
     it("expects to return [300, 100, 50] when the color is fuchsia", function() {
-      const fuchsia = ColorContrastCalc.getByName("fuchsia");
+      const fuchsia = Color.getByName("fuchsia");
       expect(fuchsia.hsl).to.deep.equal([300, 100, 50]);
       expect(fuchsia.hsl).to.deep.equal([300, 100, 50]);
     });
 
     it("expects to return [0, 100, 50] when the color is black", function() {
-      const black = ColorContrastCalc.getByName("black");
+      const black = Color.getByName("black");
       expect(black.hsl).to.deep.equal([0, 0, 0]);
     });
 
     it("expects to return [0, 0, 100] when the color is white", function() {
-      const white = ColorContrastCalc.getByName("white");
+      const white = Color.getByName("white");
       expect(white.hsl).to.deep.equal([0, 0, 100]);
     });
   });
@@ -548,9 +554,9 @@ describe("Color", () => {
   describe("contrastLevel", function() {
     const white = Color.WHITE;
     const black = Color.BLACK;
-    const orange = ColorContrastCalc.getByName("orange");
-    const royalblue = ColorContrastCalc.getByName("royalblue");
-    const steelblue = ColorContrastCalc.getByName("steelblue");
+    const orange = Color.getByName("orange");
+    const royalblue = Color.getByName("royalblue");
+    const steelblue = Color.getByName("steelblue");
 
     it("expects to return 'AAA' when black is passed to white", function() {
       expect(white.contrastLevel(black)).to.equal("AAA");
