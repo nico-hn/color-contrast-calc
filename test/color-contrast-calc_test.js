@@ -620,5 +620,24 @@ describe("ColorContrastCalc", () => {
       expect(ColorContrastCalc.colorsWithSufficientContrast(black, 3).length).to.equal(90);
     });
   });
+
+  describe("hslColors", function() {
+    const red = Color.getByName("red");
+    const yellow = Color.getByName("yellow");
+    const hslColors = ColorContrastCalc.hslColors();
+
+    it("expects to have 361 items", function() {
+      expect(hslColors.length).to.equal(361);
+    });
+
+    it("expects to have red as its first and last items", function() {
+      expect(hslColors[0].isSameColor(red)).to.be.true;
+      expect(hslColors[hslColors.length-1].isSameColor(red)).to.be.true;
+    });
+
+    it("expects to have yellow as its 60th item", function() {
+      expect(hslColors[60].isSameColor(yellow)).to.be.true;
+    });
+  });
 });
 
