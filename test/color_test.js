@@ -757,5 +757,71 @@ describe("List", () => {
         expect(webSafeColors[webSafeColors.length - 1].name).to.equal("white");
       });
     });
+
+    describe("hslColors", function() {
+      const black = Color.getByName("black");
+      const white = Color.getByName("white");
+      const gray = Color.getByName("gray");
+      const red = Color.getByName("red");
+      const yellow = Color.getByName("yellow");
+
+      context("When invoked with default arguments", function() {
+        const hslColors = List.hslColors();
+
+        it("expects to have 361 items", function() {
+          expect(hslColors.length).to.equal(361);
+        });
+
+        it("expects to have red as its first and last items", function() {
+          expect(hslColors[0].isSameColor(red)).to.be.true;
+          expect(hslColors[hslColors.length-1].isSameColor(red)).to.be.true;
+        });
+
+        it("expects to have yellow as its 60th item", function() {
+          expect(hslColors[60].isSameColor(yellow)).to.be.true;
+        });
+      });
+
+      context("When invoked with h_interval = 15", function() {
+        const hslColors = List.hslColors(100, 50, 15);
+
+        it("expects to have 25 items", function() {
+          expect(hslColors.length).to.equal(25);
+        });
+
+        it("expects to have red as its first and last items", function() {
+          expect(hslColors[0].isSameColor(red)).to.be.true;
+          expect(hslColors[hslColors.length-1].isSameColor(red)).to.be.true;
+        });
+
+        it("expects to have yellow as its 4th item", function() {
+          expect(hslColors[4].isSameColor(yellow)).to.be.true;
+        });
+      });
+
+      context("When invoked with l = 0", function() {
+        const hslColors = List.hslColors(100, 0, 1);
+
+        it("expects to have black as its items", function() {
+          expect(hslColors.every(color => color.isSameColor(black))).to.be.true;
+        });
+      });
+
+      context("When invoked with l = 100", function() {
+        const hslColors = List.hslColors(100, 100, 1);
+
+        it("expects to have white as its items", function() {
+          expect(hslColors.every(color => color.isSameColor(white))).to.be.true;
+        });
+      });
+
+      context("When invoked with s = 0", function() {
+        const hslColors = List.hslColors(0, 50, 1);
+
+        it("expects to have gray as its items", function() {
+          expect(hslColors.every(color => color.isSameColor(gray))).to.be.true;
+        });
+      });
+    });
   });
 });
