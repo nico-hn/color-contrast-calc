@@ -1,22 +1,28 @@
 {
-  "coverage": "95.18%",
-  "expectCount": 83,
-  "actualCount": 79,
+  "coverage": "98.97%",
+  "expectCount": 98,
+  "actualCount": 97,
   "files": {
+    "lib/color-checker.js": {
+      "expectCount": 7,
+      "actualCount": 7,
+      "undocumentLines": []
+    },
     "lib/color-contrast-calc.js": {
-      "expectCount": 59,
-      "actualCount": 56,
-      "undocumentLines": [
-        3,
-        4,
-        574
-      ]
+      "expectCount": 15,
+      "actualCount": 15,
+      "undocumentLines": []
     },
     "lib/color-utils.js": {
       "expectCount": 24,
-      "actualCount": 23,
+      "actualCount": 24,
+      "undocumentLines": []
+    },
+    "lib/color.js": {
+      "expectCount": 52,
+      "actualCount": 51,
       "undocumentLines": [
-        3
+        447
       ]
     }
   }
