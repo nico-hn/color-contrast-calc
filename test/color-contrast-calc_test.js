@@ -13,6 +13,23 @@ describe("ColorContrastCalc", () => {
   });
 
   describe("static methods", function() {
+    describe("colorFrom", function(){
+      const yellowName = "yellow";
+      const yellowHex = "#ffff00";
+      const yellowShort_hex = "#ff0";
+      const yellowRgb = [255, 255, 0];
+      const invalidName = "imaginaryblue";
+      const invalidHex = "#ff00";
+      const invalidRgb = [255, 256, 0];
+
+      it("expects to return an instance of Color when 'yellow' is passed", function() {
+        const yellow = ColorContrastCalc.colorFrom(yellowName);
+        expect(yellow).to.be.instanceof(Color);
+        expect(yellow.hexCode).to.equal(yellowHex);
+        expect(yellow.name).to.equal(yellowName);
+      });
+    });
+
     describe("NAMED_COLORS", function() {
       it("expects to contain predefined instances of ColorContrastCalc", function() {
         expect(ColorContrastCalc.NAMED_COLORS[0]).to.be.instanceof(Color);
