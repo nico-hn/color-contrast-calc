@@ -42,6 +42,13 @@ describe("ColorContrastCalc", () => {
         expect(yellow.hexCode).to.equal(yellowHex);
         expect(yellow.name).to.equal(yellowName);
       });
+
+      it("expects to return an instance of Color when [255, 255, 0] is passed", function() {
+        const yellow = ColorContrastCalc.colorFrom(yellowRgb);
+        expect(yellow).to.be.instanceof(Color);
+        expect(yellow.hexCode).to.equal(yellowHex);
+        expect(yellow.name).to.equal(yellowName);
+      });
     });
 
     describe("NAMED_COLORS", function() {
