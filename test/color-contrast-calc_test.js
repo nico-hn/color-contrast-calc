@@ -59,6 +59,11 @@ describe("ColorContrastCalc", () => {
         const withInvalidName = () => ColorContrastCalc.colorFrom(invalidHex);
         expect(withInvalidName).to.throw(Error, /hex code/);
       });
+
+      it("expects to throw an error when [255, 256, 0] is passed", function() {
+        const withInvalidName = () => ColorContrastCalc.colorFrom(invalidRgb);
+        expect(withInvalidName).to.throw(Error, /RGB value/);
+      });
     });
 
     describe("NAMED_COLORS", function() {
