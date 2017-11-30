@@ -49,6 +49,11 @@ describe("ColorContrastCalc", () => {
         expect(yellow.hexCode).to.equal(yellowHex);
         expect(yellow.name).to.equal(yellowName);
       });
+
+      it("expects to throw an error when 'imaginaryblue' is passed", function() {
+        const withInvalidName = () => ColorContrastCalc.colorFrom(invalidName);
+        expect(withInvalidName).to.throw(Error, /hex code/);
+      });
     });
 
     describe("NAMED_COLORS", function() {
