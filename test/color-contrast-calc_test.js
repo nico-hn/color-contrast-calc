@@ -21,6 +21,8 @@ describe("ColorContrastCalc", () => {
       const invalidName = "imaginaryblue";
       const invalidHex = "#ff00";
       const invalidRgb = [255, 256, 0];
+      const unnamedHex = "#767676";
+      const unnamedGray = "unnamedGray";
 
       it("expects to return an instance of Color when 'yellow' is passed", function() {
         const yellow = ColorContrastCalc.colorFrom(yellowName);
@@ -63,6 +65,13 @@ describe("ColorContrastCalc", () => {
       it("expects to throw an error when [255, 256, 0] is passed", function() {
         const withInvalidName = () => ColorContrastCalc.colorFrom(invalidRgb);
         expect(withInvalidName).to.throw(Error, /RGB value/);
+      });
+
+      it("expects to return an instance of Color when '#767676' is passed", function() {
+        const yellow = ColorContrastCalc.colorFrom(unnamedHex, unnamedGray);
+        expect(yellow).to.be.instanceof(Color);
+        expect(yellow.hexCode).to.equal(unnamedHex);
+        expect(yellow.name).to.equal(unnamedGray);
       });
     });
 
