@@ -68,6 +68,11 @@ describe("ColorContrastCalc", () => {
         expect(withInvalidName).to.throw(Error, /RGB value/);
       });
 
+      it("expects to throw an error when a number is passed", function() {
+        const withNumber = () => ColorContrastCalc.colorFrom(0);
+        expect(withNumber).to.throw(Error, /array or string/);
+      });
+
       it("expects to return an instance of Color when '#767676' is passed", function() {
         const yellow = ColorContrastCalc.colorFrom(unnamedHex, unnamedGray);
         expect(yellow).to.be.instanceof(Color);
