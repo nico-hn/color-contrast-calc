@@ -59,9 +59,9 @@ describe("ColorUtils", function() {
     });
   });
 
-  describe("decimalToHexCode", function() {
+  describe("rgbToHexCode", function() {
     it("expects to return #fff00 when [255, 255, 0] is passed", function() {
-      expect(ColorUtils.decimalToHexCode([255, 255, 0])).to.equal("#ffff00");
+      expect(ColorUtils.rgbToHexCode([255, 255, 0])).to.equal("#ffff00");
     });
   });
 
