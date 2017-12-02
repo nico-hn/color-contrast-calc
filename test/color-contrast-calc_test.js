@@ -73,18 +73,18 @@ describe("ColorContrastCalc", () => {
         expect(withNumber).to.throw(Error, /array or string/);
       });
 
-      it("expects to return an instance of Color when '#767676' is passed", function() {
-        const yellow = ColorContrastCalc.colorFrom(unnamedHex, unnamedGray);
-        expect(yellow).to.be.instanceof(Color);
-        expect(yellow.hexCode).to.equal(unnamedHex);
-        expect(yellow.name).to.equal(unnamedGray);
+      it("expects to return a Color with a name given by user when '#767676' is passed", function() {
+        const unnamed = ColorContrastCalc.colorFrom(unnamedHex, unnamedGray);
+        expect(unnamed).to.be.instanceof(Color);
+        expect(unnamed.hexCode).to.equal(unnamedHex);
+        expect(unnamed.name).to.equal(unnamedGray);
       });
 
-      it("expects to return an instance of Color when [118, 118, 118] is passed", function() {
-        const yellow = ColorContrastCalc.colorFrom(unnamedRgb, unnamedGray);
-        expect(yellow).to.be.instanceof(Color);
-        expect(yellow.hexCode).to.equal(unnamedHex);
-        expect(yellow.name).to.equal(unnamedGray);
+      it("expects to return a Color with a name given by user when [118, 118, 118] is passed", function() {
+        const unnamed = ColorContrastCalc.colorFrom(unnamedRgb, unnamedGray);
+        expect(unnamed).to.be.instanceof(Color);
+        expect(unnamed.hexCode).to.equal(unnamedHex);
+        expect(unnamed.name).to.equal(unnamedGray);
       });
     });
 
