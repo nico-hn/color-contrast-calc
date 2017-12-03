@@ -4,28 +4,28 @@ const expect = require("chai").expect;
 const ColorUtils = require("../lib/color-utils").ColorUtils;
 
 describe("ColorUtils", function() {
-  describe("hexCodeToDecimal", function() {
+  describe("hexCodeToRgb", function() {
     const RGB_BLACK = [0, 0, 0];
     const RGB_WHITE = [255, 255, 255];
 
     it("expects to return [255, 255, 255] when #ffffff is passed", function() {
-      expect(ColorUtils.hexCodeToDecimal("#ffffff")).to.deep.equal(RGB_WHITE);
+      expect(ColorUtils.hexCodeToRgb("#ffffff")).to.deep.equal(RGB_WHITE);
     });
 
     it("expects to return [0, 0, 0] when #000000 is passed", function() {
-      expect(ColorUtils.hexCodeToDecimal("#000000")).to.deep.equal(RGB_BLACK);
+      expect(ColorUtils.hexCodeToRgb("#000000")).to.deep.equal(RGB_BLACK);
     });
 
     it("expects to return [255, 255, 0] when #ffff00 is passed", function() {
-      expect(ColorUtils.hexCodeToDecimal("#ffff00")).to.deep.equal([255, 255, 0]);
+      expect(ColorUtils.hexCodeToRgb("#ffff00")).to.deep.equal([255, 255, 0]);
     });
 
     it("expects to return [255, 255, 0] when #FFFF00 is passed", function() {
-      expect(ColorUtils.hexCodeToDecimal("#FFFF00")).to.deep.equal([255, 255, 0]);
+      expect(ColorUtils.hexCodeToRgb("#FFFF00")).to.deep.equal([255, 255, 0]);
     });
 
     it("expects to return [255, 255, 0] when #ff0 is passed", function() {
-      expect(ColorUtils.hexCodeToDecimal("#ff0")).to.deep.equal([255, 255, 0]);
+      expect(ColorUtils.hexCodeToRgb("#ff0")).to.deep.equal([255, 255, 0]);
     });
   });
 
