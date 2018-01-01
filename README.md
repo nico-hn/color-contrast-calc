@@ -18,6 +18,41 @@ With this library, you can do following things:
 
 This library provides `ColorContrastCalc` class.
 
+### Representing a color
+
+To Represent a color, `Color` class is provided.
+And most of the operations in this library use this class.
+
+For example, if you want to create an instance of `Color` for red,
+you may use a method `ColorContrastCalc.colorFrom()`.
+
+Save the following code as `color-instance.js`:
+
+```node
+const ColorContrastCalc = require("color-contrast-calc").ColorContrastCalc;
+const Color = require("color-contrast-calc").Color;
+
+// Create an instance of Color from a hex code
+// (You can pass 'red' or [255, 0, 0] instead of "#ff0000")
+const red = ColorContrastCalc.colorFrom("#ff0000");
+console.log(red instanceof Color);
+console.log(red.name);
+console.log(red.hexCode);
+console.log(red.rgb);
+console.log(red.hsl);
+```
+
+And execute the script:
+
+```
+$ node color-instance.js
+true
+red
+#ff0000
+[ 255, 0, 0 ]
+[ 0, 100, 50 ]
+```
+
 ### Example 1: Calculate the contrast ratio between two colors
 
 If you want to calculate the contrast ratio between yellow and black, save the following code as `yellow-black-contrast.js`:
@@ -126,6 +161,56 @@ are available for `Color`:
 * `newHueRotateColor`
 * `newInvertColor`
 * `newSaturateColor`
+
+### Example 4: Sort colors
+
+You can sort colors using a method `ColorContrastCalc.sort()'
+
+And by passing the second argument to this method, you can also specify
+the sort order.
+
+For example, save the following code as `sort-colors.js`:
+
+```node
+const ColorContrastCalc = require("color-contrast-calc").ColorContrastCalc;
+
+const colorNames = ["red", "yellow", "lime", "cyan", "fuchsia", "blue"];
+const colors = colorNames.map(name => ColorContrastCalc.colorFrom(name));
+
+// Sort by hSL order.  An uppercase for a component of color means
+// that component should be sorted in descending order.
+
+const hslOrdered = ColorContrastCalc.sort(colors, "hSL").map(color => color.name);
+console.log(`Colors sorted in the order of hSL: ${hslOrdered}`);
+
+// Sort by RGB order.
+
+const rgbOrdered = ColorContrastCalc.sort(colors, "RGB").map(color => color.name);
+console.log(`Colors sorted in the order of RGB: ${rgbOrdered}`);
+
+// You can also change the precedence of components.
+
+const grbOrdered = ColorContrastCalc.sort(colors, "GRB").map(color => color.name);
+console.log(`Colors sorted in the order of GRB: ${grbOrdered}`);
+
+// And you can directly sort hex color codes.
+
+//// Hex color codes that correspond to the color_names given above.
+const hexCodes = ["#ff0000", "#ff0", "#00ff00", "#0ff", "#f0f", "#0000FF"];
+
+hslOrderedHexCodes = ColorContrastCalc.sort(hexCodes, "hSL");
+console.log(`Colors sorted in the order of hSL: ${hslOrderedHexCodes}`);
+```
+
+And execute the script:
+
+```
+$ node sort-colors.js
+Colors sorted in the order of hSL: red,yellow,lime,cyan,blue,fuchsia
+Colors sorted in the order of RGB: yellow,fuchsia,red,cyan,lime,blue
+Colors sorted in the order of GRB: yellow,cyan,lime,fuchsia,red,blue
+Colors sorted in the order of hSL: #ff0000,#ff0,#00ff00,#0ff,#0000FF,#f0f
+```
 
 Please refer to the [documentation](http://htmlpreview.github.io/?https://github.com/nico-hn/color-contrast-calc/blob/develop/doc/class/lib/color-contrast-calc.js~ColorContrastCalc.html) for the details.
 
