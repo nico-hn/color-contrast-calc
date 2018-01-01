@@ -248,6 +248,11 @@ describe("Color", () => {
     const yellow = new Color([255, 255, 0], "yellow");
     const blue = new Color([0, 0, 255], "blue");
 
+    it("expects to return blue if nothing is passed to yellow", function() {
+      const newColor = yellow.newInvertColor();
+      expect(newColor.isSameColor(blue)).to.be.true;
+    });
+
     it("expects to return yellow if 0 is passed to yellow", function() {
       const newColor = yellow.newInvertColor(0);
       expect(newColor.isSameColor(yellow)).to.be.true;
