@@ -327,6 +327,10 @@ describe("Color", () => {
   describe("newGrayscaleColor", function() {
     const orange = new Color([255, 165, 0], "orange");
 
+    it("expects to return a gray color when nothing is passed", function() {
+      expect(orange.newGrayscaleColor().rgb).to.deep.equal([172, 172, 172]);
+    });
+
     it("expects to the original color if 0 is passed", function() {
       expect(orange.newGrayscaleColor(0).isSameColor(orange)).to.be.true;
     });
