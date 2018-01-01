@@ -1,6 +1,14 @@
 # ColorContrastCalc
 
-Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind
+`ColorContrastCalc` is a Utility that helps you choose colors with
+sufficient contrast, WCAG 2.0 in mind.
+
+With this library, you can do following things:
+
+* Check the contrast ratio between two colors
+* Find (if exists) a color that has sufficient contrast to a given color
+* Create a new color from a given color by adjusting properties of the latter
+* Sort colors
 
 ## Installation
 
