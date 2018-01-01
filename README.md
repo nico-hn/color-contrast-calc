@@ -32,30 +32,55 @@ contast ratio between yellow and black: 19.555999999999997
 contrast level: AAA
 ```
 
-### Example 2
+### Example 2: Find colors that have enough contrast ratio with a given color
 
-If you want to find a combination of colors with sufficient contrast by changing the brightness of one of those colors, save the following code as `yellow-orange-contrast.js`:
+If you want to find a combination of colors with sufficient contrast
+by changing the brightness/lightness of one of those colors, save the
+following code as `yellow-orange-contrast.js`:
 
 ```node
 const ColorContrastCalc = require("color-contrast-calc").ColorContrastCalc;
 
-const yellow = ColorContrastCalc.getByName("yellow");
-const orange = ColorContrastCalc.getByName("orange");
-const aOrange = yellow.findBrightnessThreshold(orange, "A");
-const aaOrange = yellow.findBrightnessThreshold(orange, "AA");
+const yellow = ColorContrastCalc.colorFrom("yellow");
+const orange = ColorContrastCalc.colorFrom("orange");
 
+// Find brightness adjusted colors.
+let aOrange = yellow.findBrightnessThreshold(orange, "A");
+let aContrastRatio = yellow.contrastRatioAgainst(aOrange);
+let aaOrange = yellow.findBrightnessThreshold(orange, "AA");
+let aaContrastRatio = yellow.contrastRatioAgainst(aaOrange);
+
+console.log("# Brightness adjusted colors")
 console.log(`aOrange: ${aOrange.hexCode}`);
-console.log(`contrast ratio between yellow and aOrange: ${yellow.contrastRatioAgainst(aOrange)}`);
+console.log(`contrast ratio between yellow and aOrange: ${aContrastRatio}`);
 console.log(`aaOrange: ${aaOrange.hexCode}`);
-console.log(`contrast ratio between yellow and aaOrange: ${yellow.contrastRatioAgainst(aaOrange)}`);
+console.log(`contrast ratio between yellow and aaOrange: ${aaContrastRatio}`);
+
+// Find lightness adjusted colors.
+aOrange = yellow.findLightnessThreshold(orange, "A");
+aContrastRatio = yellow.contrastRatioAgainst(aOrange);
+aaOrange = yellow.findLightnessThreshold(orange, "AA");
+aaContrastRatio = yellow.contrastRatioAgainst(aaOrange);
+
+console.log("# Lightness adjusted colors")
+console.log(`aOrange: ${aOrange.hexCode}`);
+console.log(`contrast ratio between yellow and aOrange: ${aContrastRatio}`);
+console.log(`aaOrange: ${aaOrange.hexCode}`);
+console.log(`contrast ratio between yellow and aaOrange: ${aaContrastRatio}`);
 ```
 
 And execute the script:
 
 ```
 $ node yellow-orange-contrast.js
+# Brightness adjusted colors
 aOrange: #c68000
 contrast ratio between yellow and aOrange: 3.013798229247296
+aaOrange: #9d6600
+contrast ratio between yellow and aaOrange: 4.512053816540577
+# Lightness adjusted colors
+aOrange: #c78000
+contrast ratio between yellow and aOrange: 3.0011856639235854
 aaOrange: #9d6600
 contrast ratio between yellow and aaOrange: 4.512053816540577
 ```
