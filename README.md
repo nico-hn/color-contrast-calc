@@ -10,16 +10,15 @@ Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 
 
 This library provides `ColorContrastCalc` class.
 
-
-### Example 1
+### Example 1: Calculate the contrast ratio between two colors
 
 If you want to calculate the contrast ratio between yellow and black, save the following code as `yellow-black-contrast.js`:
 
 ```node
 const ColorContrastCalc = require("color-contrast-calc").ColorContrastCalc;
 
-const yellow = ColorContrastCalc.getByName("yellow");
-const black = ColorContrastCalc.getByName("black");
+const yellow = ColorContrastCalc.colorFrom("yellow");
+const black = ColorContrastCalc.colorFrom("black");
 
 console.log(`contast ratio between yellow and black: ${yellow.contrastRatioAgainst(black)}`);
 console.log(`contrast level: ${yellow.contrastLevel(black)}`);
