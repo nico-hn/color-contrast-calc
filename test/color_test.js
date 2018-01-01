@@ -13,6 +13,14 @@ describe("Color", () => {
       it("expects to return yellow", function() {
         expect(Color.getByName("yellow").rgb).to.deep.equal([255, 255, 0]);
       });
+
+      it("expects to return a Color representing yellow if 'Yellow' is passed", function() {
+        expect(Color.getByName("Yellow").rgb).to.deep.equal([255, 255, 0]);
+      });
+
+      it("expects to return a falsy value if a passed name does not exist", function() {
+        expect(Color.getByName("kiiro")).to.undefined;
+      });
     });
 
     describe("getByHexCode", function() {
