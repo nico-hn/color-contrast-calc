@@ -342,6 +342,12 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
+    "lib/color-contrast-calc.js~colorcontrastcalc.colorfrom",
+    "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-colorFrom",
+    "lib/color-contrast-calc.js~ColorContrastCalc.colorFrom",
+    "method"
+  ],
+  [
     "lib/color-contrast-calc.js~colorcontrastcalc.colorswithsufficientcontrast",
     "class/lib/color-contrast-calc.js~ColorContrastCalc.html#static-method-colorsWithSufficientContrast",
     "lib/color-contrast-calc.js~ColorContrastCalc.colorsWithSufficientContrast",
@@ -378,15 +384,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "lib/color-utils.js~colorutils.decimaltohexcode",
-    "class/lib/color-utils.js~ColorUtils.html#static-method-decimalToHexCode",
-    "lib/color-utils.js~ColorUtils.decimalToHexCode",
-    "method"
-  ],
-  [
-    "lib/color-utils.js~colorutils.hexcodetodecimal",
-    "class/lib/color-utils.js~ColorUtils.html#static-method-hexCodeToDecimal",
-    "lib/color-utils.js~ColorUtils.hexCodeToDecimal",
+    "lib/color-utils.js~colorutils.hexcodetorgb",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-hexCodeToRgb",
+    "lib/color-utils.js~ColorUtils.hexCodeToRgb",
     "method"
   ],
   [
@@ -447,6 +447,12 @@ window.esdocSearchIndex = [
     "lib/color-utils.js~colorutils.normalizehexcode",
     "class/lib/color-utils.js~ColorUtils.html#static-method-normalizeHexCode",
     "lib/color-utils.js~ColorUtils.normalizeHexCode",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.rgbtohexcode",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-rgbToHexCode",
+    "lib/color-utils.js~ColorUtils.rgbToHexCode",
     "method"
   ],
   [

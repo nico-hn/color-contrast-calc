@@ -54,6 +54,67 @@ const Checker = require(&quot;./color-checker&quot;).ColorChecker;
  */
 class ColorContrastCalc {
   /**
+   * Returns an instance of Color.
+   *
+   * As colorValue, you can pass a predefined color name, or an RGB
+   * value represented as an array of Integers or a hex code such as
+   * [255, 255, 255] or &quot;#ffff00&quot;. name is assigned to the returned
+   * instance if it does not have a name already assigned.
+   * @param {string|Array&lt;number, number, number&gt;} colorValue - name
+   *     of a predefined color or RGB value
+   * @param {string} name - Unless the instance has predefined name,
+   *     the name passed to the method is set to self.name
+   * @returns {Color} Instance of Color
+   */
+  static colorFrom(colorValue, name = null) {
+    const errMessage = &quot;A color should be given as an array or string.&quot;;
+
+    if (! (Utils.isString(colorValue)) &amp;&amp; ! (colorValue instanceof Array)) {
+      throw new Error(errMessage);
+    }
+
+    if (colorValue instanceof Array) {
+      return this.colorFromRgb(colorValue, name);
+    }
+
+    return this.colorFromStr(colorValue, name);
+  }
+
+  /**
+   * @private
+   */
+  static colorFromRgb(colorValue, name = null) {
+    const errMessage = &quot;An RGB value should be given in form of [r, g, b].&quot;;
+
+    if (! Utils.isValidRgb(colorValue)) {
+      throw new Error(errMessage);
+    }
+
+    const hexCode = Utils.rgbToHexCode(colorValue);
+    return Color.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode, name);
+  }
+
+  /**
+   * @private
+   */
+  static colorFromStr(colorValue, name = null) {
+    const errMessage = &quot;A hex code is in form of &apos;#xxxxxx&apos; where 0 &lt;= x &lt;= f.&quot;;
+
+    const namedColor = Color.getByName(colorValue);
+
+    if (namedColor) {
+      return namedColor;
+    }
+
+    if (! Utils.isValidHexCode(colorValue)) {
+      throw new Error(errMessage);
+    }
+
+    const hexCode = Utils.normalizeHexCode(colorValue);
+    return Color.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode, name);
+  }
+
+  /**
    * Returns an array of named colors that satisfy a given level of
    * contrast ratio
    * @param {Color} color - base color to which other colors are compared
@@ -71,8 +132,8 @@ class ColorContrastCalc {
   /**
    * Returns an array of colors which share the same saturation and lightness.
    * By default, so-called pure colors are returned.
-   * @param {number} [s=100] - Ratio of saturation given as a percentage.
-   * @param {number} [l=50] - Ratio of lightness given as a percentage.
+   * @param {number} [s=100] - Ratio of saturation in percentage.
+   * @param {number} [l=50] - Ratio of lightness in percentage.
    * @param {number} [h_interval=1] - Interval of hues given in degrees.
    *     By default, it returns 360 hues beginning from red.
    *     (Red is included twice, because it corresponds to 0 and 360 degrees.)

@@ -58,7 +58,7 @@ class Color {
    * @returns {Color}
    */
   static getByName(name) {
-    return this.List.NAME_TO_COLOR.get(name);
+    return this.List.NAME_TO_COLOR.get(name.toLowerCase());
   }
 
   /**
@@ -72,7 +72,7 @@ class Color {
   }
 
   /**
-   * Creates an instance of ColorContractCalc from an HSL value
+   * Creates an instance of Color from an HSL value
    * @param {Array&lt;number,number, number&gt;} hsl - an array of numbers that
    *     represents an HSL value
    * @returns {Color} An instance of Color
@@ -107,7 +107,7 @@ class Color {
      * @property {Array&lt;number, number, number&gt;} rgb - RGB value repsented as
      *     an array of decimal numbers
      */
-    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToDecimal(rgb) : rgb;
+    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToRgb(rgb) : rgb;
     /**
      * @property {number} relativeLuminance - Relative luminance of  the color
      *     defined at
@@ -118,9 +118,9 @@ class Color {
      * @property {string} name - If no name is explicitely given, the property
      *     is set to the value of this.hexCode
      */
-    this.name = name === null ? Utils.decimalToHexCode(this.rgb) : name;
+    this.name = name === null ? Utils.rgbToHexCode(this.rgb) : name;
     /** @property {string} hexCode - RGB value in hex code notation */
-    this.hexCode = Utils.decimalToHexCode(this.rgb);
+    this.hexCode = Utils.rgbToHexCode(this.rgb);
     this.freezeProperties();
     /** @private */
     this._hsl = null;
@@ -170,11 +170,11 @@ class Color {
   }
 
   /**
-   * @param {number} ratio - Value in percent
+   * @param {number} [ratio=100] - Value in percent
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newInvertColor(ratio, name = null) {
+  newInvertColor(ratio = 100, name = null) {
     return this.generateNewColor(Utils.InvertCalc, ratio, name);
   }
 
@@ -197,11 +197,11 @@ class Color {
   }
 
   /**
-   * @param {number} ratio - Value in percent
+   * @param {number} [ratio=100] - Conversion ratio in percentage
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newGrayscaleColor(ratio, name = null) {
+  newGrayscaleColor(ratio = 100, name = null) {
     return this.generateNewColor(Utils.GrayscaleCalc, ratio, name);
   }
 
@@ -522,8 +522,8 @@ class List {
   /**
    * Returns an array of colors which share the same saturation and lightness.
    * By default, so-called pure colors are returned.
-   * @param {number} [s=100] - Ratio of saturation given as a percentage.
-   * @param {number} [l=50] - Ratio of lightness given as a percentage.
+   * @param {number} [s=100] - Ratio of saturation in percentage.
+   * @param {number} [l=50] - Ratio of lightness in percentage.
    * @param {number} [h_interval=1] - Interval of hues given in degrees.
    *     By default, it returns 360 hues beginning from red.
    *     (Red is included twice, because it corresponds to 0 and 360 degrees.)
@@ -550,7 +550,7 @@ class List {
     for (let r = 0; r &lt; 16; r += 3) {
       for (let g = 0; g &lt; 16; g += 3) {
         for (let b = 0; b &lt; 16; b += 3) {
-          let hexCode = Utils.decimalToHexCode([r, g, b].map(c =&gt; c * 17));
+          let hexCode = Utils.rgbToHexCode([r, g, b].map(c =&gt; c * 17));
           let predefined = this.HEX_TO_COLOR.get(hexCode);
           let color = predefined || new Color(hexCode);
           this.WEB_SAFE_COLORS.push(color);
