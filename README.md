@@ -18,7 +18,10 @@ With this library, you can do following things:
 
 ## Usage
 
-This library provides `ColorContrastCalc` class.
+Here are some examples that will give you a brief overview of the library.
+
+Please refer to the [API documentation](https://nico-hn.github.io/color-contrast-calc/)
+for more details.
 
 ### Representing a color
 
@@ -268,8 +271,6 @@ The 60th of HSL colors: yellow
 The 120th of HSL colors: lime
 The last of HSL colors: red
 ```
-
-Please refer to the [documentation](http://htmlpreview.github.io/?https://github.com/nico-hn/color-contrast-calc/blob/develop/doc/class/lib/color-contrast-calc.js~ColorContrastCalc.html) for the details.
 
 ## Contributing
 
