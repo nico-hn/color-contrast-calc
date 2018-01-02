@@ -212,6 +212,61 @@ Colors sorted in the order of GRB: yellow,cyan,lime,fuchsia,red,blue
 Colors sorted in the order of hSL: #ff0000,#ff0,#00ff00,#0ff,#0000FF,#f0f
 ```
 
+### Example 5: Lists of predefined colors
+
+Two lists of colors are provided, one is for
+[named colors](https://www.w3.org/TR/SVG/types.html#ColorKeywords)
+and the other for the web safe colors.
+
+And there is a method `ColorContrastCalc.hslColors()` that generates
+a list of HSL colors that share same saturation and lightness.
+
+For example, save the following code as `color-lists.js`:
+
+```node
+const ColorContrastCalc = require("color-contrast-calc").ColorContrastCalc;
+
+// Named colors
+const namedColors = ColorContrastCalc.NAMED_COLORS;
+
+console.log(`The number of named colors: ${namedColors.length}`);
+console.log(`The first of named colors: ${namedColors[0].name}`);
+console.log(`The last of named colors: ${namedColors[namedColors.length-1].name}`);
+
+// Web safe colors
+const webSafeColors = ColorContrastCalc.WEB_SAFE_COLORS;
+
+console.log(`The number of web safe colors: ${webSafeColors.length}`);
+console.log(`The first of web safe colors: ${webSafeColors[0].name}`);
+console.log(`The last of web safe colors: ${webSafeColors[webSafeColors.length-1].name}`);
+
+// HSL colors
+const hslColors = ColorContrastCalc.hslColors();
+
+console.log(`The number of HSL colors: ${hslColors.length}`);
+console.log(`The first of HSL colors: ${hslColors[0].name}`);
+console.log(`The 60th of HSL colors: ${hslColors[60].name}`);
+console.log(`The 120th of HSL colors: ${hslColors[120].name}`);
+console.log(`The last of HSL colors: ${hslColors[hslColors.length-1].name}`);
+```
+
+And execute the script:
+
+```
+$ node color-lists.js
+The number of named colors: 147
+The first of named colors: aliceblue
+The last of named colors: yellowgreen
+The number of web safe colors: 216
+The first of web safe colors: black
+The last of web safe colors: white
+The number of HSL colors: 361
+The first of HSL colors: red
+The 60th of HSL colors: yellow
+The 120th of HSL colors: lime
+The last of HSL colors: red
+```
+
 Please refer to the [documentation](http://htmlpreview.github.io/?https://github.com/nico-hn/color-contrast-calc/blob/develop/doc/class/lib/color-contrast-calc.js~ColorContrastCalc.html) for the details.
 
 ## Contributing
