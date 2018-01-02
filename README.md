@@ -12,6 +12,8 @@ With this library, you can do following things:
 
 ## Installation
 
+(version 0.2.0 is not published on https://www.npmjs.com yet.)
+
     $ npm install --save color-contrast-calc
 
 ## Usage
