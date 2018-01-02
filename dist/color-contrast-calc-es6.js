@@ -24,7 +24,7 @@ class ColorChecker {
     /*
       https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
     */
-    if (Utils.isString(rgb)) { rgb = Utils.hexCodeToDecimal(rgb); }
+    if (Utils.isString(rgb)) { rgb = Utils.hexCodeToRgb(rgb); }
 
     const [r, g, b] = rgb.map(c => this.tristimulusValue(c));
     return r * 0.2126 + g * 0.7152 + b * 0.0722;
@@ -101,6 +101,67 @@ const Checker = require("./color-checker").ColorChecker;
  */
 class ColorContrastCalc {
   /**
+   * Returns an instance of Color.
+   *
+   * As colorValue, you can pass a predefined color name, or an RGB
+   * value represented as an array of Integers or a hex code such as
+   * [255, 255, 255] or "#ffff00". name is assigned to the returned
+   * instance if it does not have a name already assigned.
+   * @param {string|Array<number, number, number>} colorValue - name
+   *     of a predefined color or RGB value
+   * @param {string} name - Unless the instance has predefined name,
+   *     the name passed to the method is set to self.name
+   * @returns {Color} Instance of Color
+   */
+  static colorFrom(colorValue, name = null) {
+    const errMessage = "A color should be given as an array or string.";
+
+    if (! (Utils.isString(colorValue)) && ! (colorValue instanceof Array)) {
+      throw new Error(errMessage);
+    }
+
+    if (colorValue instanceof Array) {
+      return this.colorFromRgb(colorValue, name);
+    }
+
+    return this.colorFromStr(colorValue, name);
+  }
+
+  /**
+   * @private
+   */
+  static colorFromRgb(colorValue, name = null) {
+    const errMessage = "An RGB value should be given in form of [r, g, b].";
+
+    if (! Utils.isValidRgb(colorValue)) {
+      throw new Error(errMessage);
+    }
+
+    const hexCode = Utils.rgbToHexCode(colorValue);
+    return Color.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode, name);
+  }
+
+  /**
+   * @private
+   */
+  static colorFromStr(colorValue, name = null) {
+    const errMessage = "A hex code is in form of '#xxxxxx' where 0 <= x <= f.";
+
+    const namedColor = Color.getByName(colorValue);
+
+    if (namedColor) {
+      return namedColor;
+    }
+
+    if (! Utils.isValidHexCode(colorValue)) {
+      throw new Error(errMessage);
+    }
+
+    const hexCode = Utils.normalizeHexCode(colorValue);
+    return Color.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode, name);
+  }
+
+  /**
    * Returns an array of named colors that satisfy a given level of
    * contrast ratio
    * @param {Color} color - base color to which other colors are compared
@@ -118,8 +179,8 @@ class ColorContrastCalc {
   /**
    * Returns an array of colors which share the same saturation and lightness.
    * By default, so-called pure colors are returned.
-   * @param {number} [s=100] - Ratio of saturation given as a percentage.
-   * @param {number} [l=50] - Ratio of lightness given as a percentage.
+   * @param {number} [s=100] - Ratio of saturation in percentage.
+   * @param {number} [l=50] - Ratio of lightness in percentage.
    * @param {number} [h_interval=1] - Interval of hues given in degrees.
    *     By default, it returns 360 hues beginning from red.
    *     (Red is included twice, because it corresponds to 0 and 360 degrees.)
@@ -570,7 +631,7 @@ class ColorUtils {
    * @returns {Array<number, number, number>} RGB value represented as
    *     an array of numbers
    */
-  static hexCodeToDecimal(hexCode) {
+  static hexCodeToRgb(hexCode) {
     const h = this.normalizeHexCode(hexCode, false);
     return [0, 2, 4].map(s => h.substr(s, 2))
       .map(primaryColor => Number.parseInt(primaryColor, 16));
@@ -600,7 +661,7 @@ class ColorUtils {
    *     an array of numbers
    * @returns {string} RGB value in hex code
    */
-  static decimalToHexCode(rgb) {
+  static rgbToHexCode(rgb) {
     return "#" + rgb.map(d => {
       const h = d.toString(16);
       return h.length === 1 ? "0" + h : h;
@@ -649,7 +710,7 @@ class ColorUtils {
    * @returns {string} Hex code
    */
   static hslToHexCode(hsl) {
-    return this.decimalToHexCode(this.hslToRgb(hsl));
+    return this.rgbToHexCode(this.hslToRgb(hsl));
   }
 
   /**
@@ -716,7 +777,7 @@ class ColorUtils {
    * @private
    */
   static hexCodeToHsl(hexCode) {
-    return this.rgbToHsl(this.hexCodeToDecimal(hexCode));
+    return this.rgbToHsl(this.hexCodeToRgb(hexCode));
   }
 
   /**
@@ -847,6 +908,16 @@ class ColorUtils {
   }
 }
 
+/**
+ * @deprecated Use .rgbToHexCode instead.
+ */
+ColorUtils.decimalToHexCode = ColorUtils.rgbToHexCode;
+
+/**
+ * @deprecated use .hexCodeTorgb instead.
+ */
+ColorUtils.hexCodeToDecimal = ColorUtils.hexCodeToRgb;
+
 (function() {
   class Matrix {
     constructor(matrix) {
@@ -912,6 +983,7 @@ class ColorUtils {
 
   class InvertCalc {
     /*
+      https://www.w3.org/TR/filter-effects/#funcdef-invert
       https://www.w3.org/TR/filter-effects-1/#invertEquivalent
       https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes
     */
@@ -1030,7 +1102,7 @@ class Color {
    * @returns {Color}
    */
   static getByName(name) {
-    return this.List.NAME_TO_COLOR.get(name);
+    return this.List.NAME_TO_COLOR.get(name.toLowerCase());
   }
 
   /**
@@ -1044,7 +1116,7 @@ class Color {
   }
 
   /**
-   * Creates an instance of ColorContractCalc from an HSL value
+   * Creates an instance of Color from an HSL value
    * @param {Array<number,number, number>} hsl - an array of numbers that
    *     represents an HSL value
    * @returns {Color} An instance of Color
@@ -1079,7 +1151,7 @@ class Color {
      * @property {Array<number, number, number>} rgb - RGB value repsented as
      *     an array of decimal numbers
      */
-    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToDecimal(rgb) : rgb;
+    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToRgb(rgb) : rgb;
     /**
      * @property {number} relativeLuminance - Relative luminance of  the color
      *     defined at
@@ -1090,9 +1162,9 @@ class Color {
      * @property {string} name - If no name is explicitely given, the property
      *     is set to the value of this.hexCode
      */
-    this.name = name === null ? Utils.decimalToHexCode(this.rgb) : name;
+    this.name = name === null ? Utils.rgbToHexCode(this.rgb) : name;
     /** @property {string} hexCode - RGB value in hex code notation */
-    this.hexCode = Utils.decimalToHexCode(this.rgb);
+    this.hexCode = Utils.rgbToHexCode(this.rgb);
     this.freezeProperties();
     /** @private */
     this._hsl = null;
@@ -1142,11 +1214,11 @@ class Color {
   }
 
   /**
-   * @param {number} ratio - Value in percent
+   * @param {number} [ratio=100] - Value in percent
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newInvertColor(ratio, name = null) {
+  newInvertColor(ratio = 100, name = null) {
     return this.generateNewColor(Utils.InvertCalc, ratio, name);
   }
 
@@ -1169,11 +1241,11 @@ class Color {
   }
 
   /**
-   * @param {number} ratio - Value in percent
+   * @param {number} [ratio=100] - Conversion ratio in percentage
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newGrayscaleColor(ratio, name = null) {
+  newGrayscaleColor(ratio = 100, name = null) {
     return this.generateNewColor(Utils.GrayscaleCalc, ratio, name);
   }
 
@@ -1494,8 +1566,8 @@ class List {
   /**
    * Returns an array of colors which share the same saturation and lightness.
    * By default, so-called pure colors are returned.
-   * @param {number} [s=100] - Ratio of saturation given as a percentage.
-   * @param {number} [l=50] - Ratio of lightness given as a percentage.
+   * @param {number} [s=100] - Ratio of saturation in percentage.
+   * @param {number} [l=50] - Ratio of lightness in percentage.
    * @param {number} [h_interval=1] - Interval of hues given in degrees.
    *     By default, it returns 360 hues beginning from red.
    *     (Red is included twice, because it corresponds to 0 and 360 degrees.)
@@ -1522,7 +1594,7 @@ class List {
     for (let r = 0; r < 16; r += 3) {
       for (let g = 0; g < 16; g += 3) {
         for (let b = 0; b < 16; b += 3) {
-          let hexCode = Utils.decimalToHexCode([r, g, b].map(c => c * 17));
+          let hexCode = Utils.rgbToHexCode([r, g, b].map(c => c * 17));
           let predefined = this.HEX_TO_COLOR.get(hexCode);
           let color = predefined || new Color(hexCode);
           this.WEB_SAFE_COLORS.push(color);
