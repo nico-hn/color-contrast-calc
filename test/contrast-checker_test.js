@@ -1,7 +1,7 @@
 "use strict";
 
 const expect = require("chai").expect;
-const Checker = require("../lib/color-checker").ColorChecker;
+const Checker = require("../lib/contrast-checker").ColorChecker;
 
 
 describe("ColorChecker", () => {
