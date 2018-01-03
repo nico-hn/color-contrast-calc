@@ -3,152 +3,7 @@
 
 module.exports = require("./lib/color-contrast-calc");
 
-},{"./lib/color-contrast-calc":3}],2:[function(require,module,exports){
-"use strict";
-
-/** @private */
-
-var _slicedToArray2 = require("babel-runtime/helpers/slicedToArray");
-
-var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
-
-var _classCallCheck2 = require("babel-runtime/helpers/classCallCheck");
-
-var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-
-var _createClass2 = require("babel-runtime/helpers/createClass");
-
-var _createClass3 = _interopRequireDefault(_createClass2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var Utils = require("./color-utils").ColorUtils;
-
-/**
- * Collection of functions that check properties of given colors
- */
-
-var ColorChecker = function () {
-  function ColorChecker() {
-    (0, _classCallCheck3.default)(this, ColorChecker);
-  }
-
-  (0, _createClass3.default)(ColorChecker, null, [{
-    key: "relativeLuminance",
-
-    /**
-     * Calculate the relative luminance of a RGB color given as a string or
-     * an array of numbers
-     * @param {string|Array<number, number, number>} rgb - RGB value represented
-     *     as a string (hex code) or an array of numbers
-     * @returns {number} Relative luminance
-     */
-    value: function relativeLuminance() {
-      var _this = this;
-
-      var rgb = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [255, 255, 255];
-
-      /*
-        https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
-      */
-      if (Utils.isString(rgb)) {
-        rgb = Utils.hexCodeToRgb(rgb);
-      }
-
-      var _rgb$map = rgb.map(function (c) {
-        return _this.tristimulusValue(c);
-      }),
-          _rgb$map2 = (0, _slicedToArray3.default)(_rgb$map, 3),
-          r = _rgb$map2[0],
-          g = _rgb$map2[1],
-          b = _rgb$map2[2];
-
-      return r * 0.2126 + g * 0.7152 + b * 0.0722;
-    }
-
-    /**
-     * Calculate the contrast ratio of given colors
-     * @param {string|Array<number, number, number>} foreground - RGB value
-     *     represented as a string (hex code) or an array of numbers
-     * @param {string|Array<number, number, number>} background - RGB value
-     *     represented as a string (hex code) or an array of numbers
-     * @returns {number} Contrast ratio
-     */
-
-  }, {
-    key: "contrastRatio",
-    value: function contrastRatio(foreground, background) {
-      var _this2 = this;
-
-      /*
-        https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
-      */
-      var _map = [foreground, background].map(function (c) {
-        return _this2.relativeLuminance(c);
-      }),
-          _map2 = (0, _slicedToArray3.default)(_map, 2),
-          l1 = _map2[0],
-          l2 = _map2[1];
-
-      return this.luminanceToContrastRatio(l1, l2);
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: "tristimulusValue",
-    value: function tristimulusValue(primaryColor) {
-      var base = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 255;
-
-      var s = primaryColor / base;
-      if (s <= 0.03928) {
-        return s / 12.92;
-      } else {
-        return Math.pow((s + 0.055) / 1.055, 2.4);
-      }
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: "luminanceToContrastRatio",
-    value: function luminanceToContrastRatio(luminance1, luminance2) {
-      var _sort = [luminance1, luminance2].sort(function (f, s) {
-        return s - f;
-      }),
-          _sort2 = (0, _slicedToArray3.default)(_sort, 2),
-          l1 = _sort2[0],
-          l2 = _sort2[1];
-
-      return (l1 + 0.05) / (l2 + 0.05);
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: "levelToContrastRatio",
-    value: function levelToContrastRatio(level) {
-      if (level === "A" || level === 1) {
-        return 3.0;
-      } else if (level === "AA" || level === 2) {
-        return 4.5;
-      } else if (level === "AAA" || level === 3) {
-        return 7.0;
-      }
-    }
-  }]);
-  return ColorChecker;
-}();
-
-module.exports.ColorChecker = ColorChecker;
-
-},{"./color-utils":5,"babel-runtime/helpers/classCallCheck":15,"babel-runtime/helpers/createClass":16,"babel-runtime/helpers/slicedToArray":17}],3:[function(require,module,exports){
+},{"./lib/color-contrast-calc":2}],2:[function(require,module,exports){
 "use strict";
 
 /** @private */
@@ -185,7 +40,7 @@ var Utils = ColorUtils;
 /** @private */
 var Color = require("./color").Color;
 /** @private */
-var Checker = require("./color-checker").ColorChecker;
+var Checker = require("./contrast-checker").ContrastChecker;
 
 /**
  * Provides the top-level name space of this library.
@@ -285,7 +140,7 @@ var ColorContrastCalc = function () {
     value: function colorsWithSufficientContrast(color) {
       var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "AA";
 
-      var ratio = Checker.levelToContrastRatio(level);
+      var ratio = Checker.levelToRatio(level);
 
       return this.NAMED_COLORS.filter(function (combinedColor) {
         return color.contrastRatioAgainst(combinedColor) >= ratio;
@@ -699,10 +554,11 @@ Color.calc = ColorContrastCalc;
 ColorContrastCalc.setup();
 
 module.exports.ColorUtils = ColorUtils;
+module.exports.ContrastChecker = Checker;
 module.exports.ColorContrastCalc = ColorContrastCalc;
 module.exports.Color = Color;
 
-},{"./color":6,"./color-checker":2,"./color-utils":5,"babel-runtime/core-js/get-iterator":8,"babel-runtime/core-js/map":10,"babel-runtime/core-js/object/freeze":14,"babel-runtime/helpers/classCallCheck":15,"babel-runtime/helpers/createClass":16,"babel-runtime/regenerator":19}],4:[function(require,module,exports){
+},{"./color":5,"./color-utils":4,"./contrast-checker":6,"babel-runtime/core-js/get-iterator":8,"babel-runtime/core-js/map":10,"babel-runtime/core-js/object/freeze":14,"babel-runtime/helpers/classCallCheck":15,"babel-runtime/helpers/createClass":16,"babel-runtime/regenerator":19}],3:[function(require,module,exports){
 module.exports=[
   ["aliceblue", "#f0f8ff"],
   ["antiquewhite", "#faebd7"],
@@ -853,7 +709,7 @@ module.exports=[
   ["yellowgreen", "#9acd32"]
 ]
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 /**
@@ -1517,7 +1373,7 @@ ColorUtils.setup();
 
 module.exports.ColorUtils = ColorUtils;
 
-},{"babel-runtime/core-js/number/is-integer":11,"babel-runtime/core-js/number/parse-int":12,"babel-runtime/helpers/classCallCheck":15,"babel-runtime/helpers/createClass":16,"babel-runtime/helpers/toConsumableArray":18}],6:[function(require,module,exports){
+},{"babel-runtime/core-js/number/is-integer":11,"babel-runtime/core-js/number/parse-int":12,"babel-runtime/helpers/classCallCheck":15,"babel-runtime/helpers/createClass":16,"babel-runtime/helpers/toConsumableArray":18}],5:[function(require,module,exports){
 "use strict";
 
 /** @private */
@@ -1550,7 +1406,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var Utils = require("./color-utils").ColorUtils;
 /** @private */
-var Checker = require("./color-checker").ColorChecker;
+var Checker = require("./contrast-checker").ContrastChecker;
 
 /**
  * Class of which each instance represents a specific color.
@@ -1780,7 +1636,7 @@ var Color = function () {
     value: function findBrightnessThreshold(otherColor) {
       var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "AA";
 
-      var targetRatio = Checker.levelToContrastRatio(level);
+      var targetRatio = Checker.levelToRatio(level);
       var criteria = this.thresholdCriteria(targetRatio, otherColor);
       var w = otherColor.calcUpperRatioLimit() / 2;
       var upperColor = otherColor.newBrightnessColor(w * 2);
@@ -1821,7 +1677,7 @@ var Color = function () {
     value: function findLightnessThreshold(otherColor) {
       var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "AA";
 
-      var targetRatio = Checker.levelToContrastRatio(level);
+      var targetRatio = Checker.levelToRatio(level);
       var criteria = this.thresholdCriteria(targetRatio, otherColor);
 
       var _Utils$rgbToHsl = Utils.rgbToHsl(otherColor.rgb),
@@ -1925,15 +1781,7 @@ var Color = function () {
     key: "contrastLevel",
     value: function contrastLevel(otherColor) {
       var ratio = this.contrastRatioAgainst(otherColor);
-      if (ratio >= 7) {
-        return "AAA";
-      } else if (ratio >= 4.5) {
-        return "AA";
-      } else if (ratio >= 3) {
-        return "A";
-      }
-
-      return "-";
+      return Checker.ratioToLevel(ratio);
     }
 
     /**
@@ -1949,7 +1797,7 @@ var Color = function () {
     value: function hasSufficientContrast(otherColor) {
       var level = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "AA";
 
-      var ratio = Checker.levelToContrastRatio(level);
+      var ratio = Checker.levelToRatio(level);
       return this.contrastRatioAgainst(otherColor) >= ratio;
     }
 
@@ -2306,7 +2154,173 @@ Color.assignColorConstants();
 
 module.exports.Color = Color;
 
-},{"./color-checker":2,"./color-keywords.json":4,"./color-utils":5,"babel-runtime/core-js/get-iterator":8,"babel-runtime/core-js/map":10,"babel-runtime/core-js/object/freeze":14,"babel-runtime/helpers/classCallCheck":15,"babel-runtime/helpers/createClass":16,"babel-runtime/helpers/slicedToArray":17}],7:[function(require,module,exports){
+},{"./color-keywords.json":3,"./color-utils":4,"./contrast-checker":6,"babel-runtime/core-js/get-iterator":8,"babel-runtime/core-js/map":10,"babel-runtime/core-js/object/freeze":14,"babel-runtime/helpers/classCallCheck":15,"babel-runtime/helpers/createClass":16,"babel-runtime/helpers/slicedToArray":17}],6:[function(require,module,exports){
+"use strict";
+
+/** @private */
+
+var _slicedToArray2 = require("babel-runtime/helpers/slicedToArray");
+
+var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
+
+var _classCallCheck2 = require("babel-runtime/helpers/classCallCheck");
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require("babel-runtime/helpers/createClass");
+
+var _createClass3 = _interopRequireDefault(_createClass2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Utils = require("./color-utils").ColorUtils;
+
+/**
+ * Collection of functions that check properties of given colors
+ */
+
+var ContrastChecker = function () {
+  function ContrastChecker() {
+    (0, _classCallCheck3.default)(this, ContrastChecker);
+  }
+
+  (0, _createClass3.default)(ContrastChecker, null, [{
+    key: "relativeLuminance",
+
+    /**
+     * Calculate the relative luminance of a RGB color given as a string or
+     * an array of numbers
+     * @param {string|Array<number, number, number>} rgb - RGB value represented
+     *     as a string (hex code) or an array of numbers
+     * @returns {number} Relative luminance
+     */
+    value: function relativeLuminance() {
+      var _this = this;
+
+      var rgb = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [255, 255, 255];
+
+      /*
+        https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+      */
+      if (Utils.isString(rgb)) {
+        rgb = Utils.hexCodeToRgb(rgb);
+      }
+
+      var _rgb$map = rgb.map(function (c) {
+        return _this.tristimulusValue(c);
+      }),
+          _rgb$map2 = (0, _slicedToArray3.default)(_rgb$map, 3),
+          r = _rgb$map2[0],
+          g = _rgb$map2[1],
+          b = _rgb$map2[2];
+
+      return r * 0.2126 + g * 0.7152 + b * 0.0722;
+    }
+
+    /**
+     * Calculate the contrast ratio of given colors
+     * @param {string|Array<number, number, number>} foreground - RGB value
+     *     represented as a string (hex code) or an array of numbers
+     * @param {string|Array<number, number, number>} background - RGB value
+     *     represented as a string (hex code) or an array of numbers
+     * @returns {number} Contrast ratio
+     */
+
+  }, {
+    key: "contrastRatio",
+    value: function contrastRatio(foreground, background) {
+      var _this2 = this;
+
+      /*
+        https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
+      */
+      var _map = [foreground, background].map(function (c) {
+        return _this2.relativeLuminance(c);
+      }),
+          _map2 = (0, _slicedToArray3.default)(_map, 2),
+          l1 = _map2[0],
+          l2 = _map2[1];
+
+      return this.luminanceToContrastRatio(l1, l2);
+    }
+
+    /**
+     * Rate a given contrast ratio according to the WCAG 2.0 criteria
+     * @param {number} ratio - Contrast ratio
+     * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of
+     *     WCAG 2.0, otherwise "-"
+     */
+
+  }, {
+    key: "ratioToLevel",
+    value: function ratioToLevel(ratio) {
+      if (ratio >= 7) {
+        return "AAA";
+      } else if (ratio >= 4.5) {
+        return "AA";
+      } else if (ratio >= 3) {
+        return "A";
+      }
+
+      return "-";
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "tristimulusValue",
+    value: function tristimulusValue(primaryColor) {
+      var base = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 255;
+
+      var s = primaryColor / base;
+      if (s <= 0.03928) {
+        return s / 12.92;
+      } else {
+        return Math.pow((s + 0.055) / 1.055, 2.4);
+      }
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "luminanceToContrastRatio",
+    value: function luminanceToContrastRatio(luminance1, luminance2) {
+      var _sort = [luminance1, luminance2].sort(function (f, s) {
+        return s - f;
+      }),
+          _sort2 = (0, _slicedToArray3.default)(_sort, 2),
+          l1 = _sort2[0],
+          l2 = _sort2[1];
+
+      return (l1 + 0.05) / (l2 + 0.05);
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: "levelToRatio",
+    value: function levelToRatio(level) {
+      if (level === "A" || level === 1) {
+        return 3.0;
+      } else if (level === "AA" || level === 2) {
+        return 4.5;
+      } else if (level === "AAA" || level === 3) {
+        return 7.0;
+      }
+    }
+  }]);
+  return ContrastChecker;
+}();
+
+module.exports.ContrastChecker = ContrastChecker;
+
+},{"./color-utils":4,"babel-runtime/helpers/classCallCheck":15,"babel-runtime/helpers/createClass":16,"babel-runtime/helpers/slicedToArray":17}],7:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/array/from"), __esModule: true };
 },{"core-js/library/fn/array/from":20}],8:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/get-iterator"), __esModule: true };
