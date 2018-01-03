@@ -78,6 +78,30 @@ contast ratio between yellow and black: 19.555999999999997
 contrast level: AAA
 ```
 
+Or it is also possible to calculate the contrast ratio of two colors from
+their hex color codes.
+
+Save the following code as `yellow-black-hex-contrast.js`:
+
+```node
+const ContrastChecker = require("color-contrast-calc").ContrastChecker;
+
+const [yellow, black] = ["#ff0", "#000000"];
+const ratio = ContrastChecker.contrastRatio(yellow, black);
+
+console.log(`contast ratio between yellow and black: ${ratio}`);
+console.log(`contrast level: ${ContrastChecker.ratioToLevel(ratio)}`);
+```
+
+And execute the script:
+
+```
+$ node yellow-black-hex-contrast.js
+contast ratio between yellow and black: 19.555999999999997
+contrast level: AAA
+```
+
+
 ### Example 2: Find colors that have enough contrast ratio with a given color
 
 If you want to find a combination of colors with sufficient contrast
