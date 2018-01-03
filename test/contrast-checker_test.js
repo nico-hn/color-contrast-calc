@@ -1,10 +1,10 @@
 "use strict";
 
 const expect = require("chai").expect;
-const Checker = require("../lib/contrast-checker").ColorChecker;
+const Checker = require("../lib/contrast-checker").ContrastChecker;
 
 
-describe("ColorChecker", () => {
+describe("ContrastChecker", () => {
   const MIN_CONTRAST = 1.0;
   const MAX_CONTRAST = 21.0;
   const RGB_BLACK = [0, 0, 0];
