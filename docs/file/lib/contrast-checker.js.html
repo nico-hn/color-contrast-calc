@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/contrast-checker.js | color-contrast-calc</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="color-contrast-calc"><meta property="twitter:description" content="Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/nico-hn/color-contrast-calc"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-contrast-calc.js~ColorContrastCalc.html">ColorContrastCalc</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-utils.js~ColorUtils.html">ColorUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color.js~Color.html">Color</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/contrast-checker.js~ContrastChecker.html">ContrastChecker</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/contrast-checker.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&quot;use strict&quot;;
+
+/** @private */
+const Utils = require(&quot;./color-utils&quot;).ColorUtils;
+
+/**
+ * Collection of functions that check properties of given colors
+ */
+class ContrastChecker {
+  /**
+   * Calculate the relative luminance of a RGB color given as a string or
+   * an array of numbers
+   * @param {string|Array&lt;number, number, number&gt;} rgb - RGB value represented
+   *     as a string (hex code) or an array of numbers
+   * @returns {number} Relative luminance
+   */
+  static relativeLuminance(rgb = [255, 255, 255]) {
+    /*
+      https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+    */
+    if (Utils.isString(rgb)) { rgb = Utils.hexCodeToRgb(rgb); }
+
+    const [r, g, b] = rgb.map(c =&gt; this.tristimulusValue(c));
+    return r * 0.2126 + g * 0.7152 + b * 0.0722;
+  }
+
+  /**
+   * Calculate the contrast ratio of given colors
+   * @param {string|Array&lt;number, number, number&gt;} foreground - RGB value
+   *     represented as a string (hex code) or an array of numbers
+   * @param {string|Array&lt;number, number, number&gt;} background - RGB value
+   *     represented as a string (hex code) or an array of numbers
+   * @returns {number} Contrast ratio
+   */
+  static contrastRatio(foreground, background) {
+    /*
+      https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
+    */
+    const [l1, l2] = [foreground, background]
+            .map(c =&gt; this.relativeLuminance(c));
+    return this.luminanceToContrastRatio(l1, l2);
+  }
+
+  /**
+   * Rate a given contrast ratio according to the WCAG 2.0 criteria
+   * @param {number} ratio - Contrast ratio
+   * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of
+   *     WCAG 2.0, otherwise &quot;-&quot;
+   */
+  static ratioToLevel(ratio) {
+    if (ratio &gt;= 7) {
+      return &quot;AAA&quot;;
+    } else if (ratio &gt;= 4.5) {
+      return &quot;AA&quot;;
+    } else if (ratio &gt;= 3) {
+      return &quot;A&quot;;
+    }
+
+    return &quot;-&quot;;
+  }
+
+  /**
+   * @private
+   */
+  static tristimulusValue(primaryColor, base = 255) {
+    const s = primaryColor / base;
+    if (s &lt;= 0.03928) {
+      return s / 12.92;
+    } else {
+      return Math.pow((s + 0.055) / 1.055, 2.4);
+    }
+  }
+
+  /**
+   * @private
+   */
+  static luminanceToContrastRatio(luminance1, luminance2) {
+    const [l1, l2] = [luminance1, luminance2]
+            .sort((f, s) =&gt; s - f);
+    return (l1 + 0.05) / (l2 + 0.05);
+  }
+
+  /**
+   * @private
+   */
+  static levelToRatio(level) {
+    if (level === &quot;A&quot; || level === 1) {
+      return 3.0;
+    } else if (level === &quot;AA&quot; || level === 2) {
+      return 4.5;
+    } else if (level === &quot;AAA&quot; || level === 3) {
+      return 7.0;
+    }
+  }
+}
+
+module.exports.ContrastChecker = ContrastChecker;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.1)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

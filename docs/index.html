@@ -29,10 +29,10 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-checker.js~ColorChecker.html">ColorChecker</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-contrast-calc.js~ColorContrastCalc.html">ColorContrastCalc</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-contrast-calc.js~ColorContrastCalc.html">ColorContrastCalc</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-utils.js~ColorUtils.html">ColorUtils</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color.js~Color.html">Color</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/contrast-checker.js~ContrastChecker.html">ContrastChecker</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -85,6 +85,21 @@ console.log(`contrast level: ${yellow.contrastLevel(black)}`);</code>
 </code></pre>
 <p>And execute the script:</p>
 <pre><code><code class="source-code prettyprint">$ node yellow-black-contrast.js
+contast ratio between yellow and black: 19.555999999999997
+contrast level: AAA</code>
+</code></pre><p>Or it is also possible to calculate the contrast ratio of two colors from
+their hex color codes.</p>
+<p>Save the following code as <code>yellow-black-hex-contrast.js</code>:</p>
+<pre><code class="lang-node"><code class="source-code prettyprint">const ContrastChecker = require(&quot;color-contrast-calc&quot;).ContrastChecker;
+
+const [yellow, black] = [&quot;#ff0&quot;, &quot;#000000&quot;];
+const ratio = ContrastChecker.contrastRatio(yellow, black);
+
+console.log(`contast ratio between yellow and black: ${ratio}`);
+console.log(`contrast level: ${ContrastChecker.ratioToLevel(ratio)}`);</code>
+</code></pre>
+<p>And execute the script:</p>
+<pre><code><code class="source-code prettyprint">$ node yellow-black-hex-contrast.js
 contast ratio between yellow and black: 19.555999999999997
 contrast level: AAA</code>
 </code></pre><h3 id="example-2--find-colors-that-have-enough-contrast-ratio-with-a-given-color">Example 2: Find colors that have enough contrast ratio with a given color</h3><p>If you want to find a combination of colors with sufficient contrast

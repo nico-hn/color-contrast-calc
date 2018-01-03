@@ -29,10 +29,10 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-checker.js~ColorChecker.html">ColorChecker</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-contrast-calc.js~ColorContrastCalc.html">ColorContrastCalc</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-contrast-calc.js~ColorContrastCalc.html">ColorContrastCalc</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-utils.js~ColorUtils.html">ColorUtils</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color.js~Color.html">Color</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/contrast-checker.js~ContrastChecker.html">ContrastChecker</a></span></span></li>
 </ul>
 </div>
 </nav>
@@ -43,7 +43,7 @@
 /** @private */
 const Utils = require(&quot;./color-utils&quot;).ColorUtils;
 /** @private */
-const Checker = require(&quot;./color-checker&quot;).ColorChecker;
+const Checker = require(&quot;./contrast-checker&quot;).ContrastChecker;
 
 /**
  * Class of which each instance represents a specific color.
@@ -218,7 +218,7 @@ class Color {
    *     a specified level
    */
   findBrightnessThreshold(otherColor, level = &quot;AA&quot;) {
-    const targetRatio = Checker.levelToContrastRatio(level);
+    const targetRatio = Checker.levelToRatio(level);
     const criteria = this.thresholdCriteria(targetRatio, otherColor);
     const w = otherColor.calcUpperRatioLimit() / 2;
     const upperColor = otherColor.newBrightnessColor(w * 2);
@@ -251,7 +251,7 @@ class Color {
    *     a specified level
    */
   findLightnessThreshold(otherColor, level = &quot;AA&quot;) {
-    const targetRatio = Checker.levelToContrastRatio(level);
+    const targetRatio = Checker.levelToRatio(level);
     const criteria = this.thresholdCriteria(targetRatio, otherColor);
     const [h, s, initL] = Utils.rgbToHsl(otherColor.rgb);
     const [max, min] = this.shouldScanDarkerSide(otherColor) ? [initL, 0] : [100, initL];
@@ -310,15 +310,7 @@ class Color {
    */
   contrastLevel(otherColor) {
     const ratio = this.contrastRatioAgainst(otherColor);
-    if (ratio &gt;= 7) {
-      return &quot;AAA&quot;;
-    } else if (ratio &gt;= 4.5) {
-      return &quot;AA&quot;;
-    } else if (ratio &gt;= 3) {
-      return &quot;A&quot;;
-    }
-
-    return &quot;-&quot;;
+    return Checker.ratioToLevel(ratio);
   }
 
   /**
@@ -329,7 +321,7 @@ class Color {
    * @returns {boolean}
    */
   hasSufficientContrast(otherColor, level = &quot;AA&quot;) {
-    const ratio = Checker.levelToContrastRatio(level);
+    const ratio = Checker.levelToRatio(level);
     return this.contrastRatioAgainst(otherColor) &gt;= ratio;
   }
 

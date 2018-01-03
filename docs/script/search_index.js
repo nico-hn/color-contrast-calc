@@ -6,12 +6,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "color-contrast-calc/lib/color-checker.js~colorchecker",
-    "class/lib/color-checker.js~ColorChecker.html",
-    "<span>ColorChecker</span> <span class=\"search-result-import-path\">color-contrast-calc/lib/color-checker.js</span>",
-    "class"
-  ],
-  [
     "color-contrast-calc/lib/color-contrast-calc.js~colorcontrastcalc",
     "class/lib/color-contrast-calc.js~ColorContrastCalc.html",
     "<span>ColorContrastCalc</span> <span class=\"search-result-import-path\">color-contrast-calc/lib/color-contrast-calc.js</span>",
@@ -21,6 +15,12 @@ window.esdocSearchIndex = [
     "color-contrast-calc/lib/color-utils.js~colorutils",
     "class/lib/color-utils.js~ColorUtils.html",
     "<span>ColorUtils</span> <span class=\"search-result-import-path\">color-contrast-calc/lib/color-utils.js</span>",
+    "class"
+  ],
+  [
+    "color-contrast-calc/lib/contrast-checker.js~contrastchecker",
+    "class/lib/contrast-checker.js~ContrastChecker.html",
+    "<span>ContrastChecker</span> <span class=\"search-result-import-path\">color-contrast-calc/lib/contrast-checker.js</span>",
     "class"
   ],
   [
@@ -304,24 +304,6 @@ window.esdocSearchIndex = [
     "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
     "lib/.external-ecmascript.js~undefined",
     "external"
-  ],
-  [
-    "lib/color-checker.js",
-    "file/lib/color-checker.js.html",
-    "lib/color-checker.js",
-    "file"
-  ],
-  [
-    "lib/color-checker.js~colorchecker.contrastratio",
-    "class/lib/color-checker.js~ColorChecker.html#static-method-contrastRatio",
-    "lib/color-checker.js~ColorChecker.contrastRatio",
-    "method"
-  ],
-  [
-    "lib/color-checker.js~colorchecker.relativeluminance",
-    "class/lib/color-checker.js~ColorChecker.html#static-method-relativeLuminance",
-    "lib/color-checker.js~ColorChecker.relativeLuminance",
-    "method"
   ],
   [
     "lib/color-contrast-calc.js",
@@ -639,6 +621,30 @@ window.esdocSearchIndex = [
     "lib/color.js~color.newhslcolor",
     "class/lib/color.js~Color.html#static-method-newHslColor",
     "lib/color.js~Color.newHslColor",
+    "method"
+  ],
+  [
+    "lib/contrast-checker.js",
+    "file/lib/contrast-checker.js.html",
+    "lib/contrast-checker.js",
+    "file"
+  ],
+  [
+    "lib/contrast-checker.js~contrastchecker.contrastratio",
+    "class/lib/contrast-checker.js~ContrastChecker.html#static-method-contrastRatio",
+    "lib/contrast-checker.js~ContrastChecker.contrastRatio",
+    "method"
+  ],
+  [
+    "lib/contrast-checker.js~contrastchecker.ratiotolevel",
+    "class/lib/contrast-checker.js~ContrastChecker.html#static-method-ratioToLevel",
+    "lib/contrast-checker.js~ContrastChecker.ratioToLevel",
+    "method"
+  ],
+  [
+    "lib/contrast-checker.js~contrastchecker.relativeluminance",
+    "class/lib/contrast-checker.js~ContrastChecker.html#static-method-relativeLuminance",
+    "lib/contrast-checker.js~ContrastChecker.relativeLuminance",
     "method"
   ]
 ]
