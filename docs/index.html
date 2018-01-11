@@ -88,15 +88,17 @@ console.log(`contrast level: ${yellow.contrastLevel(black)}`);</code>
 contast ratio between yellow and black: 19.555999999999997
 contrast level: AAA</code>
 </code></pre><p>Or it is also possible to calculate the contrast ratio of two colors from
-their hex color codes.</p>
+their hex color codes or RGB values.</p>
 <p>Save the following code as <code>yellow-black-hex-contrast.js</code>:</p>
 <pre><code class="lang-node"><code class="source-code prettyprint">const ContrastChecker = require(&quot;color-contrast-calc&quot;).ContrastChecker;
 
 const [yellow, black] = [&quot;#ff0&quot;, &quot;#000000&quot;];
+// or
+// [yellow, black] = [[255, 255, 0], [0, 0, 0]];
 const ratio = ContrastChecker.contrastRatio(yellow, black);
 
-console.log(`contast ratio between yellow and black: ${ratio}`);
-console.log(`contrast level: ${ContrastChecker.ratioToLevel(ratio)}`);</code>
+console.log(`Contrast ratio between yellow and black: ${ratio}`);
+console.log(`Contrast level: ${ContrastChecker.ratioToLevel(ratio)}`);</code>
 </code></pre>
 <p>And execute the script:</p>
 <pre><code><code class="source-code prettyprint">$ node yellow-black-hex-contrast.js
