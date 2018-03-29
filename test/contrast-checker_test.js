@@ -29,5 +29,15 @@ describe("ContrastChecker", () => {
         expect(Checker.contrastRatio("#ffffff", "#7f7f20")).to.be.closeTo(4.23, 0.01);
       });
     });
+
+    describe("isLightColor", function() {
+      it("expects to return true when [118, 118, 118] is passed", function() {
+        expect(Checker.isLightColor([118, 118, 118])).to.be.true;
+      });
+
+      it("expects to return true when [117, 117, 117] is passed", function() {
+        expect(Checker.isLightColor([117, 117, 117])).to.be.false;
+      });
+    });
   });
 });
