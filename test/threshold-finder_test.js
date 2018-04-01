@@ -117,4 +117,18 @@ describe("BrightnessFinder", function() {
       expect(ratio).to.be.closeTo(3.0, 0.5);
     });
   });
+
+  describe("calcUpperRatioLimit", function() {
+    it("expects to return 155 for orange", function() {
+      expect(BrightnessFinder.calcUpperRatioLimit(orange)).to.equal(155);
+    });
+
+    it("expects to return 594 for blueviolet", function() {
+      expect(BrightnessFinder.calcUpperRatioLimit(blueviolet)).to.equal(594);
+    });
+
+    it("expects to return 100 for black", function() {
+      expect(BrightnessFinder.calcUpperRatioLimit(black)).to.equal(100);
+    });
+  });
 });
