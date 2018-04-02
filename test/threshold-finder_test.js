@@ -13,6 +13,17 @@ const higherLuminanceThan = (mainRgb, otherRgb) => {
 };
 
 describe("LightnessFinder", function() {
+  const orange = Calc.colorFrom("orange").rgb;
+  const blueviolet = Calc.colorFrom("blueviolet").rgb;
+  const blue = Calc.colorFrom("blue").rgb;
+  const brown = Calc.colorFrom("brown").rgb;
+  const black = Calc.colorFrom("black").rgb;
+  const white = Calc.colorFrom("white").rgb;
+  const darkgreen = Calc.colorFrom("darkgreen").rgb;
+  const green = Calc.colorFrom("green").rgb;
+  const springgreen = Calc.colorFrom("springgreen").rgb;
+  const mintcream = Calc.colorFrom("mintcream").rgb;
+  const yellow = Calc.colorFrom("yellow").rgb;
   const fuchsia = Calc.colorFrom("fuchsia").rgb;
   const azure = Calc.colorFrom("azure").rgb;
 
@@ -28,8 +39,108 @@ describe("LightnessFinder", function() {
 	expect(ratio).to.be.closeTo(3.0, 0.5);
 	expect(newRgb).to.deep.equal([233, 255, 255]);
       });
+
+      it("expects to return a lighter green when both colors are darkgreen", function() {
+	const contrast_with_white = Checker.contrastRatio(darkgreen, white);
+	const contrast_with_black = Checker.contrastRatio(darkgreen, black);
+	const newRgb = LightnessFinder.find(darkgreen, darkgreen, "A");
+	const ratio = Checker.contrastRatio(darkgreen, newRgb);
+
+	expect(Checker.isLightColor(darkgreen)).to.be.false;
+	expect(contrast_with_white).to.be.greaterThan(contrast_with_black);
+	expect(higherLuminanceThan(newRgb, darkgreen)).to.be.true;
+	expect(ratio).to.be.above(3.0);
+	expect(ratio).to.be.closeTo(3.0, 0.1);
+	expect(newRgb).to.deep.equal([0, 192, 0]);
+      });
     });
 
+    context("when the required level is AA", function() {
+      it("expects to return a darker orange when orange is passed to white", function() {
+	const newRgb = LightnessFinder.find(white, orange, "AA");
+	const ratio = Checker.contrastRatio(white, newRgb);
+
+	expect(ratio).to.be.above(4.5);
+	expect(ratio).to.be.closeTo(4.5, 0.1);
+	expect(newRgb).to.deep.equal([165, 106, 0]);
+      });
+
+      it("expects to return a darker green when green is passed to white", function() {
+	const newRgb = LightnessFinder.find(white, green, "AA");
+	const ratio = Checker.contrastRatio(white, newRgb);
+
+	expect(ratio).to.be.above(4.5);
+	expect(ratio).to.be.closeTo(4.5, 0.1);
+	expect(newRgb).to.deep.equal([0, 138, 0]);
+      });
+
+      it("expects to return a lighter orange when orange is passed to blueviolet", function() {
+	const newRgb = LightnessFinder.find(blueviolet, orange, "AA");
+	const ratio = Checker.contrastRatio(blueviolet, newRgb);
+
+	expect(ratio).to.be.above(4.5);
+	expect(ratio).to.be.closeTo(4.5, 0.1);
+	expect(newRgb).to.deep.equal([255, 220, 154]);
+      });
+
+      it("expects to return a darker green when both colors are springgreen", function() {
+	const contrast_with_white = Checker.contrastRatio(springgreen, white);
+	const contrast_with_black = Checker.contrastRatio(springgreen, black);
+	const newRgb = LightnessFinder.find(springgreen, springgreen, "AA");
+	const ratio = Checker.contrastRatio(springgreen, newRgb);
+
+	expect(Checker.isLightColor(springgreen)).to.be.true;
+	expect(contrast_with_white).to.be.lessThan(contrast_with_black);
+	expect(higherLuminanceThan(newRgb, springgreen)).to.be.false;
+	expect(ratio).to.be.above(4.5);
+	expect(ratio).to.be.closeTo(4.5, 0.1);
+	expect(newRgb).to.deep.equal([0, 114, 57]);
+      });
+
+      it("expects to return white when yellow is passed to orange", function() {
+	const newRgb = LightnessFinder.find(orange, yellow, "AA");
+	const ratio = Checker.contrastRatio(orange, newRgb);
+
+	expect(ratio).to.be.lessThan(4.5);
+	expect(newRgb).to.deep.equal(white);
+      });
+
+      it("expects to return white when mintcream is passed to yellow", function() {
+	const newRgb = LightnessFinder.find(yellow, mintcream, "AA");
+	const ratio = Checker.contrastRatio(yellow, newRgb);
+
+	expect(ratio).to.be.lessThan(4.5);
+	expect(newRgb).to.deep.equal(white);
+      });
+    });
+
+    context("when the required level is AAA", function() {
+      it("expects to return a darker orange when orange is passed to white", function() {
+	const newRgb = LightnessFinder.find(white, green, "AAA");
+	const ratio = Checker.contrastRatio(white, newRgb);
+
+	expect(ratio).to.be.above(7.0);
+	expect(ratio).to.be.closeTo(7.0, 0.1);
+	expect(newRgb).to.deep.equal([0, 104, 0]);
+      });
+
+      it("expects to return a darker green when green is passed to white", function() {
+	const newRgb = LightnessFinder.find(white, orange, "AAA");
+	const ratio = Checker.contrastRatio(white, newRgb);
+
+	expect(ratio).to.be.above(7.0);
+	expect(ratio).to.be.closeTo(7.0, 0.1);
+	expect(newRgb).to.deep.equal([123, 80, 0]);
+      });
+
+      it("expects to return black when blue is passed to green", function() {
+	const newRgb = LightnessFinder.find(green, blue, "AA");
+	const ratio = Checker.contrastRatio(green, newRgb);
+
+	expect(ratio).to.be.lessThan(7.0);
+	expect(newRgb).to.deep.equal(black);
+      });
+    });
   });
 });
 
