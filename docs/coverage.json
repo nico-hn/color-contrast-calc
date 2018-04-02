@@ -1,11 +1,11 @@
 {
-  "coverage": "99.01%",
-  "expectCount": 102,
-  "actualCount": 101,
+  "coverage": "90.69%",
+  "expectCount": 129,
+  "actualCount": 117,
   "files": {
     "lib/color-contrast-calc.js": {
-      "expectCount": 18,
-      "actualCount": 18,
+      "expectCount": 17,
+      "actualCount": 17,
       "undocumentLines": []
     },
     "lib/color-utils.js": {
@@ -14,16 +14,33 @@
       "undocumentLines": []
     },
     "lib/color.js": {
-      "expectCount": 52,
-      "actualCount": 51,
+      "expectCount": 48,
+      "actualCount": 47,
       "undocumentLines": [
-        439
+        317
       ]
     },
     "lib/contrast-checker.js": {
-      "expectCount": 8,
-      "actualCount": 8,
+      "expectCount": 9,
+      "actualCount": 9,
       "undocumentLines": []
+    },
+    "lib/threshold-finder.js": {
+      "expectCount": 31,
+      "actualCount": 20,
+      "undocumentLines": [
+        10,
+        17,
+        27,
+        28,
+        29,
+        32,
+        36,
+        45,
+        49,
+        56,
+        60
+      ]
     }
   }
 }

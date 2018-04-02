@@ -135,7 +135,11 @@ class ColorUtils {
   }
 
   /**
-   * @private
+   * Converts RGB value to HSL value
+   * @param {Array&lt;number, number, number&gt;} rgb - An array of numbers that
+   *     represents RGB value
+   * @returns {Array&lt;number, number, number&gt;} An array of numbers that
+   *     represents HSL value
    */
   static rgbToHsl(rgb) {
     const l = this.rgbToLightness(rgb) * 100;
@@ -195,7 +199,10 @@ class ColorUtils {
   }
 
   /**
-   * @private
+   * Converts a hex color code string to an HSL representation
+   * @param {string} hexCode - Hex color code such as &quot;#ffff00&quot;
+   * @returns {Array&lt;number, number, number&gt;} HSL value represented as
+   *     an array of numbers
    */
   static hexCodeToHsl(hexCode) {
     return this.rgbToHsl(this.hexCodeToRgb(hexCode));
@@ -335,7 +342,7 @@ class ColorUtils {
 ColorUtils.decimalToHexCode = ColorUtils.rgbToHexCode;
 
 /**
- * @deprecated use .hexCodeTorgb instead.
+ * @deprecated use .hexCodeToRgb instead.
  */
 ColorUtils.hexCodeToDecimal = ColorUtils.hexCodeToRgb;
 
@@ -496,6 +503,16 @@ ColorUtils.hexCodeToDecimal = ColorUtils.hexCodeToRgb;
                                         [-0.2126, -0.7152, 0.9278]]);
 
   ColorUtils.GrayscaleCalc = GrayscaleCalc;
+
+  /**
+   * The RGB value of some colors.
+   */
+  ColorUtils.RGB = {
+    BLACK: [0, 0, 0],
+    WHITE: [255, 255, 255]
+  };
+
+  Object.freeze(ColorUtils.RGB);
 })();
 
 ColorUtils.setup();

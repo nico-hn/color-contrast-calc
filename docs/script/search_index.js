@@ -366,6 +366,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "lib/color-utils.js~colorutils.hexcodetohsl",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-hexCodeToHsl",
+    "lib/color-utils.js~ColorUtils.hexCodeToHsl",
+    "method"
+  ],
+  [
     "lib/color-utils.js~colorutils.hexcodetorgb",
     "class/lib/color-utils.js~ColorUtils.html#static-method-hexCodeToRgb",
     "lib/color-utils.js~ColorUtils.hexCodeToRgb",
@@ -435,6 +441,12 @@ window.esdocSearchIndex = [
     "lib/color-utils.js~colorutils.rgbtohexcode",
     "class/lib/color-utils.js~ColorUtils.html#static-method-rgbToHexCode",
     "lib/color-utils.js~ColorUtils.rgbToHexCode",
+    "method"
+  ],
+  [
+    "lib/color-utils.js~colorutils.rgbtohsl",
+    "class/lib/color-utils.js~ColorUtils.html#static-method-rgbToHsl",
+    "lib/color-utils.js~ColorUtils.rgbToHsl",
     "method"
   ],
   [
@@ -636,6 +648,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "lib/contrast-checker.js~contrastchecker.islightcolor",
+    "class/lib/contrast-checker.js~ContrastChecker.html#static-method-isLightColor",
+    "lib/contrast-checker.js~ContrastChecker.isLightColor",
+    "method"
+  ],
+  [
     "lib/contrast-checker.js~contrastchecker.ratiotolevel",
     "class/lib/contrast-checker.js~ContrastChecker.html#static-method-ratioToLevel",
     "lib/contrast-checker.js~ContrastChecker.ratioToLevel",
@@ -646,5 +664,11 @@ window.esdocSearchIndex = [
     "class/lib/contrast-checker.js~ContrastChecker.html#static-method-relativeLuminance",
     "lib/contrast-checker.js~ContrastChecker.relativeLuminance",
     "method"
+  ],
+  [
+    "lib/threshold-finder.js",
+    "file/lib/threshold-finder.js.html",
+    "lib/threshold-finder.js",
+    "file"
   ]
 ]

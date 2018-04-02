@@ -567,7 +567,7 @@
     "__docId__": 48,
     "kind": "file",
     "name": "lib/color-contrast-calc.js",
-    "content": "\"use strict\";\n\n/** @private */\nconst ColorUtils = require(\"./color-utils\").ColorUtils;\n/** @private */\nconst Utils = ColorUtils;\n/** @private */\nconst Color = require(\"./color\").Color;\n/** @private */\nconst Checker = require(\"./contrast-checker\").ContrastChecker;\n\n/**\n * Provides the top-level name space of this library.\n */\nclass ColorContrastCalc {\n  /**\n   * Returns an instance of Color.\n   *\n   * As colorValue, you can pass a predefined color name, or an RGB\n   * value represented as an array of Integers or a hex code such as\n   * [255, 255, 255] or \"#ffff00\". name is assigned to the returned\n   * instance if it does not have a name already assigned.\n   * @param {string|Array<number, number, number>} colorValue - name\n   *     of a predefined color or RGB value\n   * @param {string} name - Unless the instance has predefined name,\n   *     the name passed to the method is set to self.name\n   * @returns {Color} Instance of Color\n   */\n  static colorFrom(colorValue, name = null) {\n    const errMessage = \"A color should be given as an array or string.\";\n\n    if (! (Utils.isString(colorValue)) && ! (colorValue instanceof Array)) {\n      throw new Error(errMessage);\n    }\n\n    if (colorValue instanceof Array) {\n      return this.colorFromRgb(colorValue, name);\n    }\n\n    return this.colorFromStr(colorValue, name);\n  }\n\n  /**\n   * @private\n   */\n  static colorFromRgb(colorValue, name = null) {\n    const errMessage = \"An RGB value should be given in form of [r, g, b].\";\n\n    if (! Utils.isValidRgb(colorValue)) {\n      throw new Error(errMessage);\n    }\n\n    const hexCode = Utils.rgbToHexCode(colorValue);\n    return Color.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode, name);\n  }\n\n  /**\n   * @private\n   */\n  static colorFromStr(colorValue, name = null) {\n    const errMessage = \"A hex code is in form of '#xxxxxx' where 0 <= x <= f.\";\n\n    const namedColor = Color.getByName(colorValue);\n\n    if (namedColor) {\n      return namedColor;\n    }\n\n    if (! Utils.isValidHexCode(colorValue)) {\n      throw new Error(errMessage);\n    }\n\n    const hexCode = Utils.normalizeHexCode(colorValue);\n    return Color.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode, name);\n  }\n\n  /**\n   * Returns an array of named colors that satisfy a given level of\n   * contrast ratio\n   * @param {Color} color - base color to which other colors are compared\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {Color[]}\n   */\n  static colorsWithSufficientContrast(color, level = \"AA\") {\n    const ratio = Checker.levelToRatio(level);\n\n    return this.NAMED_COLORS.filter(combinedColor => {\n      return color.contrastRatioAgainst(combinedColor) >= ratio;\n    });\n  }\n\n  /**\n   * Returns an array of colors which share the same saturation and lightness.\n   * By default, so-called pure colors are returned.\n   * @param {number} [s=100] - Ratio of saturation in percentage.\n   * @param {number} [l=50] - Ratio of lightness in percentage.\n   * @param {number} [h_interval=1] - Interval of hues given in degrees.\n   *     By default, it returns 360 hues beginning from red.\n   *     (Red is included twice, because it corresponds to 0 and 360 degrees.)\n   * @returns {Color[]}\n   */\n  static hslColors(s = 100, l = 50, h_interval = 1) {\n    return Color.List.hslColors(s, l, h_interval);\n  }\n\n  /**\n   * Returns a function to be used as a parameter of Array.prototype.sort()\n   * @param {string} [colorOrder=\"rgb\"] - A left side primary color has a higher\n   *     sorting precedence\n   * @param {string} [keyType=\"color\"] - Type of keys used for sorting:\n   *     \"color\", \"hex\" or \"rgb\"\n   * @param {function} [keyMapper=null] - A function used to retrive key values\n   *     from elements to be sorted\n   * @returns {function} Function that compares given two colors\n   */\n  static compareFunction(colorOrder = \"rgb\", keyType = \"color\", keyMapper = null) {\n    return this.Sorter.compareFunction(colorOrder, keyType, keyMapper);\n  }\n\n  /**\n   * Sorts colors in an array and returns the result as a new array\n   * @param {Color[]|String[]} colors - List of colors\n   * @param {string} [colorOrder=\"rgb\"] - A left side primary color has a higher\n   *     sorting precedence, and an uppercase letter means descending order\n   * @param {function} [keyMapper=null] - A function used to retrive key values\n   *     from elements to be sorted\n   * @param {string} [mode=\"auto\"] - If set to \"hex\", key values are handled as\n   *     hex code strings\n   * @returns {Color[]} An array of sorted colors\n   */\n  static sort(colors, colorOrder = \"rgb\", keyMapper = null, mode = \"auto\") {\n    return this.Sorter.sort(colors, colorOrder, keyMapper, mode);\n  }\n\n  /**\n   * @private\n   */\n  static setup() {\n    /**\n     * Array of named colors defined at\n     * https://www.w3.org/TR/SVG/types.html#ColorKeywords\n     * @property {Color[]} NAMED_COLORS\n     */\n    this.NAMED_COLORS = Color.List.NAMED_COLORS;\n    /** @private */\n    this.NAME_TO_COLOR = Color.List.NAME_TO_COLOR;\n    /** @private */\n    this.HEX_TO_COLOR = Color.List.HEX_TO_COLOR;\n    /**\n     * Array of web safe colors\n     * @property {Color[]} WEB_SAFE_COLORS\n     */\n    this.WEB_SAFE_COLORS = Color.List.WEB_SAFE_COLORS;\n    Object.freeze(this);\n  }\n}\n\n/** @private */\nColorContrastCalc.binarySearchWidth = function*(initWidth, min) {\n  let i = 1;\n  let d = initWidth / Math.pow(2, i);\n\n  while (d > min) {\n    yield d;\n    i++;\n    d = initWidth / Math.pow(2, i);\n  }\n};\n\nColor.calc = ColorContrastCalc;\n\n(function() {\n  class Sorter {\n    static sort(colors, colorOrder = \"rgb\", keyMapper = null, mode = \"auto\") {\n      const keyType = this.guessKeyType(mode, colors[0], keyMapper);\n      const compare = this.compareFunction(colorOrder, keyType, keyMapper);\n\n      return colors.slice().sort(compare);\n    }\n\n    static compareFunction(colorOrder = \"rgb\",\n                           keyType = this.KEY_TYPE.COLOR,\n                           keyMapper = null) {\n      let compare = null;\n\n      if (keyType === this.KEY_TYPE.HEX) {\n        compare = this.compareHexFunction(colorOrder);\n      } else if (this.isComponentType(keyType)) {\n        compare = this.compareComponentsFunction(colorOrder);\n      } else {\n        compare = this.compareColorFunction(colorOrder);\n      }\n\n      return this.composeFunction(compare, keyMapper);\n    }\n\n    static composeFunction(compareFunc, keyMapper = null) {\n      if (! keyMapper) {\n        return compareFunc;\n      }\n\n      return function(color1, color2) {\n        return compareFunc(keyMapper(color1), keyMapper(color2));\n      };\n    }\n\n    static guessKeyType(mode, color, keyMapper) {\n      if (mode === this.KEY_TYPE.HEX ||\n          mode === \"auto\" && this.isStringKey(color, keyMapper)) {\n        return this.KEY_TYPE.HEX;\n      } else if (this.isComponentType(mode) || Array.isArray(color)) {\n        return this.KEY_TYPE.COMPONENTS;\n      } else {\n        return this.KEY_TYPE.COLOR;\n      }\n    }\n\n    static isComponentType(keyType) {\n      return [\n        this.KEY_TYPE.RGB,\n        this.KEY_TYPE.HSL,\n        this.KEY_TYPE.COMPONENTS\n      ].includes(keyType);\n    }\n\n    static isStringKey(color, keyMapper) {\n      const keyType = keyMapper ? keyMapper(color) : color;\n      return Utils.isString(keyType);\n    }\n\n    static compareColorFunction(colorOrder = \"rgb\") {\n      const order = this.parseColorOrder(colorOrder);\n      const type = order.type;\n\n      return function(color1, color2) {\n        return Sorter.compareColorComponents(color1[type], color2[type], order);\n      };\n    }\n\n    static compareComponentsFunction(colorOrder = \"rgb\") {\n      const order = this.parseColorOrder(colorOrder);\n\n      return function(rgb1, rgb2) {\n        return Sorter.compareColorComponents(rgb1, rgb2, order);\n      };\n    }\n\n    static compareHexFunction(colorOrder = \"rgb\") {\n      const order = this.parseColorOrder(colorOrder);\n      const componentsCache = new Map();\n\n      return function(hex1, hex2) {\n        const color1 = Sorter.hexToComponents(hex1, order, componentsCache);\n        const color2 = Sorter.hexToComponents(hex2, order, componentsCache);\n\n        return Sorter.compareColorComponents(color1, color2, order);\n      };\n    }\n\n    static compareColorComponents(color1, color2,\n                                  order = this.parseColorOrder(\"rgb\")) {\n      for (let i of order.pos) {\n        const result = order.funcs[i](color1[i], color2[i]);\n        if (result !== 0) { return result; }\n      }\n\n      return 0;\n    }\n\n    static hexToComponents(hex, order, cache) {\n      const cachedComponents = cache.get(hex);\n      if (cachedComponents) { return cachedComponents; }\n\n      const components = order.toComponents(hex);\n      cache.set(hex, components);\n\n      return components;\n    }\n\n    static rgbComponentPos(colorOrder) {\n      return colorOrder.toLowerCase().split(\"\").map((primary) => {\n        return this.RGB_IDENTIFIERS.indexOf(primary);\n      });\n    }\n\n    static hslComponentPos(hslOrder) {\n      return hslOrder.toLowerCase().split(\"\").map(component => {\n        return this.HSL_IDENTIFIERS.indexOf(component);\n      });\n    }\n\n    static ascendComp(component1, component2) {\n      return component1 - component2;\n    }\n\n    static descendComp(component1, component2) {\n      return component2 - component1;\n    }\n\n    static chooseRgbCompFunc(colorOrder) {\n      const primaryColors = colorOrder.split(\"\")\n              .sort(this.caseInsensitiveComp).reverse();\n\n      return primaryColors.map(primary => {\n        if (Utils.isUpperCase(primary)) {\n          return this.descendComp;\n        }\n\n        return this.ascendComp;\n      });\n    }\n\n    static chooseHslCompFunc(hslOrder) {\n      return this.HSL_RES.map(re => {\n        const pos = hslOrder.search(re);\n        if (Utils.isUpperCase(hslOrder[pos])) {\n          return this.descendComp;\n        }\n\n        return this.ascendComp;\n      });\n    }\n\n    static parseColorOrder(colorOrder) {\n      if (/[rgb]{3}/i.test(colorOrder)) {\n        return {\n          pos: this.rgbComponentPos(colorOrder),\n          funcs: this.chooseRgbCompFunc(colorOrder),\n          toComponents: hexCode => Utils.hexCodeToDecimal(hexCode),\n          type: \"rgb\"\n        };\n      } else {\n        return {\n          pos: this.hslComponentPos(colorOrder),\n          funcs: this.chooseHslCompFunc(colorOrder),\n          toComponents: hexCode => Utils.hexCodeToHsl(hexCode),\n          type: \"hsl\"\n        };\n      }\n    }\n\n    static caseInsensitiveComp(str1, str2) {\n      const lStr1 = str1.toLowerCase();\n      const lStr2 = str2.toLowerCase();\n\n      if (lStr1 < lStr2) { return -1; }\n      if (lStr1 > lStr2) { return 1; }\n      return 0;\n    }\n\n    static setup() {\n      this.RGB_IDENTIFIERS = [\"r\", \"g\", \"b\"];\n      this.HSL_IDENTIFIERS = [\"h\", \"s\", \"l\"];\n      this.HSL_RES = [/h/i, /s/i, /l/i];\n      this.defaultCompFuncs = [\n        Sorter.ascendComp,\n        Sorter.ascendComp,\n        Sorter.ascendComp\n      ];\n      this.KEY_TYPE = {\n        COMPONENTS: \"components\",\n        RGB: \"rgb\",\n        HSL: \"hsl\",\n        HEX: \"hex\",\n        COLOR: \"color\"\n      };\n    }\n  }\n\n  Sorter.setup();\n\n  ColorContrastCalc.Sorter = Sorter;\n})();\n\nColorContrastCalc.setup();\n\nmodule.exports.ColorUtils = ColorUtils;\nmodule.exports.ContrastChecker = Checker;\nmodule.exports.ColorContrastCalc = ColorContrastCalc;\nmodule.exports.Color = Color;\n",
+    "content": "\"use strict\";\n\n/** @private */\nconst ColorUtils = require(\"./color-utils\").ColorUtils;\n/** @private */\nconst Utils = ColorUtils;\n/** @private */\nconst Color = require(\"./color\").Color;\n/** @private */\nconst Checker = require(\"./contrast-checker\").ContrastChecker;\n\n/**\n * Provides the top-level name space of this library.\n */\nclass ColorContrastCalc {\n  /**\n   * Returns an instance of Color.\n   *\n   * As colorValue, you can pass a predefined color name, or an RGB\n   * value represented as an array of Integers or a hex code such as\n   * [255, 255, 255] or \"#ffff00\". name is assigned to the returned\n   * instance if it does not have a name already assigned.\n   * @param {string|Array<number, number, number>} colorValue - name\n   *     of a predefined color or RGB value\n   * @param {string} name - Unless the instance has predefined name,\n   *     the name passed to the method is set to self.name\n   * @returns {Color} Instance of Color\n   */\n  static colorFrom(colorValue, name = null) {\n    const errMessage = \"A color should be given as an array or string.\";\n\n    if (! (Utils.isString(colorValue)) && ! (colorValue instanceof Array)) {\n      throw new Error(errMessage);\n    }\n\n    if (colorValue instanceof Array) {\n      return this.colorFromRgb(colorValue, name);\n    }\n\n    return this.colorFromStr(colorValue, name);\n  }\n\n  /**\n   * @private\n   */\n  static colorFromRgb(colorValue, name = null) {\n    const errMessage = \"An RGB value should be given in form of [r, g, b].\";\n\n    if (! Utils.isValidRgb(colorValue)) {\n      throw new Error(errMessage);\n    }\n\n    const hexCode = Utils.rgbToHexCode(colorValue);\n    return Color.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode, name);\n  }\n\n  /**\n   * @private\n   */\n  static colorFromStr(colorValue, name = null) {\n    const errMessage = \"A hex code is in form of '#xxxxxx' where 0 <= x <= f.\";\n\n    const namedColor = Color.getByName(colorValue);\n\n    if (namedColor) {\n      return namedColor;\n    }\n\n    if (! Utils.isValidHexCode(colorValue)) {\n      throw new Error(errMessage);\n    }\n\n    const hexCode = Utils.normalizeHexCode(colorValue);\n    return Color.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode, name);\n  }\n\n  /**\n   * Returns an array of named colors that satisfy a given level of\n   * contrast ratio\n   * @param {Color} color - base color to which other colors are compared\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {Color[]}\n   */\n  static colorsWithSufficientContrast(color, level = \"AA\") {\n    const ratio = Checker.levelToRatio(level);\n\n    return this.NAMED_COLORS.filter(combinedColor => {\n      return color.contrastRatioAgainst(combinedColor) >= ratio;\n    });\n  }\n\n  /**\n   * Returns an array of colors which share the same saturation and lightness.\n   * By default, so-called pure colors are returned.\n   * @param {number} [s=100] - Ratio of saturation in percentage.\n   * @param {number} [l=50] - Ratio of lightness in percentage.\n   * @param {number} [h_interval=1] - Interval of hues given in degrees.\n   *     By default, it returns 360 hues beginning from red.\n   *     (Red is included twice, because it corresponds to 0 and 360 degrees.)\n   * @returns {Color[]}\n   */\n  static hslColors(s = 100, l = 50, h_interval = 1) {\n    return Color.List.hslColors(s, l, h_interval);\n  }\n\n  /**\n   * Returns a function to be used as a parameter of Array.prototype.sort()\n   * @param {string} [colorOrder=\"rgb\"] - A left side primary color has a higher\n   *     sorting precedence\n   * @param {string} [keyType=\"color\"] - Type of keys used for sorting:\n   *     \"color\", \"hex\" or \"rgb\"\n   * @param {function} [keyMapper=null] - A function used to retrive key values\n   *     from elements to be sorted\n   * @returns {function} Function that compares given two colors\n   */\n  static compareFunction(colorOrder = \"rgb\", keyType = \"color\", keyMapper = null) {\n    return this.Sorter.compareFunction(colorOrder, keyType, keyMapper);\n  }\n\n  /**\n   * Sorts colors in an array and returns the result as a new array\n   * @param {Color[]|String[]} colors - List of colors\n   * @param {string} [colorOrder=\"rgb\"] - A left side primary color has a higher\n   *     sorting precedence, and an uppercase letter means descending order\n   * @param {function} [keyMapper=null] - A function used to retrive key values\n   *     from elements to be sorted\n   * @param {string} [mode=\"auto\"] - If set to \"hex\", key values are handled as\n   *     hex code strings\n   * @returns {Color[]} An array of sorted colors\n   */\n  static sort(colors, colorOrder = \"rgb\", keyMapper = null, mode = \"auto\") {\n    return this.Sorter.sort(colors, colorOrder, keyMapper, mode);\n  }\n\n  /**\n   * @private\n   */\n  static setup() {\n    /**\n     * Array of named colors defined at\n     * https://www.w3.org/TR/SVG/types.html#ColorKeywords\n     * @property {Color[]} NAMED_COLORS\n     */\n    this.NAMED_COLORS = Color.List.NAMED_COLORS;\n    /** @private */\n    this.NAME_TO_COLOR = Color.List.NAME_TO_COLOR;\n    /** @private */\n    this.HEX_TO_COLOR = Color.List.HEX_TO_COLOR;\n    /**\n     * Array of web safe colors\n     * @property {Color[]} WEB_SAFE_COLORS\n     */\n    this.WEB_SAFE_COLORS = Color.List.WEB_SAFE_COLORS;\n    Object.freeze(this);\n  }\n}\n\nColor.calc = ColorContrastCalc;\n\n(function() {\n  class Sorter {\n    static sort(colors, colorOrder = \"rgb\", keyMapper = null, mode = \"auto\") {\n      const keyType = this.guessKeyType(mode, colors[0], keyMapper);\n      const compare = this.compareFunction(colorOrder, keyType, keyMapper);\n\n      return colors.slice().sort(compare);\n    }\n\n    static compareFunction(colorOrder = \"rgb\",\n                           keyType = this.KEY_TYPE.COLOR,\n                           keyMapper = null) {\n      let compare = null;\n\n      if (keyType === this.KEY_TYPE.HEX) {\n        compare = this.compareHexFunction(colorOrder);\n      } else if (this.isComponentType(keyType)) {\n        compare = this.compareComponentsFunction(colorOrder);\n      } else {\n        compare = this.compareColorFunction(colorOrder);\n      }\n\n      return this.composeFunction(compare, keyMapper);\n    }\n\n    static composeFunction(compareFunc, keyMapper = null) {\n      if (! keyMapper) {\n        return compareFunc;\n      }\n\n      return function(color1, color2) {\n        return compareFunc(keyMapper(color1), keyMapper(color2));\n      };\n    }\n\n    static guessKeyType(mode, color, keyMapper) {\n      if (mode === this.KEY_TYPE.HEX ||\n          mode === \"auto\" && this.isStringKey(color, keyMapper)) {\n        return this.KEY_TYPE.HEX;\n      } else if (this.isComponentType(mode) || Array.isArray(color)) {\n        return this.KEY_TYPE.COMPONENTS;\n      } else {\n        return this.KEY_TYPE.COLOR;\n      }\n    }\n\n    static isComponentType(keyType) {\n      return [\n        this.KEY_TYPE.RGB,\n        this.KEY_TYPE.HSL,\n        this.KEY_TYPE.COMPONENTS\n      ].includes(keyType);\n    }\n\n    static isStringKey(color, keyMapper) {\n      const keyType = keyMapper ? keyMapper(color) : color;\n      return Utils.isString(keyType);\n    }\n\n    static compareColorFunction(colorOrder = \"rgb\") {\n      const order = this.parseColorOrder(colorOrder);\n      const type = order.type;\n\n      return function(color1, color2) {\n        return Sorter.compareColorComponents(color1[type], color2[type], order);\n      };\n    }\n\n    static compareComponentsFunction(colorOrder = \"rgb\") {\n      const order = this.parseColorOrder(colorOrder);\n\n      return function(rgb1, rgb2) {\n        return Sorter.compareColorComponents(rgb1, rgb2, order);\n      };\n    }\n\n    static compareHexFunction(colorOrder = \"rgb\") {\n      const order = this.parseColorOrder(colorOrder);\n      const componentsCache = new Map();\n\n      return function(hex1, hex2) {\n        const color1 = Sorter.hexToComponents(hex1, order, componentsCache);\n        const color2 = Sorter.hexToComponents(hex2, order, componentsCache);\n\n        return Sorter.compareColorComponents(color1, color2, order);\n      };\n    }\n\n    static compareColorComponents(color1, color2,\n                                  order = this.parseColorOrder(\"rgb\")) {\n      for (let i of order.pos) {\n        const result = order.funcs[i](color1[i], color2[i]);\n        if (result !== 0) { return result; }\n      }\n\n      return 0;\n    }\n\n    static hexToComponents(hex, order, cache) {\n      const cachedComponents = cache.get(hex);\n      if (cachedComponents) { return cachedComponents; }\n\n      const components = order.toComponents(hex);\n      cache.set(hex, components);\n\n      return components;\n    }\n\n    static rgbComponentPos(colorOrder) {\n      return colorOrder.toLowerCase().split(\"\").map((primary) => {\n        return this.RGB_IDENTIFIERS.indexOf(primary);\n      });\n    }\n\n    static hslComponentPos(hslOrder) {\n      return hslOrder.toLowerCase().split(\"\").map(component => {\n        return this.HSL_IDENTIFIERS.indexOf(component);\n      });\n    }\n\n    static ascendComp(component1, component2) {\n      return component1 - component2;\n    }\n\n    static descendComp(component1, component2) {\n      return component2 - component1;\n    }\n\n    static chooseRgbCompFunc(colorOrder) {\n      const primaryColors = colorOrder.split(\"\")\n              .sort(this.caseInsensitiveComp).reverse();\n\n      return primaryColors.map(primary => {\n        if (Utils.isUpperCase(primary)) {\n          return this.descendComp;\n        }\n\n        return this.ascendComp;\n      });\n    }\n\n    static chooseHslCompFunc(hslOrder) {\n      return this.HSL_RES.map(re => {\n        const pos = hslOrder.search(re);\n        if (Utils.isUpperCase(hslOrder[pos])) {\n          return this.descendComp;\n        }\n\n        return this.ascendComp;\n      });\n    }\n\n    static parseColorOrder(colorOrder) {\n      if (/[rgb]{3}/i.test(colorOrder)) {\n        return {\n          pos: this.rgbComponentPos(colorOrder),\n          funcs: this.chooseRgbCompFunc(colorOrder),\n          toComponents: hexCode => Utils.hexCodeToDecimal(hexCode),\n          type: \"rgb\"\n        };\n      } else {\n        return {\n          pos: this.hslComponentPos(colorOrder),\n          funcs: this.chooseHslCompFunc(colorOrder),\n          toComponents: hexCode => Utils.hexCodeToHsl(hexCode),\n          type: \"hsl\"\n        };\n      }\n    }\n\n    static caseInsensitiveComp(str1, str2) {\n      const lStr1 = str1.toLowerCase();\n      const lStr2 = str2.toLowerCase();\n\n      if (lStr1 < lStr2) { return -1; }\n      if (lStr1 > lStr2) { return 1; }\n      return 0;\n    }\n\n    static setup() {\n      this.RGB_IDENTIFIERS = [\"r\", \"g\", \"b\"];\n      this.HSL_IDENTIFIERS = [\"h\", \"s\", \"l\"];\n      this.HSL_RES = [/h/i, /s/i, /l/i];\n      this.defaultCompFuncs = [\n        Sorter.ascendComp,\n        Sorter.ascendComp,\n        Sorter.ascendComp\n      ];\n      this.KEY_TYPE = {\n        COMPONENTS: \"components\",\n        RGB: \"rgb\",\n        HSL: \"hsl\",\n        HEX: \"hex\",\n        COLOR: \"color\"\n      };\n    }\n  }\n\n  Sorter.setup();\n\n  ColorContrastCalc.Sorter = Sorter;\n})();\n\nColorContrastCalc.setup();\n\nmodule.exports.ColorUtils = ColorUtils;\nmodule.exports.ContrastChecker = Checker;\nmodule.exports.ColorContrastCalc = ColorContrastCalc;\nmodule.exports.Color = Color;\n",
     "static": true,
     "longname": "/home/naoki/nico-hn/color-contrast-calc/lib/color-contrast-calc.js",
     "access": "public",
@@ -656,38 +656,6 @@
   },
   {
     "__docId__": 53,
-    "kind": "function",
-    "name": "binarySearchWidth",
-    "memberof": "lib/color-contrast-calc.js",
-    "generator": true,
-    "async": false,
-    "static": true,
-    "longname": "lib/color-contrast-calc.js~binarySearchWidth",
-    "access": "private",
-    "export": false,
-    "importPath": "color-contrast-calc/lib/color-contrast-calc.js",
-    "importStyle": null,
-    "description": null,
-    "lineNumber": 159,
-    "ignore": true,
-    "params": [
-      {
-        "name": "initWidth",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "min",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": null
-  },
-  {
-    "__docId__": 54,
     "kind": "class",
     "name": "ColorContrastCalc",
     "memberof": "lib/color-contrast-calc.js",
@@ -702,7 +670,7 @@
     "interface": false
   },
   {
-    "__docId__": 55,
+    "__docId__": 54,
     "kind": "method",
     "name": "colorFrom",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -752,7 +720,7 @@
     }
   },
   {
-    "__docId__": 56,
+    "__docId__": 55,
     "kind": "method",
     "name": "colorFromRgb",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -787,7 +755,7 @@
     }
   },
   {
-    "__docId__": 57,
+    "__docId__": 56,
     "kind": "method",
     "name": "colorFromStr",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -822,7 +790,7 @@
     }
   },
   {
-    "__docId__": 58,
+    "__docId__": 57,
     "kind": "method",
     "name": "colorsWithSufficientContrast",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -873,7 +841,7 @@
     }
   },
   {
-    "__docId__": 59,
+    "__docId__": 58,
     "kind": "method",
     "name": "hslColors",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -938,7 +906,7 @@
     }
   },
   {
-    "__docId__": 60,
+    "__docId__": 59,
     "kind": "method",
     "name": "compareFunction",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1003,7 +971,7 @@
     }
   },
   {
-    "__docId__": 61,
+    "__docId__": 60,
     "kind": "method",
     "name": "sort",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1079,7 +1047,7 @@
     }
   },
   {
-    "__docId__": 62,
+    "__docId__": 61,
     "kind": "method",
     "name": "setup",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1095,7 +1063,7 @@
     "return": null
   },
   {
-    "__docId__": 63,
+    "__docId__": 62,
     "kind": "member",
     "name": "NAMED_COLORS",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1123,7 +1091,7 @@
     }
   },
   {
-    "__docId__": 64,
+    "__docId__": 63,
     "kind": "member",
     "name": "NAME_TO_COLOR",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1140,7 +1108,7 @@
     }
   },
   {
-    "__docId__": 65,
+    "__docId__": 64,
     "kind": "member",
     "name": "HEX_TO_COLOR",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1157,7 +1125,7 @@
     }
   },
   {
-    "__docId__": 66,
+    "__docId__": 65,
     "kind": "member",
     "name": "WEB_SAFE_COLORS",
     "memberof": "lib/color-contrast-calc.js~ColorContrastCalc",
@@ -1185,10 +1153,10 @@
     }
   },
   {
-    "__docId__": 67,
+    "__docId__": 66,
     "kind": "file",
     "name": "lib/color-utils.js",
-    "content": "\"use strict\";\n\n/**\n * Collection of functions that provide basic operations on colors\n * represented as RGB/HSL value (given in the form of array of numbers)\n * or hex code (given in the form of string)\n */\nclass ColorUtils {\n  /**\n   * Converts a hex color code string to a decimal representation\n   * @param {string} hexCode - Hex color code such as \"#ffff00\"\n   * @returns {Array<number, number, number>} RGB value represented as\n   *     an array of numbers\n   */\n  static hexCodeToRgb(hexCode) {\n    const h = this.normalizeHexCode(hexCode, false);\n    return [0, 2, 4].map(s => h.substr(s, 2))\n      .map(primaryColor => Number.parseInt(primaryColor, 16));\n  }\n\n  /**\n   * Converts a hex color code to a 6-digit hexadecimal string\n   * @param {string} hexString - String that represent a hex code\n   * @param {boolean} [prefix=true] - Append '#' to the head of return value\n   *     if a truthy value is given\n   * @returns {string} 6-digit hexadecimal string with/without leading '#'\n   */\n  static normalizeHexCode(hexString, prefix = true) {\n    const hl = hexString.toLowerCase();\n    const h = hl.startsWith(\"#\") ? hl.replace(\"#\", \"\") : hl;\n    let hexPart = h;\n    if (h.length === 3) {\n      hexPart = [0, 1, 2].map(s => h.substr(s, 1).repeat(2)).join(\"\");\n    }\n\n    return prefix ? `#${hexPart}` : hexPart;\n  }\n\n  /**\n   * Converts a decimal representation of color to a hex code string\n   * @param {Array<number, number, number>} rgb - RGB value represented as\n   *     an array of numbers\n   * @returns {string} RGB value in hex code\n   */\n  static rgbToHexCode(rgb) {\n    return \"#\" + rgb.map(d => {\n      const h = d.toString(16);\n      return h.length === 1 ? \"0\" + h : h;\n    }).join(\"\");\n  }\n\n  /**\n   * Converts HSL value to RGB value\n   * @param {Array<number, number, number>} hsl - An array of numbers that\n   *     represents HSL value\n   * @returns {Array<number, number, number>} An array of numbers that\n   *     represents RGB value\n   */\n  static hslToRgb(hsl) {\n    /*\n       https://www.w3.org/TR/css3-color/#hsl-color\n     */\n    const h = hsl[0] / 360;\n    const s = hsl[1] / 100;\n    const l = hsl[2] / 100;\n    const m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;\n    const m1 = l * 2 - m2;\n    const r = this.hueToRgb(m1, m2, h + 1 / 3) * 255;\n    const g = this.hueToRgb(m1, m2, h) * 255;\n    const b = this.hueToRgb(m1, m2, h - 1 / 3) * 255;\n    return [r, g, b].map(c => Math.round(c));\n  }\n\n  /**\n   * @private\n   */\n  static hueToRgb(m1, m2, hInit) {\n    let h = hInit;\n    if (h < 0) { h = h + 1; }\n    if (h > 1) { h = h - 1; }\n    if (h * 6 < 1) { return m1 + (m2 - m1) * h * 6; }\n    if (h * 2 < 1) { return m2; }\n    if (h * 3 < 2) { return m1 + (m2 - m1) * (2 / 3 - h) * 6; }\n    return m1;\n  }\n\n  /**\n   * Converts HSL value to hex code\n   * @param {Array<number, number, number>} hsl - An array of numbers that\n   *     represents HSL value\n   * @returns {string} Hex code\n   */\n  static hslToHexCode(hsl) {\n    return this.rgbToHexCode(this.hslToRgb(hsl));\n  }\n\n  /**\n   * @private\n   */\n  static rgbToHsl(rgb) {\n    const l = this.rgbToLightness(rgb) * 100;\n    const s = this.rgbToSaturation(rgb) * 100;\n    const h = this.rgbToHue(rgb);\n\n    return [h, s, l];\n  }\n\n  /**\n   * @private\n   */\n  static rgbToLightness(rgb) {\n    return (Math.max(...rgb) + Math.min(...rgb)) / 510;\n  }\n\n  /**\n   * @private\n   */\n  static rgbToHue(rgb) {\n    /**\n     References:\n     Agoston, Max K. (2005).\n     \"Computer Graphics and Geometric Modeling: Implementation and Algorithms\".\n     London: Springer\n\n     https://accessibility.kde.org/hsl-adjusted.php#hue\n     */\n    const max = Math.max(...rgb);\n    const min = Math.min(...rgb);\n\n    if (max === min) { return 0; } /* you can return whatever you like */\n\n    const d = max - min;\n    const mi = rgb.reduce((m, v, i) => rgb[m] > v ? m : i, 0); /* maxIndex */\n    const h = mi * 120 + (rgb[(mi + 1) % 3] - rgb[(mi + 2) % 3]) * 60 / d;\n\n    return h < 0 ? h + 360 : h;\n  }\n\n  /**\n   * @private\n   */\n  static rgbToSaturation(rgb) {\n    const l = this.rgbToLightness(rgb);\n    const max = Math.max(...rgb);\n    const min = Math.min(...rgb);\n    const d = max - min;\n\n    if (max === min) { return 0; }\n\n    if (l <= 0.5) {\n      return d / (max + min);\n    } else {\n      return d / (510 - max - min);\n    }\n  }\n\n  /**\n   * @private\n   */\n  static hexCodeToHsl(hexCode) {\n    return this.rgbToHsl(this.hexCodeToRgb(hexCode));\n  }\n\n  /**\n   * Decimal rounding with a given precision\n   * @param {number} number - Number to be rounded off\n   * @param {number} precision - Number of digits after the decimal point\n   * @returns {number} returns the rounded number\n   */\n  static decimalRound(number, precision) {\n    const factor = Math.pow(10, precision);\n    return Math.round(number * factor) / factor;\n  }\n\n  /**\n   * Checks if a given array is a valid representation of RGB color.\n   * @param {Array<number, number, number>} rgb - RGB value represented as\n   *     an array of numbers\n   * @returns {boolean} true if the argument is a valid RGB color\n   */\n  static isValidRgb(rgb) {\n    return rgb.length === 3 &&\n      rgb.every(c => c >= 0 && c <= 255 &&\n                Number.isInteger(c));\n  }\n\n  /**\n   * Checks if a given array is a valid representation of HSL color.\n   * @param {Array<number, number, number>} hsl - HSL value represented as\n   *     an array of numbers\n   * @returns {boolean} true if the argument is a valid HSL color\n   */\n  static isValidHsl(hsl) {\n    const upperLimits = [360, 100, 100];\n    return hsl.length === 3 &&\n      hsl.every((c, i) => typeof c === \"number\" &&\n                c >= 0 && c <= upperLimits[i]);\n  }\n\n  /**\n   * Checks if a given string is a valid representation of RGB color.\n   * @param {string} code - RGB value in hex code\n   * @returns {boolean} returns true if then argument is a valid RGB color\n   */\n  static isValidHexCode(code) {\n    return this.HEX_CODE_RE.test(code);\n  }\n\n  /**\n   * Checks if given two hex color codes represent a same color.\n   * @param {string} hexCode1 - Color given as a hex code,\n   *     such as \"#ffff00\", \"#FFFF00\" or \"#ff0\"\n   * @param {string} hexCode2 - Color given as a hex code,\n   *     such as \"#ffff00\", \"#FFFF00\" or \"#ff0\"\n   * @returns {boolean} True if given two colors are same\n   */\n  static isSameHexColor(hexCode1, hexCode2) {\n    const h1 = this.normalizeHexCode(hexCode1);\n    const h2 = this.normalizeHexCode(hexCode2);\n    return h1 === h2;\n  }\n\n  /**\n   * Checks if given two RGB values represent a same color.\n   * @param {Array<number, number, number>} rgb1 - Color given as an array\n   *     of numbers, such as [255, 255, 0]\n   * @param {Array<number, number, number>} rgb2 - Color given as an array\n   *     of numbers, such as [255, 255, 0]\n   * @returns {boolean} True if given two colors are same\n   */\n  static isSameRgbColor(rgb1, rgb2) {\n    if (rgb1.length !== rgb2.length) { return false; }\n    return rgb1.every((primaryColor, i) => primaryColor === rgb2[i]);\n  }\n\n  /**\n   * Checks if a given object is a string\n   * @param {object} str - Object to be checked\n   * @returns {boolean} returns true if the argument is a string\n   */\n  static isString(str) {\n    return typeof str === \"string\" || str instanceof String;\n  }\n\n  /**\n   * Checks if a given string is consists of uppercase letters\n   * @param {string} str - string to be checked\n   * @returns {boolean} returns true if letters in the argument string are\n   *     all uppercase\n   */\n  static isUpperCase(str) {\n    return this.isString(str) && str.toUpperCase() === str;\n  }\n\n  /**\n   * @private\n   */\n  static setup() {\n    /** @private */\n    this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;\n  }\n\n\n  /**\n   * @private\n   */\n  static clampToRange(value, lowerBound, upperBound) {\n    if (value <= lowerBound) {\n      return lowerBound;\n    } else if (value > upperBound) {\n      return upperBound;\n    }\n    return value;\n  }\n\n  /**\n   * @private\n   */\n  static rgbMap(values, func = null) {\n    if (func) {\n      return values.map(val => {\n        return ColorUtils.clampToRange(Math.round(func(val)), 0, 255);\n      });\n    } else {\n      return values.map(val => {\n        return ColorUtils.clampToRange(Math.round(val), 0, 255);\n      });\n    }\n  }\n}\n\n/**\n * @deprecated Use .rgbToHexCode instead.\n */\nColorUtils.decimalToHexCode = ColorUtils.rgbToHexCode;\n\n/**\n * @deprecated use .hexCodeTorgb instead.\n */\nColorUtils.hexCodeToDecimal = ColorUtils.hexCodeToRgb;\n\n(function() {\n  class Matrix {\n    constructor(matrix) {\n      this.matrix = matrix;\n    }\n\n    add(otherMatrix) {\n      const newMatrix = this.matrix.map((row, i) => {\n        const otherRow = otherMatrix.matrix[i];\n        return row.map((s, j) => s + otherRow[j]);\n      });\n\n      return new Matrix(newMatrix);\n    }\n\n    multiply(n) {\n      if (typeof n === \"number\") {\n        return this.multiplyByScalar(n);\n      } else {\n        return this.productByVector(n);\n      }\n    }\n\n    multiplyByScalar(n) {\n      const newMatrix = this.matrix.map(row => row.map(c => c * n));\n      return new Matrix(newMatrix);\n    }\n\n    productByVector(vector) {\n      return this.matrix.map(row => {\n        return row.reduce((s, c, i) => s += c * vector[i], 0);\n      });\n    }\n  }\n\n  ColorUtils.Matrix = Matrix;\n\n  const rgbMap = ColorUtils.rgbMap;\n\n  class ContrastCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-contrast\n      https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(rgb, ratio = 100) {\n      return rgbMap(rgb, c => (c * ratio + 255 * (50 - ratio / 2)) / 100);\n    }\n  }\n\n  ColorUtils.ContrastCalc = ContrastCalc;\n\n  class BrightnessCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-brightness\n      https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(rgb, ratio = 100) {\n      return rgbMap(rgb, c => c * ratio / 100);\n    }\n  }\n\n  ColorUtils.BrightnessCalc = BrightnessCalc;\n\n  class InvertCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-invert\n      https://www.w3.org/TR/filter-effects-1/#invertEquivalent\n      https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(rgb, ratio) {\n      return rgb.map(c => {\n        return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);\n      });\n    }\n  }\n\n  ColorUtils.InvertCalc = InvertCalc;\n\n  class HueRotateCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate\n      https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(rgb, deg) {\n      return rgbMap(this.calcRotation(deg).multiply(rgb));\n    }\n\n    static degToRad(deg) {\n      return Math.PI * deg / 180;\n    }\n\n    static calcRotation(deg) {\n      const rad = this.degToRad(deg);\n      const cosPartResult = this.cosPart.multiply(Math.cos(rad));\n      const sinPartResult = this.sinPart.multiply(Math.sin(rad));\n      return this.constPart.add(cosPartResult).add(sinPartResult);\n    }\n  }\n\n  HueRotateCalc.constPart = new Matrix([[0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072]]);\n\n  HueRotateCalc.cosPart = new Matrix([[0.787, -0.715, -0.072],\n                                      [-0.213, 0.285, -0.072],\n                                      [-0.213, -0.715, 0.928]]);\n\n  HueRotateCalc.sinPart = new Matrix([[-0.213, -0.715, 0.928],\n                                      [0.143, 0.140, -0.283],\n                                      [-0.787, 0.715, 0.072]]);\n\n  ColorUtils.HueRotateCalc = HueRotateCalc;\n\n  class SaturateCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-saturate\n      https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n    */\n    static calcRgb(rgb, s) {\n      return rgbMap(this.calcSaturation(s).multiply(rgb));\n    }\n\n    static calcSaturation(s) {\n      return this.constPart.add(this.saturatePart.multiply(s / 100));\n    }\n  }\n\n  SaturateCalc.constPart = HueRotateCalc.constPart;\n  SaturateCalc.saturatePart = HueRotateCalc.cosPart;\n\n  ColorUtils.SaturateCalc = SaturateCalc;\n\n  class GrayscaleCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-grayscale\n      https://www.w3.org/TR/filter-effects/#grayscaleEquivalent\n      https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n    */\n    static calcRgb(rgb, s) {\n      return rgbMap(this.calcGrayscale(s).multiply(rgb));\n    }\n\n    static calcGrayscale(s) {\n      const r = 1 - Math.min(100, s) / 100;\n      return this.constPart.add(this.ratioPart.multiply(r));\n    }\n  }\n\n  GrayscaleCalc.constPart = new Matrix([[0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722]]);\n\n  GrayscaleCalc.ratioPart = new Matrix([[0.7874, -0.7152, -0.0722],\n                                        [-0.2126, 0.2848, -0.0722],\n                                        [-0.2126, -0.7152, 0.9278]]);\n\n  ColorUtils.GrayscaleCalc = GrayscaleCalc;\n})();\n\nColorUtils.setup();\n\nmodule.exports.ColorUtils = ColorUtils;\n",
+    "content": "\"use strict\";\n\n/**\n * Collection of functions that provide basic operations on colors\n * represented as RGB/HSL value (given in the form of array of numbers)\n * or hex code (given in the form of string)\n */\nclass ColorUtils {\n  /**\n   * Converts a hex color code string to a decimal representation\n   * @param {string} hexCode - Hex color code such as \"#ffff00\"\n   * @returns {Array<number, number, number>} RGB value represented as\n   *     an array of numbers\n   */\n  static hexCodeToRgb(hexCode) {\n    const h = this.normalizeHexCode(hexCode, false);\n    return [0, 2, 4].map(s => h.substr(s, 2))\n      .map(primaryColor => Number.parseInt(primaryColor, 16));\n  }\n\n  /**\n   * Converts a hex color code to a 6-digit hexadecimal string\n   * @param {string} hexString - String that represent a hex code\n   * @param {boolean} [prefix=true] - Append '#' to the head of return value\n   *     if a truthy value is given\n   * @returns {string} 6-digit hexadecimal string with/without leading '#'\n   */\n  static normalizeHexCode(hexString, prefix = true) {\n    const hl = hexString.toLowerCase();\n    const h = hl.startsWith(\"#\") ? hl.replace(\"#\", \"\") : hl;\n    let hexPart = h;\n    if (h.length === 3) {\n      hexPart = [0, 1, 2].map(s => h.substr(s, 1).repeat(2)).join(\"\");\n    }\n\n    return prefix ? `#${hexPart}` : hexPart;\n  }\n\n  /**\n   * Converts a decimal representation of color to a hex code string\n   * @param {Array<number, number, number>} rgb - RGB value represented as\n   *     an array of numbers\n   * @returns {string} RGB value in hex code\n   */\n  static rgbToHexCode(rgb) {\n    return \"#\" + rgb.map(d => {\n      const h = d.toString(16);\n      return h.length === 1 ? \"0\" + h : h;\n    }).join(\"\");\n  }\n\n  /**\n   * Converts HSL value to RGB value\n   * @param {Array<number, number, number>} hsl - An array of numbers that\n   *     represents HSL value\n   * @returns {Array<number, number, number>} An array of numbers that\n   *     represents RGB value\n   */\n  static hslToRgb(hsl) {\n    /*\n       https://www.w3.org/TR/css3-color/#hsl-color\n     */\n    const h = hsl[0] / 360;\n    const s = hsl[1] / 100;\n    const l = hsl[2] / 100;\n    const m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;\n    const m1 = l * 2 - m2;\n    const r = this.hueToRgb(m1, m2, h + 1 / 3) * 255;\n    const g = this.hueToRgb(m1, m2, h) * 255;\n    const b = this.hueToRgb(m1, m2, h - 1 / 3) * 255;\n    return [r, g, b].map(c => Math.round(c));\n  }\n\n  /**\n   * @private\n   */\n  static hueToRgb(m1, m2, hInit) {\n    let h = hInit;\n    if (h < 0) { h = h + 1; }\n    if (h > 1) { h = h - 1; }\n    if (h * 6 < 1) { return m1 + (m2 - m1) * h * 6; }\n    if (h * 2 < 1) { return m2; }\n    if (h * 3 < 2) { return m1 + (m2 - m1) * (2 / 3 - h) * 6; }\n    return m1;\n  }\n\n  /**\n   * Converts HSL value to hex code\n   * @param {Array<number, number, number>} hsl - An array of numbers that\n   *     represents HSL value\n   * @returns {string} Hex code\n   */\n  static hslToHexCode(hsl) {\n    return this.rgbToHexCode(this.hslToRgb(hsl));\n  }\n\n  /**\n   * Converts RGB value to HSL value\n   * @param {Array<number, number, number>} rgb - An array of numbers that\n   *     represents RGB value\n   * @returns {Array<number, number, number>} An array of numbers that\n   *     represents HSL value\n   */\n  static rgbToHsl(rgb) {\n    const l = this.rgbToLightness(rgb) * 100;\n    const s = this.rgbToSaturation(rgb) * 100;\n    const h = this.rgbToHue(rgb);\n\n    return [h, s, l];\n  }\n\n  /**\n   * @private\n   */\n  static rgbToLightness(rgb) {\n    return (Math.max(...rgb) + Math.min(...rgb)) / 510;\n  }\n\n  /**\n   * @private\n   */\n  static rgbToHue(rgb) {\n    /**\n     References:\n     Agoston, Max K. (2005).\n     \"Computer Graphics and Geometric Modeling: Implementation and Algorithms\".\n     London: Springer\n\n     https://accessibility.kde.org/hsl-adjusted.php#hue\n     */\n    const max = Math.max(...rgb);\n    const min = Math.min(...rgb);\n\n    if (max === min) { return 0; } /* you can return whatever you like */\n\n    const d = max - min;\n    const mi = rgb.reduce((m, v, i) => rgb[m] > v ? m : i, 0); /* maxIndex */\n    const h = mi * 120 + (rgb[(mi + 1) % 3] - rgb[(mi + 2) % 3]) * 60 / d;\n\n    return h < 0 ? h + 360 : h;\n  }\n\n  /**\n   * @private\n   */\n  static rgbToSaturation(rgb) {\n    const l = this.rgbToLightness(rgb);\n    const max = Math.max(...rgb);\n    const min = Math.min(...rgb);\n    const d = max - min;\n\n    if (max === min) { return 0; }\n\n    if (l <= 0.5) {\n      return d / (max + min);\n    } else {\n      return d / (510 - max - min);\n    }\n  }\n\n  /**\n   * Converts a hex color code string to an HSL representation\n   * @param {string} hexCode - Hex color code such as \"#ffff00\"\n   * @returns {Array<number, number, number>} HSL value represented as\n   *     an array of numbers\n   */\n  static hexCodeToHsl(hexCode) {\n    return this.rgbToHsl(this.hexCodeToRgb(hexCode));\n  }\n\n  /**\n   * Decimal rounding with a given precision\n   * @param {number} number - Number to be rounded off\n   * @param {number} precision - Number of digits after the decimal point\n   * @returns {number} returns the rounded number\n   */\n  static decimalRound(number, precision) {\n    const factor = Math.pow(10, precision);\n    return Math.round(number * factor) / factor;\n  }\n\n  /**\n   * Checks if a given array is a valid representation of RGB color.\n   * @param {Array<number, number, number>} rgb - RGB value represented as\n   *     an array of numbers\n   * @returns {boolean} true if the argument is a valid RGB color\n   */\n  static isValidRgb(rgb) {\n    return rgb.length === 3 &&\n      rgb.every(c => c >= 0 && c <= 255 &&\n                Number.isInteger(c));\n  }\n\n  /**\n   * Checks if a given array is a valid representation of HSL color.\n   * @param {Array<number, number, number>} hsl - HSL value represented as\n   *     an array of numbers\n   * @returns {boolean} true if the argument is a valid HSL color\n   */\n  static isValidHsl(hsl) {\n    const upperLimits = [360, 100, 100];\n    return hsl.length === 3 &&\n      hsl.every((c, i) => typeof c === \"number\" &&\n                c >= 0 && c <= upperLimits[i]);\n  }\n\n  /**\n   * Checks if a given string is a valid representation of RGB color.\n   * @param {string} code - RGB value in hex code\n   * @returns {boolean} returns true if then argument is a valid RGB color\n   */\n  static isValidHexCode(code) {\n    return this.HEX_CODE_RE.test(code);\n  }\n\n  /**\n   * Checks if given two hex color codes represent a same color.\n   * @param {string} hexCode1 - Color given as a hex code,\n   *     such as \"#ffff00\", \"#FFFF00\" or \"#ff0\"\n   * @param {string} hexCode2 - Color given as a hex code,\n   *     such as \"#ffff00\", \"#FFFF00\" or \"#ff0\"\n   * @returns {boolean} True if given two colors are same\n   */\n  static isSameHexColor(hexCode1, hexCode2) {\n    const h1 = this.normalizeHexCode(hexCode1);\n    const h2 = this.normalizeHexCode(hexCode2);\n    return h1 === h2;\n  }\n\n  /**\n   * Checks if given two RGB values represent a same color.\n   * @param {Array<number, number, number>} rgb1 - Color given as an array\n   *     of numbers, such as [255, 255, 0]\n   * @param {Array<number, number, number>} rgb2 - Color given as an array\n   *     of numbers, such as [255, 255, 0]\n   * @returns {boolean} True if given two colors are same\n   */\n  static isSameRgbColor(rgb1, rgb2) {\n    if (rgb1.length !== rgb2.length) { return false; }\n    return rgb1.every((primaryColor, i) => primaryColor === rgb2[i]);\n  }\n\n  /**\n   * Checks if a given object is a string\n   * @param {object} str - Object to be checked\n   * @returns {boolean} returns true if the argument is a string\n   */\n  static isString(str) {\n    return typeof str === \"string\" || str instanceof String;\n  }\n\n  /**\n   * Checks if a given string is consists of uppercase letters\n   * @param {string} str - string to be checked\n   * @returns {boolean} returns true if letters in the argument string are\n   *     all uppercase\n   */\n  static isUpperCase(str) {\n    return this.isString(str) && str.toUpperCase() === str;\n  }\n\n  /**\n   * @private\n   */\n  static setup() {\n    /** @private */\n    this.HEX_CODE_RE = /^#?[0-9a-f]{3}([0-9a-f]{3})?$/i;\n  }\n\n\n  /**\n   * @private\n   */\n  static clampToRange(value, lowerBound, upperBound) {\n    if (value <= lowerBound) {\n      return lowerBound;\n    } else if (value > upperBound) {\n      return upperBound;\n    }\n    return value;\n  }\n\n  /**\n   * @private\n   */\n  static rgbMap(values, func = null) {\n    if (func) {\n      return values.map(val => {\n        return ColorUtils.clampToRange(Math.round(func(val)), 0, 255);\n      });\n    } else {\n      return values.map(val => {\n        return ColorUtils.clampToRange(Math.round(val), 0, 255);\n      });\n    }\n  }\n}\n\n/**\n * @deprecated Use .rgbToHexCode instead.\n */\nColorUtils.decimalToHexCode = ColorUtils.rgbToHexCode;\n\n/**\n * @deprecated use .hexCodeToRgb instead.\n */\nColorUtils.hexCodeToDecimal = ColorUtils.hexCodeToRgb;\n\n(function() {\n  class Matrix {\n    constructor(matrix) {\n      this.matrix = matrix;\n    }\n\n    add(otherMatrix) {\n      const newMatrix = this.matrix.map((row, i) => {\n        const otherRow = otherMatrix.matrix[i];\n        return row.map((s, j) => s + otherRow[j]);\n      });\n\n      return new Matrix(newMatrix);\n    }\n\n    multiply(n) {\n      if (typeof n === \"number\") {\n        return this.multiplyByScalar(n);\n      } else {\n        return this.productByVector(n);\n      }\n    }\n\n    multiplyByScalar(n) {\n      const newMatrix = this.matrix.map(row => row.map(c => c * n));\n      return new Matrix(newMatrix);\n    }\n\n    productByVector(vector) {\n      return this.matrix.map(row => {\n        return row.reduce((s, c, i) => s += c * vector[i], 0);\n      });\n    }\n  }\n\n  ColorUtils.Matrix = Matrix;\n\n  const rgbMap = ColorUtils.rgbMap;\n\n  class ContrastCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-contrast\n      https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(rgb, ratio = 100) {\n      return rgbMap(rgb, c => (c * ratio + 255 * (50 - ratio / 2)) / 100);\n    }\n  }\n\n  ColorUtils.ContrastCalc = ContrastCalc;\n\n  class BrightnessCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-brightness\n      https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(rgb, ratio = 100) {\n      return rgbMap(rgb, c => c * ratio / 100);\n    }\n  }\n\n  ColorUtils.BrightnessCalc = BrightnessCalc;\n\n  class InvertCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-invert\n      https://www.w3.org/TR/filter-effects-1/#invertEquivalent\n      https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(rgb, ratio) {\n      return rgb.map(c => {\n        return Math.round((100 * c - 2 * c * ratio + 255 * ratio) / 100);\n      });\n    }\n  }\n\n  ColorUtils.InvertCalc = InvertCalc;\n\n  class HueRotateCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-hue-rotate\n      https://www.w3.org/TR/SVG/filters.html#TransferFunctionElementAttributes\n    */\n    static calcRgb(rgb, deg) {\n      return rgbMap(this.calcRotation(deg).multiply(rgb));\n    }\n\n    static degToRad(deg) {\n      return Math.PI * deg / 180;\n    }\n\n    static calcRotation(deg) {\n      const rad = this.degToRad(deg);\n      const cosPartResult = this.cosPart.multiply(Math.cos(rad));\n      const sinPartResult = this.sinPart.multiply(Math.sin(rad));\n      return this.constPart.add(cosPartResult).add(sinPartResult);\n    }\n  }\n\n  HueRotateCalc.constPart = new Matrix([[0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072],\n                                        [0.213, 0.715, 0.072]]);\n\n  HueRotateCalc.cosPart = new Matrix([[0.787, -0.715, -0.072],\n                                      [-0.213, 0.285, -0.072],\n                                      [-0.213, -0.715, 0.928]]);\n\n  HueRotateCalc.sinPart = new Matrix([[-0.213, -0.715, 0.928],\n                                      [0.143, 0.140, -0.283],\n                                      [-0.787, 0.715, 0.072]]);\n\n  ColorUtils.HueRotateCalc = HueRotateCalc;\n\n  class SaturateCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-saturate\n      https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n    */\n    static calcRgb(rgb, s) {\n      return rgbMap(this.calcSaturation(s).multiply(rgb));\n    }\n\n    static calcSaturation(s) {\n      return this.constPart.add(this.saturatePart.multiply(s / 100));\n    }\n  }\n\n  SaturateCalc.constPart = HueRotateCalc.constPart;\n  SaturateCalc.saturatePart = HueRotateCalc.cosPart;\n\n  ColorUtils.SaturateCalc = SaturateCalc;\n\n  class GrayscaleCalc {\n    /*\n      https://www.w3.org/TR/filter-effects/#funcdef-grayscale\n      https://www.w3.org/TR/filter-effects/#grayscaleEquivalent\n      https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement\n    */\n    static calcRgb(rgb, s) {\n      return rgbMap(this.calcGrayscale(s).multiply(rgb));\n    }\n\n    static calcGrayscale(s) {\n      const r = 1 - Math.min(100, s) / 100;\n      return this.constPart.add(this.ratioPart.multiply(r));\n    }\n  }\n\n  GrayscaleCalc.constPart = new Matrix([[0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722],\n                                        [0.2126, 0.7152, 0.0722]]);\n\n  GrayscaleCalc.ratioPart = new Matrix([[0.7874, -0.7152, -0.0722],\n                                        [-0.2126, 0.2848, -0.0722],\n                                        [-0.2126, -0.7152, 0.9278]]);\n\n  ColorUtils.GrayscaleCalc = GrayscaleCalc;\n\n  /**\n   * The RGB value of some colors.\n   */\n  ColorUtils.RGB = {\n    BLACK: [0, 0, 0],\n    WHITE: [255, 255, 255]\n  };\n\n  Object.freeze(ColorUtils.RGB);\n})();\n\nColorUtils.setup();\n\nmodule.exports.ColorUtils = ColorUtils;\n",
     "static": true,
     "longname": "/home/naoki/nico-hn/color-contrast-calc/lib/color-utils.js",
     "access": "public",
@@ -1196,7 +1164,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 68,
+    "__docId__": 67,
     "kind": "class",
     "name": "ColorUtils",
     "memberof": "lib/color-utils.js",
@@ -1211,7 +1179,7 @@
     "interface": false
   },
   {
-    "__docId__": 69,
+    "__docId__": 68,
     "kind": "method",
     "name": "hexCodeToRgb",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1250,7 +1218,7 @@
     }
   },
   {
-    "__docId__": 70,
+    "__docId__": 69,
     "kind": "method",
     "name": "normalizeHexCode",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1301,7 +1269,7 @@
     }
   },
   {
-    "__docId__": 71,
+    "__docId__": 70,
     "kind": "method",
     "name": "rgbToHexCode",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1340,7 +1308,7 @@
     }
   },
   {
-    "__docId__": 72,
+    "__docId__": 71,
     "kind": "method",
     "name": "hslToRgb",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1379,7 +1347,7 @@
     }
   },
   {
-    "__docId__": 73,
+    "__docId__": 72,
     "kind": "method",
     "name": "hueToRgb",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1418,7 +1386,7 @@
     }
   },
   {
-    "__docId__": 74,
+    "__docId__": 73,
     "kind": "method",
     "name": "hslToHexCode",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1457,7 +1425,7 @@
     }
   },
   {
-    "__docId__": 75,
+    "__docId__": 74,
     "kind": "method",
     "name": "rgbToHsl",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1465,9 +1433,48 @@
     "async": false,
     "static": true,
     "longname": "lib/color-utils.js~ColorUtils.rgbToHsl",
+    "access": "public",
+    "description": "Converts RGB value to HSL value",
+    "lineNumber": 104,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Array<number, number, number>} An array of numbers that\n    represents HSL value"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "rgb",
+        "description": "An array of numbers that\n    represents RGB value"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array<number, number, number>"
+      ],
+      "spread": false,
+      "description": "An array of numbers that\n    represents HSL value"
+    }
+  },
+  {
+    "__docId__": 75,
+    "kind": "method",
+    "name": "rgbToLightness",
+    "memberof": "lib/color-utils.js~ColorUtils",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color-utils.js~ColorUtils.rgbToLightness",
     "access": "private",
     "description": "",
-    "lineNumber": 100,
+    "lineNumber": 115,
     "ignore": true,
     "params": [
       {
@@ -1479,22 +1486,22 @@
     ],
     "return": {
       "types": [
-        "undefined[]"
+        "*"
       ]
     }
   },
   {
     "__docId__": 76,
     "kind": "method",
-    "name": "rgbToLightness",
+    "name": "rgbToHue",
     "memberof": "lib/color-utils.js~ColorUtils",
     "generator": false,
     "async": false,
     "static": true,
-    "longname": "lib/color-utils.js~ColorUtils.rgbToLightness",
+    "longname": "lib/color-utils.js~ColorUtils.rgbToHue",
     "access": "private",
     "description": "",
-    "lineNumber": 111,
+    "lineNumber": 122,
     "ignore": true,
     "params": [
       {
@@ -1513,15 +1520,15 @@
   {
     "__docId__": 77,
     "kind": "method",
-    "name": "rgbToHue",
+    "name": "rgbToSaturation",
     "memberof": "lib/color-utils.js~ColorUtils",
     "generator": false,
     "async": false,
     "static": true,
-    "longname": "lib/color-utils.js~ColorUtils.rgbToHue",
+    "longname": "lib/color-utils.js~ColorUtils.rgbToSaturation",
     "access": "private",
     "description": "",
-    "lineNumber": 118,
+    "lineNumber": 146,
     "ignore": true,
     "params": [
       {
@@ -1540,59 +1547,44 @@
   {
     "__docId__": 78,
     "kind": "method",
-    "name": "rgbToSaturation",
-    "memberof": "lib/color-utils.js~ColorUtils",
-    "generator": false,
-    "async": false,
-    "static": true,
-    "longname": "lib/color-utils.js~ColorUtils.rgbToSaturation",
-    "access": "private",
-    "description": "",
-    "lineNumber": 142,
-    "ignore": true,
-    "params": [
-      {
-        "name": "rgb",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 79,
-    "kind": "method",
     "name": "hexCodeToHsl",
     "memberof": "lib/color-utils.js~ColorUtils",
     "generator": false,
     "async": false,
     "static": true,
     "longname": "lib/color-utils.js~ColorUtils.hexCodeToHsl",
-    "access": "private",
-    "description": "",
-    "lineNumber": 160,
-    "ignore": true,
+    "access": "public",
+    "description": "Converts a hex color code string to an HSL representation",
+    "lineNumber": 167,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Array<number, number, number>} HSL value represented as\n    an array of numbers"
+      }
+    ],
     "params": [
       {
-        "name": "hexCode",
+        "nullable": null,
         "types": [
-          "*"
-        ]
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "hexCode",
+        "description": "Hex color code such as \"#ffff00\""
       }
     ],
     "return": {
+      "nullable": null,
       "types": [
-        "*"
-      ]
+        "Array<number, number, number>"
+      ],
+      "spread": false,
+      "description": "HSL value represented as\n    an array of numbers"
     }
   },
   {
-    "__docId__": 80,
+    "__docId__": 79,
     "kind": "method",
     "name": "decimalRound",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1602,7 +1594,7 @@
     "longname": "lib/color-utils.js~ColorUtils.decimalRound",
     "access": "public",
     "description": "Decimal rounding with a given precision",
-    "lineNumber": 170,
+    "lineNumber": 177,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1641,7 +1633,7 @@
     }
   },
   {
-    "__docId__": 81,
+    "__docId__": 80,
     "kind": "method",
     "name": "isValidRgb",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1651,7 +1643,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isValidRgb",
     "access": "public",
     "description": "Checks if a given array is a valid representation of RGB color.",
-    "lineNumber": 181,
+    "lineNumber": 188,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1680,7 +1672,7 @@
     }
   },
   {
-    "__docId__": 82,
+    "__docId__": 81,
     "kind": "method",
     "name": "isValidHsl",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1690,7 +1682,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isValidHsl",
     "access": "public",
     "description": "Checks if a given array is a valid representation of HSL color.",
-    "lineNumber": 193,
+    "lineNumber": 200,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1719,7 +1711,7 @@
     }
   },
   {
-    "__docId__": 83,
+    "__docId__": 82,
     "kind": "method",
     "name": "isValidHexCode",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1729,7 +1721,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isValidHexCode",
     "access": "public",
     "description": "Checks if a given string is a valid representation of RGB color.",
-    "lineNumber": 205,
+    "lineNumber": 212,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1758,7 +1750,7 @@
     }
   },
   {
-    "__docId__": 84,
+    "__docId__": 83,
     "kind": "method",
     "name": "isSameHexColor",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1768,7 +1760,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isSameHexColor",
     "access": "public",
     "description": "Checks if given two hex color codes represent a same color.",
-    "lineNumber": 217,
+    "lineNumber": 224,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1807,7 +1799,7 @@
     }
   },
   {
-    "__docId__": 85,
+    "__docId__": 84,
     "kind": "method",
     "name": "isSameRgbColor",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1817,7 +1809,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isSameRgbColor",
     "access": "public",
     "description": "Checks if given two RGB values represent a same color.",
-    "lineNumber": 231,
+    "lineNumber": 238,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1856,7 +1848,7 @@
     }
   },
   {
-    "__docId__": 86,
+    "__docId__": 85,
     "kind": "method",
     "name": "isString",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1866,7 +1858,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isString",
     "access": "public",
     "description": "Checks if a given object is a string",
-    "lineNumber": 241,
+    "lineNumber": 248,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1895,7 +1887,7 @@
     }
   },
   {
-    "__docId__": 87,
+    "__docId__": 86,
     "kind": "method",
     "name": "isUpperCase",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1905,7 +1897,7 @@
     "longname": "lib/color-utils.js~ColorUtils.isUpperCase",
     "access": "public",
     "description": "Checks if a given string is consists of uppercase letters",
-    "lineNumber": 251,
+    "lineNumber": 258,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1934,7 +1926,7 @@
     }
   },
   {
-    "__docId__": 88,
+    "__docId__": 87,
     "kind": "method",
     "name": "setup",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1944,13 +1936,13 @@
     "longname": "lib/color-utils.js~ColorUtils.setup",
     "access": "private",
     "description": "",
-    "lineNumber": 258,
+    "lineNumber": 265,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 89,
+    "__docId__": 88,
     "kind": "member",
     "name": "HEX_CODE_RE",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1958,7 +1950,7 @@
     "longname": "lib/color-utils.js~ColorUtils.HEX_CODE_RE",
     "access": "private",
     "description": null,
-    "lineNumber": 260,
+    "lineNumber": 267,
     "ignore": true,
     "type": {
       "types": [
@@ -1967,7 +1959,7 @@
     }
   },
   {
-    "__docId__": 90,
+    "__docId__": 89,
     "kind": "method",
     "name": "clampToRange",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -1977,7 +1969,7 @@
     "longname": "lib/color-utils.js~ColorUtils.clampToRange",
     "access": "private",
     "description": "",
-    "lineNumber": 267,
+    "lineNumber": 274,
     "ignore": true,
     "params": [
       {
@@ -2006,7 +1998,7 @@
     }
   },
   {
-    "__docId__": 91,
+    "__docId__": 90,
     "kind": "method",
     "name": "rgbMap",
     "memberof": "lib/color-utils.js~ColorUtils",
@@ -2016,7 +2008,7 @@
     "longname": "lib/color-utils.js~ColorUtils.rgbMap",
     "access": "private",
     "description": "",
-    "lineNumber": 279,
+    "lineNumber": 286,
     "ignore": true,
     "params": [
       {
@@ -2041,10 +2033,10 @@
     }
   },
   {
-    "__docId__": 92,
+    "__docId__": 91,
     "kind": "file",
     "name": "lib/color.js",
-    "content": "\"use strict\";\n\n/** @private */\nconst Utils = require(\"./color-utils\").ColorUtils;\n/** @private */\nconst Checker = require(\"./contrast-checker\").ContrastChecker;\n\n/**\n * Class of which each instance represents a specific color.\n * The instances provide methods to generate a new color with modified\n * properties, such as lightness or saturation.\n */\nclass Color {\n  /**\n   * Returns an instance of Color for a predefined color name.\n   * @param {string} name - names are defined at\n   *     https://www.w3.org/TR/SVG/types.html#ColorKeywords\n   * @returns {Color}\n   */\n  static getByName(name) {\n    return this.List.NAME_TO_COLOR.get(name.toLowerCase());\n  }\n\n  /**\n   * Returns an instance of Color for a hex code\n   * @param {string} code - RGB value in hex code\n   * @returns {Color}\n   */\n  static getByHexCode(code) {\n    const hexCode = Utils.normalizeHexCode(code);\n    return this.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode);\n  }\n\n  /**\n   * Creates an instance of Color from an HSL value\n   * @param {Array<number,number, number>} hsl - an array of numbers that\n   *     represents an HSL value\n   * @returns {Color} An instance of Color\n   */\n  static newHslColor(hsl) {\n    return this.getByHexCode(Utils.hslToHexCode(hsl));\n  }\n\n  /**\n   * @private\n   */\n  static assignColorConstants() {\n    /** @property {Color} BLACK - an instance that represents #000000 */\n    this.BLACK = this.List.HEX_TO_COLOR.get(\"#000000\");\n    /** @property {Color} WHITE - an instance that represents #ffffff */\n    this.WHITE = this.List.HEX_TO_COLOR.get(\"#ffffff\");\n    /** @property {Color} GRAY - an instance that represents #808080 */\n    this.GRAY = this.List.NAME_TO_COLOR.get(\"gray\");\n    this.prototype.BLACK = this.BLACK;\n    this.prototype.WHITE = this.WHITE;\n    this.prototype.GRAY = this.GRAY;\n  }\n\n  /**\n   * @param {string|Array<number, number, number>} rgb - RGB value\n   *     represented as a string (hex code) or an array of numbers\n   * @param {string} [name=null] - the value of this.name: if null,\n   *     the value of this.hexCode is set to this.name instead\n   */\n  constructor(rgb, name = null) {\n    /**\n     * @property {Array<number, number, number>} rgb - RGB value repsented as\n     *     an array of decimal numbers\n     */\n    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToRgb(rgb) : rgb;\n    /**\n     * @property {number} relativeLuminance - Relative luminance of  the color\n     *     defined at\n     *     https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef\n     */\n    this.relativeLuminance = Checker.relativeLuminance(this.rgb);\n    /**\n     * @property {string} name - If no name is explicitely given, the property\n     *     is set to the value of this.hexCode\n     */\n    this.name = name === null ? Utils.rgbToHexCode(this.rgb) : name;\n    /** @property {string} hexCode - RGB value in hex code notation */\n    this.hexCode = Utils.rgbToHexCode(this.rgb);\n    this.freezeProperties();\n    /** @private */\n    this._hsl = null;\n  }\n\n  /**\n   * @property {Array<number, number, number>} hsl - HSL value repsented as\n   *     an array of decimal numbers\n   */\n  get hsl() {\n    if (this._hsl) { return this._hsl; }\n    this._hsl = Utils.rgbToHsl(this.rgb);\n    return this._hsl;\n  }\n\n  /**\n   * Calculate the contrast ratio against another color\n   * @param {Color|string|Array<number, number, number>} color - another color\n   *     as an instance of Color, a hex code or a RGB value\n   * @returns {number}\n   */\n  contrastRatioAgainst(color) {\n    if (!(color instanceof Color)) {\n      return Checker.contrastRatio(this.rgb, color);\n    }\n\n    return Checker.luminanceToContrastRatio(this.relativeLuminance,\n                                         color.relativeLuminance);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newContrastColor(ratio, name = null) {\n    return this.generateNewColor(Utils.ContrastCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newBrightnessColor(ratio, name = null) {\n    return this.generateNewColor(Utils.BrightnessCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} [ratio=100] - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newInvertColor(ratio = 100, name = null) {\n    return this.generateNewColor(Utils.InvertCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} degree - Value in degree\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newHueRotateColor(degree, name = null) {\n    return this.generateNewColor(Utils.HueRotateCalc, degree, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newSaturateColor(ratio, name = null) {\n    return this.generateNewColor(Utils.SaturateCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} [ratio=100] - Conversion ratio in percentage\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newGrayscaleColor(ratio = 100, name = null) {\n    return this.generateNewColor(Utils.GrayscaleCalc, ratio, name);\n  }\n\n  /**\n   * Tries to find a color whose contrast against the base color is close\n   *  to a given level.\n   *\n   * The returned color is gained by modifying the brightness of otherColor.\n   * Even when a color that satisfies the level is not found, it returns\n   * a new color anyway.\n   * @param {Color} otherColor - The color before the modification of brightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {Color} A color whose contrast against the base color is close to\n   *     a specified level\n   */\n  findBrightnessThreshold(otherColor, level = \"AA\") {\n    const targetRatio = Checker.levelToRatio(level);\n    const criteria = this.thresholdCriteria(targetRatio, otherColor);\n    const w = otherColor.calcUpperRatioLimit() / 2;\n    const upperColor = otherColor.newBrightnessColor(w * 2);\n\n    if (otherColor.isBrighterThan(this) && ! upperColor.hasSufficientContrast(this, level)) {\n      return upperColor;\n    }\n\n    const [r, lastSufficentRatio] = this.calcBrightnessRatio(otherColor, targetRatio, criteria, w);\n\n    const nearestColor = otherColor.newBrightnessColor(criteria.round(r));\n\n    if (lastSufficentRatio && nearestColor.contrastRatioAgainst(this) < targetRatio) {\n      return otherColor.newBrightnessColor(criteria.round(lastSufficentRatio));\n    }\n\n    return nearestColor;\n  }\n\n  /**\n   * Tries to find a color whose contrast against the base color is close to\n   * a given level.\n   *\n   * The returned color is gained by modifying the lightness of otherColor.\n   * Even when a color that satisfies the level is not found, it returns\n   * a new color anyway.\n   * @param {Color} otherColor - The color before the modification of lightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {Color} A color whose contrast against the base color is close to\n   *     a specified level\n   */\n  findLightnessThreshold(otherColor, level = \"AA\") {\n    const targetRatio = Checker.levelToRatio(level);\n    const criteria = this.thresholdCriteria(targetRatio, otherColor);\n    const [h, s, initL] = Utils.rgbToHsl(otherColor.rgb);\n    const [max, min] = this.shouldScanDarkerSide(otherColor) ? [initL, 0] : [100, initL];\n    const boundaryColor = this.lightnessBoundaryColor(max, min, level);\n\n    if (boundaryColor) { return boundaryColor; }\n\n    let l = (max + min) / 2;\n    let lastSufficientLightness = null;\n\n    for (let d of Color.calc.binarySearchWidth(max - min, 0.01)) {\n      let newColor = Utils.hslToRgb([h, s, l]);\n      let contrastRatio = this.contrastRatioAgainst(newColor);\n\n      if (contrastRatio >= targetRatio) { lastSufficientLightness = l; }\n      if (contrastRatio === targetRatio) { break; }\n      l += criteria.incrementCondition(contrastRatio) ? d : -d;\n    }\n\n    const nearlestColor = Color.newHslColor([h, s, l]);\n\n    if (lastSufficientLightness && nearlestColor.contrastRatioAgainst(this) < targetRatio) {\n      return Color.newHslColor([h, s, lastSufficientLightness]);\n    }\n\n    return nearlestColor;\n  }\n\n  /**\n   * @private\n   */\n  shouldScanDarkerSide(otherColor) {\n    return this.isBrighterThan(otherColor) ||\n      this.hasSameLuminance(otherColor) && this.isLightColor();\n  }\n\n  /**\n   * @private\n   */\n  lightnessBoundaryColor(max, min, level) {\n    if (min === 0 && ! this.hasSufficientContrast(this.BLACK, level)) {\n      return this.BLACK;\n    }\n\n    if (max === 100 && ! this.hasSufficientContrast(this.WHITE, level)) {\n      return this.WHITE;\n    }\n\n    return null;\n  }\n\n  /**\n   * @param {Color} otherColor\n   * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of\n   *     WCAG 2.0, otherwise \"-\"\n   */\n  contrastLevel(otherColor) {\n    const ratio = this.contrastRatioAgainst(otherColor);\n    return Checker.ratioToLevel(ratio);\n  }\n\n  /**\n   * Checks if the contrast ratio between the base color and otherColor meets\n   * the requirement of WCAG 2.0\n   * @param {Color} otherColor\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {boolean}\n   */\n  hasSufficientContrast(otherColor, level = \"AA\") {\n    const ratio = Checker.levelToRatio(level);\n    return this.contrastRatioAgainst(otherColor) >= ratio;\n  }\n\n  /**\n   * Checks if the base color and otherColor have the same RGB value\n   * @param {Color} otherColor\n   * @returns {boolean}\n   */\n  isSameColor(otherColor) {\n    return this.hexCode === otherColor.hexCode;\n  }\n\n  /**\n   * @returns {boolean} true if each primary color of the base color is 0 or 255\n   */\n  isMaxContrast() {\n    const limits = [0, 255];\n    return this.rgb.every(primaryColor => limits.includes(primaryColor));\n  }\n\n  /**\n   * @returns {boolean} true if the hex code of the color is #808080\n   */\n  isMinContrast() {\n    return this.rgb.every((primaryColor, i) => {\n      return this.GRAY.rgb[i] === primaryColor;\n    });\n  }\n\n  /**\n   * Returns a string representation of the color.\n   * When 16 is passed, it return the hex code, and when 10 is passed,\n   * it returns the value in RGB notation\n   * Otherwise, it returns the color name or the hex code\n   * @param {number|null} [base=16] - 16, 10 or null\n   * @returns {string}\n   */\n  toString(base = 16) {\n    switch (base) {\n    case 16:\n      return this.hexCode;\n    case 10:\n      return `rgb(${this.rgb.join(\",\")})`;\n    default:\n      return this.name || this.hexCode;\n    }\n  }\n\n  /**\n   * @private\n   */\n  calcBrightnessRatio(otherColor, targetRatio, criteria, w) {\n    const otherRgb = otherColor.rgb;\n    let r = w;\n    let lastSufficentRatio = null;\n\n    for (let d of Color.calc.binarySearchWidth(w, 0.01)) {\n      const newRgb = Utils.BrightnessCalc.calcRgb(otherRgb, r);\n      const contrastRatio = this.calcContrastRatio(newRgb);\n\n      if (contrastRatio >= targetRatio) { lastSufficentRatio = r; }\n      if (contrastRatio === targetRatio) { break; }\n      r += criteria.incrementCondition(contrastRatio) ? d : -d;\n    }\n\n    return [r, lastSufficentRatio];\n  }\n\n  /**\n   * @private\n   */\n  calcContrastRatio(otherRgb) {\n    const otherLuminance = Checker.relativeLuminance(otherRgb);\n    return Checker.luminanceToContrastRatio(this.relativeLuminance,\n                                               otherLuminance);\n  }\n\n\n  /**\n   * @private\n   */\n  calcUpperRatioLimit() {\n    if (this.isSameColor(this.BLACK)) {\n      return 100;\n    }\n\n    const darkest = this.rgb\n            .filter(c => c !== 0)\n            .reduce((a, b) => Math.min(a, b));\n    return Math.ceil((255 / darkest) * 100);\n  }\n\n  /**\n   * @private\n   */\n  thresholdCriteria(targetRatio, otherColor) {\n    const criteria = {};\n\n    if (this.shouldScanDarkerSide(otherColor)) {\n      criteria.round = (r) => Math.floor(r * 10 ) / 10;\n      criteria.incrementCondition = (contrastRatio) => contrastRatio > targetRatio;\n    } else {\n      criteria.round = (r) => Math.ceil(r * 10) / 10;\n      criteria.incrementCondition = (contrastRatio) => targetRatio > contrastRatio;\n    }\n\n    return criteria;\n  }\n\n  /**\n   * @param {Color} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is\n   *     greater than that of otherColor\n   */\n  isBrighterThan(otherColor) {\n    return this.relativeLuminance > otherColor.relativeLuminance;\n  }\n\n  /**\n   * @param {Color} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is\n   *     equal to that of otherColor\n   */\n  hasSameLuminance(otherColor) {\n    return this.relativeLuminance === otherColor.relativeLuminance;\n  }\n\n  /**\n   * @returns {boolean} true if the contrast ratio against white is qual to or\n   *     less than the ratio against black\n   */\n  isLightColor() {\n    return this.WHITE.contrastRatioAgainst(this) <= this.BLACK.contrastRatioAgainst(this);\n  }\n\n  /**\n   * @private\n   */\n  freezeProperties() {\n    Object.freeze(this.rgb);\n    Object.freeze(this.relativeLuminance);\n    Object.freeze(this.name);\n    Object.freeze(this.hexCode);\n  }\n\n  /**\n   * @private\n   */\n  generateNewColor(calc, ratio, name = null) {\n    const newRgb = calc.calcRgb(this.rgb, ratio);\n    return new Color(newRgb, name);\n  }\n}\n\nclass List {\n  /**\n   * @private\n   */\n  static setup(colorKeywordsJSON) {\n    this.loadColorKeywords(colorKeywordsJSON);\n    this.generateWebSafeColors();\n    Object.freeze(this);\n  }\n\n  /**\n   * @private\n   */\n  static loadColorKeywords(colorKeywordsJSON) {\n    /**\n     * Array of named colors defined at\n     * https://www.w3.org/TR/SVG/types.html#ColorKeywords\n     * @property {Color[]} NAMED_COLORS\n     */\n    this.NAMED_COLORS = [];\n    /** @private */\n    this.NAME_TO_COLOR = new Map();\n    /** @private */\n    this.HEX_TO_COLOR = new Map();\n    colorKeywordsJSON.forEach(keyword => {\n      const [name, hex] = keyword;\n      const color = new Color(hex, name);\n      this.NAMED_COLORS.push(color);\n      this.NAME_TO_COLOR.set(name, color);\n      this.HEX_TO_COLOR.set(hex, color);\n    });\n\n    Object.freeze(this.NAMED_COLORS);\n  }\n\n  /**\n   * Returns an array of colors which share the same saturation and lightness.\n   * By default, so-called pure colors are returned.\n   * @param {number} [s=100] - Ratio of saturation in percentage.\n   * @param {number} [l=50] - Ratio of lightness in percentage.\n   * @param {number} [h_interval=1] - Interval of hues given in degrees.\n   *     By default, it returns 360 hues beginning from red.\n   *     (Red is included twice, because it corresponds to 0 and 360 degrees.)\n   * @returns {Color[]}\n   */\n  static hslColors(s = 100, l = 50, h_interval = 1) {\n    let colors = [];\n    for (let h = 0; h < 361; h += h_interval) {\n      colors.push(Color.newHslColor([h, s, l]));\n    }\n    return colors;\n  }\n\n  /**\n   * @private\n   */\n  static generateWebSafeColors() {\n    /**\n     * Array of web safe colors\n     * @property {Color[]} WEB_SAFE_COLORS\n     */\n    this.WEB_SAFE_COLORS = [];\n\n    for (let r = 0; r < 16; r += 3) {\n      for (let g = 0; g < 16; g += 3) {\n        for (let b = 0; b < 16; b += 3) {\n          let hexCode = Utils.rgbToHexCode([r, g, b].map(c => c * 17));\n          let predefined = this.HEX_TO_COLOR.get(hexCode);\n          let color = predefined || new Color(hexCode);\n          this.WEB_SAFE_COLORS.push(color);\n        }\n      }\n    }\n  }\n}\n\nList.setup(require(\"./color-keywords.json\"));\nColor.List = List;\nColor.assignColorConstants();\n\nmodule.exports.Color = Color;\n",
+    "content": "\"use strict\";\n\n/** @private */\nconst Utils = require(\"./color-utils\").ColorUtils;\n/** @private */\nconst Checker = require(\"./contrast-checker\").ContrastChecker;\n/** @private */\nconst LightnessFinder = require(\"./threshold-finder\").LightnessFinder;\n/** @private */\nconst BrightnessFinder = require(\"./threshold-finder\").BrightnessFinder;\n\n/**\n * Class of which each instance represents a specific color.\n * The instances provide methods to generate a new color with modified\n * properties, such as lightness or saturation.\n */\nclass Color {\n  /**\n   * Returns an instance of Color for a predefined color name.\n   * @param {string} name - names are defined at\n   *     https://www.w3.org/TR/SVG/types.html#ColorKeywords\n   * @returns {Color}\n   */\n  static getByName(name) {\n    return this.List.NAME_TO_COLOR.get(name.toLowerCase());\n  }\n\n  /**\n   * Returns an instance of Color for a hex code\n   * @param {string} code - RGB value in hex code\n   * @returns {Color}\n   */\n  static getByHexCode(code) {\n    const hexCode = Utils.normalizeHexCode(code);\n    return this.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode);\n  }\n\n  /**\n   * Creates an instance of Color from an HSL value\n   * @param {Array<number,number, number>} hsl - an array of numbers that\n   *     represents an HSL value\n   * @returns {Color} An instance of Color\n   */\n  static newHslColor(hsl) {\n    return this.getByHexCode(Utils.hslToHexCode(hsl));\n  }\n\n  /**\n   * @private\n   */\n  static assignColorConstants() {\n    /** @property {Color} BLACK - an instance that represents #000000 */\n    this.BLACK = this.List.HEX_TO_COLOR.get(\"#000000\");\n    /** @property {Color} WHITE - an instance that represents #ffffff */\n    this.WHITE = this.List.HEX_TO_COLOR.get(\"#ffffff\");\n    /** @property {Color} GRAY - an instance that represents #808080 */\n    this.GRAY = this.List.NAME_TO_COLOR.get(\"gray\");\n    this.prototype.BLACK = this.BLACK;\n    this.prototype.WHITE = this.WHITE;\n    this.prototype.GRAY = this.GRAY;\n  }\n\n  /**\n   * @param {string|Array<number, number, number>} rgb - RGB value\n   *     represented as a string (hex code) or an array of numbers\n   * @param {string} [name=null] - the value of this.name: if null,\n   *     the value of this.hexCode is set to this.name instead\n   */\n  constructor(rgb, name = null) {\n    /**\n     * @property {Array<number, number, number>} rgb - RGB value repsented as\n     *     an array of decimal numbers\n     */\n    this.rgb = Utils.isString(rgb) ? Utils.hexCodeToRgb(rgb) : rgb;\n    /**\n     * @property {number} relativeLuminance - Relative luminance of  the color\n     *     defined at\n     *     https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef\n     */\n    this.relativeLuminance = Checker.relativeLuminance(this.rgb);\n    /**\n     * @property {string} name - If no name is explicitely given, the property\n     *     is set to the value of this.hexCode\n     */\n    this.name = name === null ? Utils.rgbToHexCode(this.rgb) : name;\n    /** @property {string} hexCode - RGB value in hex code notation */\n    this.hexCode = Utils.rgbToHexCode(this.rgb);\n    this.freezeProperties();\n    /** @private */\n    this._hsl = null;\n  }\n\n  /**\n   * @property {Array<number, number, number>} hsl - HSL value repsented as\n   *     an array of decimal numbers\n   */\n  get hsl() {\n    if (this._hsl) { return this._hsl; }\n    this._hsl = Utils.rgbToHsl(this.rgb);\n    return this._hsl;\n  }\n\n  /**\n   * Calculate the contrast ratio against another color\n   * @param {Color|string|Array<number, number, number>} color - another color\n   *     as an instance of Color, a hex code or a RGB value\n   * @returns {number}\n   */\n  contrastRatioAgainst(color) {\n    if (!(color instanceof Color)) {\n      return Checker.contrastRatio(this.rgb, color);\n    }\n\n    return Checker.luminanceToContrastRatio(this.relativeLuminance,\n                                            color.relativeLuminance);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newContrastColor(ratio, name = null) {\n    return this.generateNewColor(Utils.ContrastCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newBrightnessColor(ratio, name = null) {\n    return this.generateNewColor(Utils.BrightnessCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} [ratio=100] - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newInvertColor(ratio = 100, name = null) {\n    return this.generateNewColor(Utils.InvertCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} degree - Value in degree\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newHueRotateColor(degree, name = null) {\n    return this.generateNewColor(Utils.HueRotateCalc, degree, name);\n  }\n\n  /**\n   * @param {number} ratio - Value in percent\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newSaturateColor(ratio, name = null) {\n    return this.generateNewColor(Utils.SaturateCalc, ratio, name);\n  }\n\n  /**\n   * @param {number} [ratio=100] - Conversion ratio in percentage\n   * @param {string} [name=null] - Name of color\n   * @returns {Color}\n   */\n  newGrayscaleColor(ratio = 100, name = null) {\n    return this.generateNewColor(Utils.GrayscaleCalc, ratio, name);\n  }\n\n  /**\n   * Tries to find a color whose contrast against the base color is close\n   *  to a given level.\n   *\n   * The returned color is gained by modifying the brightness of otherColor.\n   * Even when a color that satisfies the level is not found, it returns\n   * a new color anyway.\n   * @param {Color} otherColor - The color before the modification of brightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {Color} A color whose contrast against the base color is close to\n   *     a specified level\n   */\n  findBrightnessThreshold(otherColor, level = \"AA\") {\n    return new Color(BrightnessFinder.find(this.rgb, otherColor.rgb, level));\n  }\n\n  /**\n   * Tries to find a color whose contrast against the base color is close to\n   * a given level.\n   *\n   * The returned color is gained by modifying the lightness of otherColor.\n   * Even when a color that satisfies the level is not found, it returns\n   * a new color anyway.\n   * @param {Color} otherColor - The color before the modification of lightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {Color} A color whose contrast against the base color is close to\n   *     a specified level\n   */\n  findLightnessThreshold(otherColor, level = \"AA\") {\n    const newRgb = LightnessFinder.find(this.rgb, otherColor.rgb, level);\n    return new Color(newRgb);\n  }\n\n  /**\n   * @param {Color} otherColor\n   * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of\n   *     WCAG 2.0, otherwise \"-\"\n   */\n  contrastLevel(otherColor) {\n    const ratio = this.contrastRatioAgainst(otherColor);\n    return Checker.ratioToLevel(ratio);\n  }\n\n  /**\n   * Checks if the contrast ratio between the base color and otherColor meets\n   * the requirement of WCAG 2.0\n   * @param {Color} otherColor\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {boolean}\n   */\n  hasSufficientContrast(otherColor, level = \"AA\") {\n    const ratio = Checker.levelToRatio(level);\n    return this.contrastRatioAgainst(otherColor) >= ratio;\n  }\n\n  /**\n   * Checks if the base color and otherColor have the same RGB value\n   * @param {Color} otherColor\n   * @returns {boolean}\n   */\n  isSameColor(otherColor) {\n    return this.hexCode === otherColor.hexCode;\n  }\n\n  /**\n   * @returns {boolean} true if each primary color of the base color is 0 or 255\n   */\n  isMaxContrast() {\n    const limits = [0, 255];\n    return this.rgb.every(primaryColor => limits.includes(primaryColor));\n  }\n\n  /**\n   * @returns {boolean} true if the hex code of the color is #808080\n   */\n  isMinContrast() {\n    return this.rgb.every((primaryColor, i) => {\n      return this.GRAY.rgb[i] === primaryColor;\n    });\n  }\n\n  /**\n   * Returns a string representation of the color.\n   * When 16 is passed, it return the hex code, and when 10 is passed,\n   * it returns the value in RGB notation\n   * Otherwise, it returns the color name or the hex code\n   * @param {number|null} [base=16] - 16, 10 or null\n   * @returns {string}\n   */\n  toString(base = 16) {\n    switch (base) {\n    case 16:\n      return this.hexCode;\n    case 10:\n      return `rgb(${this.rgb.join(\",\")})`;\n    default:\n      return this.name || this.hexCode;\n    }\n  }\n\n  /**\n   * @param {Color} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is\n   *     greater than that of otherColor\n   */\n  isBrighterThan(otherColor) {\n    return this.relativeLuminance > otherColor.relativeLuminance;\n  }\n\n  /**\n   * @param {Color} otherColor\n   * @returns {boolean} true if the relative luminance of the base color is\n   *     equal to that of otherColor\n   */\n  hasSameLuminance(otherColor) {\n    return this.relativeLuminance === otherColor.relativeLuminance;\n  }\n\n  /**\n   * @returns {boolean} true if the contrast ratio against white is qual to or\n   *     less than the ratio against black\n   */\n  isLightColor() {\n    return Checker.isLightColor(this.rgb);\n  }\n\n  /**\n   * @private\n   */\n  freezeProperties() {\n    Object.freeze(this.rgb);\n    Object.freeze(this.relativeLuminance);\n    Object.freeze(this.name);\n    Object.freeze(this.hexCode);\n  }\n\n  /**\n   * @private\n   */\n  generateNewColor(calc, ratio, name = null) {\n    const newRgb = calc.calcRgb(this.rgb, ratio);\n    return new Color(newRgb, name);\n  }\n}\n\nclass List {\n  /**\n   * @private\n   */\n  static setup(colorKeywordsJSON) {\n    this.loadColorKeywords(colorKeywordsJSON);\n    this.generateWebSafeColors();\n    Object.freeze(this);\n  }\n\n  /**\n   * @private\n   */\n  static loadColorKeywords(colorKeywordsJSON) {\n    /**\n     * Array of named colors defined at\n     * https://www.w3.org/TR/SVG/types.html#ColorKeywords\n     * @property {Color[]} NAMED_COLORS\n     */\n    this.NAMED_COLORS = [];\n    /** @private */\n    this.NAME_TO_COLOR = new Map();\n    /** @private */\n    this.HEX_TO_COLOR = new Map();\n    colorKeywordsJSON.forEach(keyword => {\n      const [name, hex] = keyword;\n      const color = new Color(hex, name);\n      this.NAMED_COLORS.push(color);\n      this.NAME_TO_COLOR.set(name, color);\n      this.HEX_TO_COLOR.set(hex, color);\n    });\n\n    Object.freeze(this.NAMED_COLORS);\n  }\n\n  /**\n   * Returns an array of colors which share the same saturation and lightness.\n   * By default, so-called pure colors are returned.\n   * @param {number} [s=100] - Ratio of saturation in percentage.\n   * @param {number} [l=50] - Ratio of lightness in percentage.\n   * @param {number} [h_interval=1] - Interval of hues given in degrees.\n   *     By default, it returns 360 hues beginning from red.\n   *     (Red is included twice, because it corresponds to 0 and 360 degrees.)\n   * @returns {Color[]}\n   */\n  static hslColors(s = 100, l = 50, h_interval = 1) {\n    const colors = [];\n    for (let h = 0; h < 361; h += h_interval) {\n      colors.push(Color.newHslColor([h, s, l]));\n    }\n    return colors;\n  }\n\n  /**\n   * @private\n   */\n  static generateWebSafeColors() {\n    /**\n     * Array of web safe colors\n     * @property {Color[]} WEB_SAFE_COLORS\n     */\n    this.WEB_SAFE_COLORS = [];\n\n    for (let r = 0; r < 16; r += 3) {\n      for (let g = 0; g < 16; g += 3) {\n        for (let b = 0; b < 16; b += 3) {\n          const hexCode = Utils.rgbToHexCode([r, g, b].map(c => c * 17));\n          const predefined = this.HEX_TO_COLOR.get(hexCode);\n          const color = predefined || new Color(hexCode);\n          this.WEB_SAFE_COLORS.push(color);\n        }\n      }\n    }\n  }\n}\n\nList.setup(require(\"./color-keywords.json\"));\nColor.List = List;\nColor.assignColorConstants();\n\nmodule.exports.Color = Color;\n",
     "static": true,
     "longname": "/home/naoki/nico-hn/color-contrast-calc/lib/color.js",
     "access": "public",
@@ -2052,7 +2044,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 93,
+    "__docId__": 92,
     "kind": "variable",
     "name": "Utils",
     "memberof": "lib/color.js",
@@ -2072,7 +2064,7 @@
     }
   },
   {
-    "__docId__": 94,
+    "__docId__": 93,
     "kind": "variable",
     "name": "Checker",
     "memberof": "lib/color.js",
@@ -2092,7 +2084,47 @@
     }
   },
   {
+    "__docId__": 94,
+    "kind": "variable",
+    "name": "LightnessFinder",
+    "memberof": "lib/color.js",
+    "static": true,
+    "longname": "lib/color.js~LightnessFinder",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/color.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 8,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
     "__docId__": 95,
+    "kind": "variable",
+    "name": "BrightnessFinder",
+    "memberof": "lib/color.js",
+    "static": true,
+    "longname": "lib/color.js~BrightnessFinder",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/color.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 10,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 96,
     "kind": "class",
     "name": "List",
     "memberof": "lib/color.js",
@@ -2103,13 +2135,13 @@
     "importPath": "color-contrast-calc/lib/color.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 439,
+    "lineNumber": 317,
     "undocument": true,
     "interface": false,
     "ignore": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 97,
     "kind": "method",
     "name": "setup",
     "memberof": "lib/color.js~List",
@@ -2119,30 +2151,7 @@
     "longname": "lib/color.js~List.setup",
     "access": "private",
     "description": "",
-    "lineNumber": 443,
-    "ignore": true,
-    "params": [
-      {
-        "name": "colorKeywordsJSON",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": null
-  },
-  {
-    "__docId__": 97,
-    "kind": "method",
-    "name": "loadColorKeywords",
-    "memberof": "lib/color.js~List",
-    "generator": false,
-    "async": false,
-    "static": true,
-    "longname": "lib/color.js~List.loadColorKeywords",
-    "access": "private",
-    "description": "",
-    "lineNumber": 452,
+    "lineNumber": 321,
     "ignore": true,
     "params": [
       {
@@ -2156,6 +2165,29 @@
   },
   {
     "__docId__": 98,
+    "kind": "method",
+    "name": "loadColorKeywords",
+    "memberof": "lib/color.js~List",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/color.js~List.loadColorKeywords",
+    "access": "private",
+    "description": "",
+    "lineNumber": 330,
+    "ignore": true,
+    "params": [
+      {
+        "name": "colorKeywordsJSON",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": null
+  },
+  {
+    "__docId__": 99,
     "kind": "member",
     "name": "NAMED_COLORS",
     "memberof": "lib/color.js~List",
@@ -2163,7 +2195,7 @@
     "longname": "lib/color.js~List.NAMED_COLORS",
     "access": "public",
     "description": "Array of named colors defined at\nhttps://www.w3.org/TR/SVG/types.html#ColorKeywords",
-    "lineNumber": 458,
+    "lineNumber": 336,
     "properties": [
       {
         "nullable": null,
@@ -2183,7 +2215,7 @@
     }
   },
   {
-    "__docId__": 99,
+    "__docId__": 100,
     "kind": "member",
     "name": "NAME_TO_COLOR",
     "memberof": "lib/color.js~List",
@@ -2191,24 +2223,7 @@
     "longname": "lib/color.js~List.NAME_TO_COLOR",
     "access": "private",
     "description": null,
-    "lineNumber": 460,
-    "ignore": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 100,
-    "kind": "member",
-    "name": "HEX_TO_COLOR",
-    "memberof": "lib/color.js~List",
-    "static": true,
-    "longname": "lib/color.js~List.HEX_TO_COLOR",
-    "access": "private",
-    "description": null,
-    "lineNumber": 462,
+    "lineNumber": 338,
     "ignore": true,
     "type": {
       "types": [
@@ -2218,6 +2233,23 @@
   },
   {
     "__docId__": 101,
+    "kind": "member",
+    "name": "HEX_TO_COLOR",
+    "memberof": "lib/color.js~List",
+    "static": true,
+    "longname": "lib/color.js~List.HEX_TO_COLOR",
+    "access": "private",
+    "description": null,
+    "lineNumber": 340,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 102,
     "kind": "method",
     "name": "hslColors",
     "memberof": "lib/color.js~List",
@@ -2227,7 +2259,7 @@
     "longname": "lib/color.js~List.hslColors",
     "access": "public",
     "description": "Returns an array of colors which share the same saturation and lightness.\nBy default, so-called pure colors are returned.",
-    "lineNumber": 484,
+    "lineNumber": 362,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2282,7 +2314,7 @@
     }
   },
   {
-    "__docId__": 102,
+    "__docId__": 103,
     "kind": "method",
     "name": "generateWebSafeColors",
     "memberof": "lib/color.js~List",
@@ -2292,13 +2324,13 @@
     "longname": "lib/color.js~List.generateWebSafeColors",
     "access": "private",
     "description": "",
-    "lineNumber": 495,
+    "lineNumber": 373,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 103,
+    "__docId__": 104,
     "kind": "member",
     "name": "WEB_SAFE_COLORS",
     "memberof": "lib/color.js~List",
@@ -2306,7 +2338,7 @@
     "longname": "lib/color.js~List.WEB_SAFE_COLORS",
     "access": "public",
     "description": "Array of web safe colors",
-    "lineNumber": 500,
+    "lineNumber": 378,
     "properties": [
       {
         "nullable": null,
@@ -2326,7 +2358,7 @@
     }
   },
   {
-    "__docId__": 104,
+    "__docId__": 105,
     "kind": "class",
     "name": "Color",
     "memberof": "lib/color.js",
@@ -2337,11 +2369,11 @@
     "importPath": "color-contrast-calc/lib/color.js",
     "importStyle": "{Color}",
     "description": "Class of which each instance represents a specific color.\nThe instances provide methods to generate a new color with modified\nproperties, such as lightness or saturation.",
-    "lineNumber": 13,
+    "lineNumber": 17,
     "interface": false
   },
   {
-    "__docId__": 105,
+    "__docId__": 106,
     "kind": "method",
     "name": "getByName",
     "memberof": "lib/color.js~Color",
@@ -2351,7 +2383,7 @@
     "longname": "lib/color.js~Color.getByName",
     "access": "public",
     "description": "Returns an instance of Color for a predefined color name.",
-    "lineNumber": 20,
+    "lineNumber": 24,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2380,7 +2412,7 @@
     }
   },
   {
-    "__docId__": 106,
+    "__docId__": 107,
     "kind": "method",
     "name": "getByHexCode",
     "memberof": "lib/color.js~Color",
@@ -2390,7 +2422,7 @@
     "longname": "lib/color.js~Color.getByHexCode",
     "access": "public",
     "description": "Returns an instance of Color for a hex code",
-    "lineNumber": 29,
+    "lineNumber": 33,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2419,7 +2451,7 @@
     }
   },
   {
-    "__docId__": 107,
+    "__docId__": 108,
     "kind": "method",
     "name": "newHslColor",
     "memberof": "lib/color.js~Color",
@@ -2429,7 +2461,7 @@
     "longname": "lib/color.js~Color.newHslColor",
     "access": "public",
     "description": "Creates an instance of Color from an HSL value",
-    "lineNumber": 40,
+    "lineNumber": 44,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2458,7 +2490,7 @@
     }
   },
   {
-    "__docId__": 108,
+    "__docId__": 109,
     "kind": "method",
     "name": "assignColorConstants",
     "memberof": "lib/color.js~Color",
@@ -2468,13 +2500,13 @@
     "longname": "lib/color.js~Color.assignColorConstants",
     "access": "private",
     "description": "",
-    "lineNumber": 47,
+    "lineNumber": 51,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 109,
+    "__docId__": 110,
     "kind": "member",
     "name": "BLACK",
     "memberof": "lib/color.js~Color",
@@ -2482,7 +2514,7 @@
     "longname": "lib/color.js~Color.BLACK",
     "access": "public",
     "description": null,
-    "lineNumber": 49,
+    "lineNumber": 53,
     "properties": [
       {
         "nullable": null,
@@ -2502,7 +2534,7 @@
     }
   },
   {
-    "__docId__": 110,
+    "__docId__": 111,
     "kind": "member",
     "name": "WHITE",
     "memberof": "lib/color.js~Color",
@@ -2510,7 +2542,7 @@
     "longname": "lib/color.js~Color.WHITE",
     "access": "public",
     "description": null,
-    "lineNumber": 51,
+    "lineNumber": 55,
     "properties": [
       {
         "nullable": null,
@@ -2530,7 +2562,7 @@
     }
   },
   {
-    "__docId__": 111,
+    "__docId__": 112,
     "kind": "member",
     "name": "GRAY",
     "memberof": "lib/color.js~Color",
@@ -2538,7 +2570,7 @@
     "longname": "lib/color.js~Color.GRAY",
     "access": "public",
     "description": null,
-    "lineNumber": 53,
+    "lineNumber": 57,
     "properties": [
       {
         "nullable": null,
@@ -2558,7 +2590,7 @@
     }
   },
   {
-    "__docId__": 112,
+    "__docId__": 113,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "lib/color.js~Color",
@@ -2568,7 +2600,7 @@
     "longname": "lib/color.js~Color#constructor",
     "access": "public",
     "description": "",
-    "lineNumber": 65,
+    "lineNumber": 69,
     "params": [
       {
         "nullable": null,
@@ -2596,7 +2628,7 @@
     ]
   },
   {
-    "__docId__": 113,
+    "__docId__": 114,
     "kind": "member",
     "name": "rgb",
     "memberof": "lib/color.js~Color",
@@ -2604,7 +2636,7 @@
     "longname": "lib/color.js~Color#rgb",
     "access": "public",
     "description": "",
-    "lineNumber": 70,
+    "lineNumber": 74,
     "properties": [
       {
         "nullable": null,
@@ -2624,7 +2656,7 @@
     }
   },
   {
-    "__docId__": 114,
+    "__docId__": 115,
     "kind": "member",
     "name": "relativeLuminance",
     "memberof": "lib/color.js~Color",
@@ -2632,7 +2664,7 @@
     "longname": "lib/color.js~Color#relativeLuminance",
     "access": "public",
     "description": "",
-    "lineNumber": 76,
+    "lineNumber": 80,
     "properties": [
       {
         "nullable": null,
@@ -2652,7 +2684,7 @@
     }
   },
   {
-    "__docId__": 115,
+    "__docId__": 116,
     "kind": "member",
     "name": "name",
     "memberof": "lib/color.js~Color",
@@ -2660,7 +2692,7 @@
     "longname": "lib/color.js~Color#name",
     "access": "public",
     "description": "",
-    "lineNumber": 81,
+    "lineNumber": 85,
     "properties": [
       {
         "nullable": null,
@@ -2680,7 +2712,7 @@
     }
   },
   {
-    "__docId__": 116,
+    "__docId__": 117,
     "kind": "member",
     "name": "hexCode",
     "memberof": "lib/color.js~Color",
@@ -2688,7 +2720,7 @@
     "longname": "lib/color.js~Color#hexCode",
     "access": "public",
     "description": null,
-    "lineNumber": 83,
+    "lineNumber": 87,
     "properties": [
       {
         "nullable": null,
@@ -2708,7 +2740,7 @@
     }
   },
   {
-    "__docId__": 117,
+    "__docId__": 118,
     "kind": "member",
     "name": "_hsl",
     "memberof": "lib/color.js~Color",
@@ -2716,7 +2748,7 @@
     "longname": "lib/color.js~Color#_hsl",
     "access": "private",
     "description": null,
-    "lineNumber": 86,
+    "lineNumber": 90,
     "ignore": true,
     "type": {
       "types": [
@@ -2725,7 +2757,7 @@
     }
   },
   {
-    "__docId__": 118,
+    "__docId__": 119,
     "kind": "get",
     "name": "hsl",
     "memberof": "lib/color.js~Color",
@@ -2735,7 +2767,7 @@
     "longname": "lib/color.js~Color#hsl",
     "access": "public",
     "description": "",
-    "lineNumber": 93,
+    "lineNumber": 97,
     "properties": [
       {
         "nullable": null,
@@ -2755,7 +2787,7 @@
     }
   },
   {
-    "__docId__": 120,
+    "__docId__": 121,
     "kind": "method",
     "name": "contrastRatioAgainst",
     "memberof": "lib/color.js~Color",
@@ -2765,7 +2797,7 @@
     "longname": "lib/color.js~Color#contrastRatioAgainst",
     "access": "public",
     "description": "Calculate the contrast ratio against another color",
-    "lineNumber": 105,
+    "lineNumber": 109,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2796,7 +2828,7 @@
     }
   },
   {
-    "__docId__": 121,
+    "__docId__": 122,
     "kind": "method",
     "name": "newContrastColor",
     "memberof": "lib/color.js~Color",
@@ -2806,58 +2838,7 @@
     "longname": "lib/color.js~Color#newContrastColor",
     "access": "public",
     "description": "",
-    "lineNumber": 119,
-    "unknown": [
-      {
-        "tagName": "@returns",
-        "tagValue": "{Color}"
-      }
-    ],
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "number"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "ratio",
-        "description": "Value in percent"
-      },
-      {
-        "nullable": null,
-        "types": [
-          "string"
-        ],
-        "spread": false,
-        "optional": true,
-        "defaultValue": "null",
-        "defaultRaw": null,
-        "name": "name",
-        "description": "Name of color"
-      }
-    ],
-    "return": {
-      "nullable": null,
-      "types": [
-        "Color"
-      ],
-      "spread": false,
-      "description": ""
-    }
-  },
-  {
-    "__docId__": 122,
-    "kind": "method",
-    "name": "newBrightnessColor",
-    "memberof": "lib/color.js~Color",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color.js~Color#newBrightnessColor",
-    "access": "public",
-    "description": "",
-    "lineNumber": 128,
+    "lineNumber": 123,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2900,6 +2881,57 @@
   {
     "__docId__": 123,
     "kind": "method",
+    "name": "newBrightnessColor",
+    "memberof": "lib/color.js~Color",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/color.js~Color#newBrightnessColor",
+    "access": "public",
+    "description": "",
+    "lineNumber": 132,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Color}"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ratio",
+        "description": "Value in percent"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "null",
+        "defaultRaw": null,
+        "name": "name",
+        "description": "Name of color"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Color"
+      ],
+      "spread": false,
+      "description": ""
+    }
+  },
+  {
+    "__docId__": 124,
+    "kind": "method",
     "name": "newInvertColor",
     "memberof": "lib/color.js~Color",
     "generator": false,
@@ -2908,7 +2940,7 @@
     "longname": "lib/color.js~Color#newInvertColor",
     "access": "public",
     "description": "",
-    "lineNumber": 137,
+    "lineNumber": 141,
     "unknown": [
       {
         "tagName": "@returns",
@@ -2951,7 +2983,7 @@
     }
   },
   {
-    "__docId__": 124,
+    "__docId__": 125,
     "kind": "method",
     "name": "newHueRotateColor",
     "memberof": "lib/color.js~Color",
@@ -2961,7 +2993,7 @@
     "longname": "lib/color.js~Color#newHueRotateColor",
     "access": "public",
     "description": "",
-    "lineNumber": 146,
+    "lineNumber": 150,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3002,7 +3034,7 @@
     }
   },
   {
-    "__docId__": 125,
+    "__docId__": 126,
     "kind": "method",
     "name": "newSaturateColor",
     "memberof": "lib/color.js~Color",
@@ -3012,7 +3044,7 @@
     "longname": "lib/color.js~Color#newSaturateColor",
     "access": "public",
     "description": "",
-    "lineNumber": 155,
+    "lineNumber": 159,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3053,7 +3085,7 @@
     }
   },
   {
-    "__docId__": 126,
+    "__docId__": 127,
     "kind": "method",
     "name": "newGrayscaleColor",
     "memberof": "lib/color.js~Color",
@@ -3063,7 +3095,7 @@
     "longname": "lib/color.js~Color#newGrayscaleColor",
     "access": "public",
     "description": "",
-    "lineNumber": 164,
+    "lineNumber": 168,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3106,7 +3138,7 @@
     }
   },
   {
-    "__docId__": 127,
+    "__docId__": 128,
     "kind": "method",
     "name": "findBrightnessThreshold",
     "memberof": "lib/color.js~Color",
@@ -3116,7 +3148,7 @@
     "longname": "lib/color.js~Color#findBrightnessThreshold",
     "access": "public",
     "description": "Tries to find a color whose contrast against the base color is close\n to a given level.\n\nThe returned color is gained by modifying the brightness of otherColor.\nEven when a color that satisfies the level is not found, it returns\na new color anyway.",
-    "lineNumber": 180,
+    "lineNumber": 184,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3157,7 +3189,7 @@
     }
   },
   {
-    "__docId__": 128,
+    "__docId__": 129,
     "kind": "method",
     "name": "findLightnessThreshold",
     "memberof": "lib/color.js~Color",
@@ -3167,7 +3199,7 @@
     "longname": "lib/color.js~Color#findLightnessThreshold",
     "access": "public",
     "description": "Tries to find a color whose contrast against the base color is close to\na given level.\n\nThe returned color is gained by modifying the lightness of otherColor.\nEven when a color that satisfies the level is not found, it returns\na new color anyway.",
-    "lineNumber": 213,
+    "lineNumber": 200,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3208,73 +3240,7 @@
     }
   },
   {
-    "__docId__": 129,
-    "kind": "method",
-    "name": "shouldScanDarkerSide",
-    "memberof": "lib/color.js~Color",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color.js~Color#shouldScanDarkerSide",
-    "access": "private",
-    "description": "",
-    "lineNumber": 246,
-    "ignore": true,
-    "params": [
-      {
-        "name": "otherColor",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
     "__docId__": 130,
-    "kind": "method",
-    "name": "lightnessBoundaryColor",
-    "memberof": "lib/color.js~Color",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color.js~Color#lightnessBoundaryColor",
-    "access": "private",
-    "description": "",
-    "lineNumber": 254,
-    "ignore": true,
-    "params": [
-      {
-        "name": "max",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "min",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "level",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 131,
     "kind": "method",
     "name": "contrastLevel",
     "memberof": "lib/color.js~Color",
@@ -3284,7 +3250,7 @@
     "longname": "lib/color.js~Color#contrastLevel",
     "access": "public",
     "description": "",
-    "lineNumber": 271,
+    "lineNumber": 210,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3313,7 +3279,7 @@
     }
   },
   {
-    "__docId__": 132,
+    "__docId__": 131,
     "kind": "method",
     "name": "hasSufficientContrast",
     "memberof": "lib/color.js~Color",
@@ -3323,7 +3289,7 @@
     "longname": "lib/color.js~Color#hasSufficientContrast",
     "access": "public",
     "description": "Checks if the contrast ratio between the base color and otherColor meets\nthe requirement of WCAG 2.0",
-    "lineNumber": 283,
+    "lineNumber": 222,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3364,7 +3330,7 @@
     }
   },
   {
-    "__docId__": 133,
+    "__docId__": 132,
     "kind": "method",
     "name": "isSameColor",
     "memberof": "lib/color.js~Color",
@@ -3374,7 +3340,7 @@
     "longname": "lib/color.js~Color#isSameColor",
     "access": "public",
     "description": "Checks if the base color and otherColor have the same RGB value",
-    "lineNumber": 293,
+    "lineNumber": 232,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3403,7 +3369,7 @@
     }
   },
   {
-    "__docId__": 134,
+    "__docId__": 133,
     "kind": "method",
     "name": "isMaxContrast",
     "memberof": "lib/color.js~Color",
@@ -3413,7 +3379,7 @@
     "longname": "lib/color.js~Color#isMaxContrast",
     "access": "public",
     "description": "",
-    "lineNumber": 300,
+    "lineNumber": 239,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3431,7 +3397,7 @@
     "params": []
   },
   {
-    "__docId__": 135,
+    "__docId__": 134,
     "kind": "method",
     "name": "isMinContrast",
     "memberof": "lib/color.js~Color",
@@ -3441,7 +3407,7 @@
     "longname": "lib/color.js~Color#isMinContrast",
     "access": "public",
     "description": "",
-    "lineNumber": 308,
+    "lineNumber": 247,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3459,7 +3425,7 @@
     "params": []
   },
   {
-    "__docId__": 136,
+    "__docId__": 135,
     "kind": "method",
     "name": "toString",
     "memberof": "lib/color.js~Color",
@@ -3469,7 +3435,7 @@
     "longname": "lib/color.js~Color#toString",
     "access": "public",
     "description": "Returns a string representation of the color.\nWhen 16 is passed, it return the hex code, and when 10 is passed,\nit returns the value in RGB notation\nOtherwise, it returns the color name or the hex code",
-    "lineNumber": 322,
+    "lineNumber": 261,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3501,132 +3467,7 @@
     }
   },
   {
-    "__docId__": 137,
-    "kind": "method",
-    "name": "calcBrightnessRatio",
-    "memberof": "lib/color.js~Color",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color.js~Color#calcBrightnessRatio",
-    "access": "private",
-    "description": "",
-    "lineNumber": 336,
-    "ignore": true,
-    "params": [
-      {
-        "name": "otherColor",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "targetRatio",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "criteria",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "w",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "undefined[]"
-      ]
-    }
-  },
-  {
-    "__docId__": 138,
-    "kind": "method",
-    "name": "calcContrastRatio",
-    "memberof": "lib/color.js~Color",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color.js~Color#calcContrastRatio",
-    "access": "private",
-    "description": "",
-    "lineNumber": 356,
-    "ignore": true,
-    "params": [
-      {
-        "name": "otherRgb",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 139,
-    "kind": "method",
-    "name": "calcUpperRatioLimit",
-    "memberof": "lib/color.js~Color",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color.js~Color#calcUpperRatioLimit",
-    "access": "private",
-    "description": "",
-    "lineNumber": 366,
-    "ignore": true,
-    "params": [],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 140,
-    "kind": "method",
-    "name": "thresholdCriteria",
-    "memberof": "lib/color.js~Color",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "lib/color.js~Color#thresholdCriteria",
-    "access": "private",
-    "description": "",
-    "lineNumber": 380,
-    "ignore": true,
-    "params": [
-      {
-        "name": "targetRatio",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "otherColor",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 141,
+    "__docId__": 136,
     "kind": "method",
     "name": "isBrighterThan",
     "memberof": "lib/color.js~Color",
@@ -3636,7 +3477,7 @@
     "longname": "lib/color.js~Color#isBrighterThan",
     "access": "public",
     "description": "",
-    "lineNumber": 399,
+    "lineNumber": 277,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3665,7 +3506,7 @@
     }
   },
   {
-    "__docId__": 142,
+    "__docId__": 137,
     "kind": "method",
     "name": "hasSameLuminance",
     "memberof": "lib/color.js~Color",
@@ -3675,7 +3516,7 @@
     "longname": "lib/color.js~Color#hasSameLuminance",
     "access": "public",
     "description": "",
-    "lineNumber": 408,
+    "lineNumber": 286,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3704,7 +3545,7 @@
     }
   },
   {
-    "__docId__": 143,
+    "__docId__": 138,
     "kind": "method",
     "name": "isLightColor",
     "memberof": "lib/color.js~Color",
@@ -3714,7 +3555,7 @@
     "longname": "lib/color.js~Color#isLightColor",
     "access": "public",
     "description": "",
-    "lineNumber": 416,
+    "lineNumber": 294,
     "unknown": [
       {
         "tagName": "@returns",
@@ -3732,7 +3573,7 @@
     "params": []
   },
   {
-    "__docId__": 144,
+    "__docId__": 139,
     "kind": "method",
     "name": "freezeProperties",
     "memberof": "lib/color.js~Color",
@@ -3742,13 +3583,13 @@
     "longname": "lib/color.js~Color#freezeProperties",
     "access": "private",
     "description": "",
-    "lineNumber": 423,
+    "lineNumber": 301,
     "ignore": true,
     "params": [],
     "return": null
   },
   {
-    "__docId__": 145,
+    "__docId__": 140,
     "kind": "method",
     "name": "generateNewColor",
     "memberof": "lib/color.js~Color",
@@ -3758,7 +3599,7 @@
     "longname": "lib/color.js~Color#generateNewColor",
     "access": "private",
     "description": "",
-    "lineNumber": 433,
+    "lineNumber": 311,
     "ignore": true,
     "params": [
       {
@@ -3789,10 +3630,10 @@
     }
   },
   {
-    "__docId__": 146,
+    "__docId__": 141,
     "kind": "file",
     "name": "lib/contrast-checker.js",
-    "content": "\"use strict\";\n\n/** @private */\nconst Utils = require(\"./color-utils\").ColorUtils;\n\n/**\n * Collection of functions that check properties of given colors\n */\nclass ContrastChecker {\n  /**\n   * Calculate the relative luminance of a RGB color given as a string or\n   * an array of numbers\n   * @param {string|Array<number, number, number>} rgb - RGB value represented\n   *     as a string (hex code) or an array of numbers\n   * @returns {number} Relative luminance\n   */\n  static relativeLuminance(rgb = [255, 255, 255]) {\n    /*\n      https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef\n    */\n    if (Utils.isString(rgb)) { rgb = Utils.hexCodeToRgb(rgb); }\n\n    const [r, g, b] = rgb.map(c => this.tristimulusValue(c));\n    return r * 0.2126 + g * 0.7152 + b * 0.0722;\n  }\n\n  /**\n   * Calculate the contrast ratio of given colors\n   * @param {string|Array<number, number, number>} foreground - RGB value\n   *     represented as a string (hex code) or an array of numbers\n   * @param {string|Array<number, number, number>} background - RGB value\n   *     represented as a string (hex code) or an array of numbers\n   * @returns {number} Contrast ratio\n   */\n  static contrastRatio(foreground, background) {\n    /*\n      https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef\n    */\n    const [l1, l2] = [foreground, background]\n            .map(c => this.relativeLuminance(c));\n    return this.luminanceToContrastRatio(l1, l2);\n  }\n\n  /**\n   * Rate a given contrast ratio according to the WCAG 2.0 criteria\n   * @param {number} ratio - Contrast ratio\n   * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of\n   *     WCAG 2.0, otherwise \"-\"\n   */\n  static ratioToLevel(ratio) {\n    if (ratio >= 7) {\n      return \"AAA\";\n    } else if (ratio >= 4.5) {\n      return \"AA\";\n    } else if (ratio >= 3) {\n      return \"A\";\n    }\n\n    return \"-\";\n  }\n\n  /**\n   * @private\n   */\n  static tristimulusValue(primaryColor, base = 255) {\n    const s = primaryColor / base;\n    if (s <= 0.03928) {\n      return s / 12.92;\n    } else {\n      return Math.pow((s + 0.055) / 1.055, 2.4);\n    }\n  }\n\n  /**\n   * @private\n   */\n  static luminanceToContrastRatio(luminance1, luminance2) {\n    const [l1, l2] = [luminance1, luminance2]\n            .sort((f, s) => s - f);\n    return (l1 + 0.05) / (l2 + 0.05);\n  }\n\n  /**\n   * @private\n   */\n  static levelToRatio(level) {\n    if (level === \"A\" || level === 1) {\n      return 3.0;\n    } else if (level === \"AA\" || level === 2) {\n      return 4.5;\n    } else if (level === \"AAA\" || level === 3) {\n      return 7.0;\n    }\n  }\n}\n\nmodule.exports.ContrastChecker = ContrastChecker;\n",
+    "content": "\"use strict\";\n\n/** @private */\nconst Utils = require(\"./color-utils\").ColorUtils;\n\n/**\n * Collection of functions that check properties of given colors\n */\nclass ContrastChecker {\n  /**\n   * Calculate the relative luminance of a RGB color given as a string or\n   * an array of numbers\n   * @param {string|Array<number, number, number>} rgb - RGB value represented\n   *     as a string (hex code) or an array of numbers\n   * @returns {number} Relative luminance\n   */\n  static relativeLuminance(rgb = [255, 255, 255]) {\n    /*\n      https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef\n    */\n    if (Utils.isString(rgb)) { rgb = Utils.hexCodeToRgb(rgb); }\n\n    const [r, g, b] = rgb.map(c => this.tristimulusValue(c));\n    return r * 0.2126 + g * 0.7152 + b * 0.0722;\n  }\n\n  /**\n   * Calculate the contrast ratio of given colors\n   * @param {string|Array<number, number, number>} foreground - RGB value\n   *     represented as a string (hex code) or an array of numbers\n   * @param {string|Array<number, number, number>} background - RGB value\n   *     represented as a string (hex code) or an array of numbers\n   * @returns {number} Contrast ratio\n   */\n  static contrastRatio(foreground, background) {\n    /*\n      https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef\n    */\n    const [l1, l2] = [foreground, background]\n            .map(c => this.relativeLuminance(c));\n    return this.luminanceToContrastRatio(l1, l2);\n  }\n\n  /**\n   * Rate a given contrast ratio according to the WCAG 2.0 criteria\n   * @param {number} ratio - Contrast ratio\n   * @returns {string} A, AA or AAA if the contrast ratio meets the criteria of\n   *     WCAG 2.0, otherwise \"-\"\n   */\n  static ratioToLevel(ratio) {\n    if (ratio >= 7) {\n      return \"AAA\";\n    } else if (ratio >= 4.5) {\n      return \"AA\";\n    } else if (ratio >= 3) {\n      return \"A\";\n    }\n\n    return \"-\";\n  }\n\n  /**\n   * Check if the contrast ratio of a given color against black is higher\n   * than against white.\n   * @param {string|Array<number, number, number>} color - RGB value\n   *     represented as a string (hex code) or an array of numbers\n   * @returns {boolean} true if the contrast ratio against white is qual to or\n   *     less than the ratio against black\n   */\n  static isLightColor(color) {\n    const whiteLuminance = this.LUMINANCE.WHITE;\n    const blackLuminance = this.LUMINANCE.BLACK;\n    const l = this.relativeLuminance(color);\n    const ratioWithWhite = this.luminanceToContrastRatio(whiteLuminance, l);\n    const ratioWithBlack = this.luminanceToContrastRatio(blackLuminance, l);\n    return ratioWithWhite <= ratioWithBlack;\n  }\n\n  /**\n   * @private\n   */\n  static tristimulusValue(primaryColor, base = 255) {\n    const s = primaryColor / base;\n    if (s <= 0.03928) {\n      return s / 12.92;\n    } else {\n      return Math.pow((s + 0.055) / 1.055, 2.4);\n    }\n  }\n\n  /**\n   * @private\n   */\n  static luminanceToContrastRatio(luminance1, luminance2) {\n    const [l1, l2] = [luminance1, luminance2]\n            .sort((f, s) => s - f);\n    return (l1 + 0.05) / (l2 + 0.05);\n  }\n\n  /**\n   * @private\n   */\n  static levelToRatio(level) {\n    if (typeof level === \"number\" && level >= 1.0 && level <= 21.0) {\n      return level;\n    }\n\n    if (level === \"A\") {\n      return 3.0;\n    } else if (level === \"AA\") {\n      return 4.5;\n    } else if (level === \"AAA\") {\n      return 7.0;\n    }\n  }\n}\n\n/**\n * The relative luminance of some colors.\n */\nContrastChecker.LUMINANCE = {\n  BLACK: 0.0,\n  WHITE: 1.0\n};\n\nObject.freeze(ContrastChecker.LUMINANCE);\n\nmodule.exports.ContrastChecker = ContrastChecker;\n",
     "static": true,
     "longname": "/home/naoki/nico-hn/color-contrast-calc/lib/contrast-checker.js",
     "access": "public",
@@ -3800,7 +3641,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 147,
+    "__docId__": 142,
     "kind": "variable",
     "name": "Utils",
     "memberof": "lib/contrast-checker.js",
@@ -3820,7 +3661,7 @@
     }
   },
   {
-    "__docId__": 148,
+    "__docId__": 143,
     "kind": "class",
     "name": "ContrastChecker",
     "memberof": "lib/contrast-checker.js",
@@ -3835,7 +3676,7 @@
     "interface": false
   },
   {
-    "__docId__": 149,
+    "__docId__": 144,
     "kind": "method",
     "name": "relativeLuminance",
     "memberof": "lib/contrast-checker.js~ContrastChecker",
@@ -3875,7 +3716,7 @@
     }
   },
   {
-    "__docId__": 150,
+    "__docId__": 145,
     "kind": "method",
     "name": "contrastRatio",
     "memberof": "lib/contrast-checker.js~ContrastChecker",
@@ -3926,7 +3767,7 @@
     }
   },
   {
-    "__docId__": 151,
+    "__docId__": 146,
     "kind": "method",
     "name": "ratioToLevel",
     "memberof": "lib/contrast-checker.js~ContrastChecker",
@@ -3965,7 +3806,47 @@
     }
   },
   {
-    "__docId__": 152,
+    "__docId__": 147,
+    "kind": "method",
+    "name": "isLightColor",
+    "memberof": "lib/contrast-checker.js~ContrastChecker",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/contrast-checker.js~ContrastChecker.isLightColor",
+    "access": "public",
+    "description": "Check if the contrast ratio of a given color against black is higher\nthan against white.",
+    "lineNumber": 70,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} true if the contrast ratio against white is qual to or\n    less than the ratio against black"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string",
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "color",
+        "description": "RGB value\n    represented as a string (hex code) or an array of numbers"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "true if the contrast ratio against white is qual to or\n    less than the ratio against black"
+    }
+  },
+  {
+    "__docId__": 148,
     "kind": "method",
     "name": "tristimulusValue",
     "memberof": "lib/contrast-checker.js~ContrastChecker",
@@ -3975,7 +3856,7 @@
     "longname": "lib/contrast-checker.js~ContrastChecker.tristimulusValue",
     "access": "private",
     "description": "",
-    "lineNumber": 65,
+    "lineNumber": 82,
     "ignore": true,
     "params": [
       {
@@ -4001,7 +3882,7 @@
     }
   },
   {
-    "__docId__": 153,
+    "__docId__": 149,
     "kind": "method",
     "name": "luminanceToContrastRatio",
     "memberof": "lib/contrast-checker.js~ContrastChecker",
@@ -4011,7 +3892,7 @@
     "longname": "lib/contrast-checker.js~ContrastChecker.luminanceToContrastRatio",
     "access": "private",
     "description": "",
-    "lineNumber": 77,
+    "lineNumber": 94,
     "ignore": true,
     "params": [
       {
@@ -4034,7 +3915,7 @@
     }
   },
   {
-    "__docId__": 154,
+    "__docId__": 150,
     "kind": "method",
     "name": "levelToRatio",
     "memberof": "lib/contrast-checker.js~ContrastChecker",
@@ -4044,7 +3925,7 @@
     "longname": "lib/contrast-checker.js~ContrastChecker.levelToRatio",
     "access": "private",
     "description": "",
-    "lineNumber": 86,
+    "lineNumber": 103,
     "ignore": true,
     "params": [
       {
@@ -4057,6 +3938,943 @@
     "return": {
       "types": [
         "number"
+      ]
+    }
+  },
+  {
+    "__docId__": 151,
+    "kind": "file",
+    "name": "lib/threshold-finder.js",
+    "content": "\"use strict\";\n\n/** @private */\nconst Utils = require(\"./color-utils\").ColorUtils;\n/** @private */\nconst Checker = require(\"./contrast-checker\").ContrastChecker;\n\n/** @private */\nclass SearchCriteria {\n  static shouldScanDarkerSide(fixedRgb, otherRgb) {\n    const fixedLuminance = Checker.relativeLuminance(fixedRgb);\n    const otherLuminance = Checker.relativeLuminance(otherRgb);\n    return fixedLuminance > otherLuminance ||\n      fixedLuminance === otherLuminance && Checker.isLightColor(fixedRgb);\n  }\n\n  static define(fixedRgb, otherRgb, level) {\n    const targetRatio = Checker.levelToRatio(level);\n\n    if (this.shouldScanDarkerSide(fixedRgb, otherRgb)) {\n      return new ToDarkerSide(targetRatio, fixedRgb);\n    } else {\n      return new ToBrighterSide(targetRatio, fixedRgb);\n    }\n  }\n\n  constructor(targetRatio, fixedRgb) {\n    this.targetRatio = targetRatio;\n    this.fixedLuminance = Checker.relativeLuminance(fixedRgb);\n  }\n\n  hasSufficientContrast(rgb) {\n    return this.contrastRatio(rgb) >= this.targetRatio;\n  }\n\n  contrastRatio(rgb) {\n    const luminance = Checker.relativeLuminance(rgb);\n    return Checker.luminanceToContrastRatio(this.fixedLuminance,\n                                            luminance);\n  }\n}\n\n/** @private */\nclass ToDarkerSide extends SearchCriteria {\n  round(r) {\n    return Math.floor(r * 10 ) / 10;\n  }\n\n  incrementCondition(contrastRatio) {\n    return contrastRatio > this.targetRatio;\n  }\n}\n\n/** @private */\nclass ToBrighterSide extends SearchCriteria {\n  round(r) {\n    return Math.ceil(r * 10) / 10;\n  }\n\n  incrementCondition(contrastRatio) {\n    return this.targetRatio > contrastRatio;\n  }\n}\n\n/** @private */\nclass ThresholdFinder {\n  /** @private */\n  static * binarySearchWidth(initWidth, min) {\n    let i = 1;\n    let d = initWidth / Math.pow(2, i);\n\n    while (d > min) {\n      yield d;\n      i++;\n      d = initWidth / Math.pow(2, i);\n    }\n  }\n\n  /**\n   * @private\n   */\n  static findRatio(otherColor, criteria, initRatio, initWidth) {\n    let r = initRatio;\n    let lastSufficientRatio = null;\n\n    for (let d of this.binarySearchWidth(initWidth, 0.01)) {\n      const newRgb = this.rgbWithRatio(otherColor, r);\n      const newRatio = criteria.contrastRatio(newRgb);\n\n      if (criteria.hasSufficientContrast(newRgb)) { lastSufficientRatio = r; }\n      if (newRatio === criteria.targetRatio) { break; }\n      r += criteria.incrementCondition(newRatio) ? d : -d;\n    }\n\n    return [r, lastSufficientRatio];\n  }\n\n  /**\n   * @private\n   */\n  static rgbWithBetterRatio(color, criteria, r, lastSufficientRatio) {\n    const nearestRgb = this.rgbWithRatio(color, r);\n\n    if (lastSufficientRatio && ! criteria.hasSufficientContrast(nearestRgb)) {\n      return this.rgbWithRatio(color, lastSufficientRatio);\n    }\n\n    return nearestRgb;\n  }\n}\n\n/** @private */\nclass LightnessFinder extends ThresholdFinder {\n  /**\n   * Tries to find a color whose contrast against the base color is close to\n   * a given level.\n   *\n   * The returned color is gained by modifying the lightness of otherRgb.\n   * Even when a color that satisfies the level is not found, it returns\n   * a new color anyway.\n   * @param {Array<number, number, number>} fixedRgb - RGB value which remains\n   *     unchanged\n   * @param {Array<number, number, number>} otherRgb - RGB value before the\n   *     modification of lightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {Array<number, number, number>} RGB value of a new color whose\n   *     contrast ratio against fixedRgb is close to a specified level\n   */\n  static find(fixedRgb, otherRgb, level = \"AA\") {\n    const criteria = SearchCriteria.define(fixedRgb, otherRgb, level);\n    const otherHsl = Utils.rgbToHsl(otherRgb);\n    const [max, min] = this.determineMinmax(fixedRgb, otherRgb, otherHsl[2]);\n\n    const boundaryRgb = this.boundaryColor(fixedRgb, max, min, criteria);\n\n    if (boundaryRgb) { return boundaryRgb; }\n\n    const [r, lastSufficientRatio] = this.findRatio(otherHsl, criteria,\n                                                    (max + min) / 2, max - min);\n\n    return this.rgbWithBetterRatio(otherHsl, criteria, r, lastSufficientRatio);\n  }\n\n  /**\n   * @private\n   */\n  static rgbWithRatio(hsl, ratio) {\n    if (ratio !== undefined && hsl[2] !== ratio) {\n      hsl = hsl.slice(0);\n      hsl[2] = ratio;\n    }\n\n    return Utils.hslToRgb(hsl);\n  }\n\n  /**\n   * @private\n   */\n  static determineMinmax(fixedRgb, otherRgb, initL) {\n    if (SearchCriteria.shouldScanDarkerSide(fixedRgb, otherRgb)) {\n      return [initL, 0];\n    } else {\n      return [100, initL];\n    }\n  }\n\n  /**\n   * @private\n   */\n  static boundaryColor(rgb, max, min, criteria) {\n    const black = Checker.LUMINANCE.BLACK;\n    const white = Checker.LUMINANCE.WHITE;\n\n    if (min === 0 && ! this.hasSufficientContrast(black, rgb, criteria)) {\n      return Utils.RGB.BLACK;\n    }\n\n    if (max === 100 && ! this.hasSufficientContrast(white, rgb, criteria)) {\n      return Utils.RGB.WHITE;\n    }\n\n    return null;\n  }\n\n  /**\n   * @private\n   */\n  static hasSufficientContrast(fixedLuminance, rgb, criteria) {\n    const luminance = Checker.relativeLuminance(rgb);\n    const ratio = Checker.luminanceToContrastRatio(fixedLuminance, luminance);\n    return ratio >= criteria.targetRatio;\n  }\n}\n\n/** @private */\nclass BrightnessFinder extends ThresholdFinder {\n  /**\n   * Tries to find a color whose contrast against the base color is close\n   *  to a given level.\n   *\n   * The returned color is gained by modifying the brightness of otherRgb.\n   * Even when a color that satisfies the level is not found, it returns\n   * a new color anyway.\n   * @param {Array<number, number, number>} fixedRgb - RGB value which remains\n   *     unchanged\n   * @param {Array<number, number, number>} otherRgb - RGB value before the\n   *     modification of brightness\n   * @param {string} [level=\"AA\"] - A, AA or AAA\n   * @returns {Array<number, number, number>} RGB value of a new color whose\n   *     contrast ratio against fixedRgb is close to a specified level\n   */\n  static find(fixedRgb, otherRgb, level = \"AA\") {\n    const criteria = SearchCriteria.define(fixedRgb, otherRgb, level);\n    const w = this.calcUpperRatioLimit(otherRgb) / 2;\n\n    const upperRgb = this.rgbWithRatio(otherRgb, w * 2);\n\n    if (this.exceedUpperLimit(criteria, otherRgb, upperRgb)) {\n      return upperRgb;\n    }\n\n    const ratios = this.findRatio(otherRgb, criteria, w, w).map(criteria.round);\n\n    return this.rgbWithBetterRatio(otherRgb, criteria, ...ratios);\n  }\n\n  /**\n   * @private\n   */\n  static rgbWithRatio(rgb, ratio) {\n    return Utils.BrightnessCalc.calcRgb(rgb, ratio);\n  }\n\n  /**\n   * @private\n   */\n  static exceedUpperLimit(criteria, otherRgb, upperRgb) {\n    const otherLuminance = Checker.relativeLuminance(otherRgb);\n    return otherLuminance > criteria.fixedLuminance &&\n      ! criteria.hasSufficientContrast(upperRgb);\n  }\n\n  /**\n   * @private\n   */\n  static calcUpperRatioLimit(rgb) {\n    if (Utils.isSameRgbColor(Utils.RGB.BLACK, rgb)) {\n      return 100;\n    }\n\n    const darkest = rgb\n            .filter(c => c !== 0)\n            .reduce((a, b) => Math.min(a, b));\n    return Math.ceil((255 / darkest) * 100);\n  }\n}\n\nmodule.exports.LightnessFinder = LightnessFinder;\nmodule.exports.BrightnessFinder = BrightnessFinder;\n",
+    "static": true,
+    "longname": "/home/naoki/nico-hn/color-contrast-calc/lib/threshold-finder.js",
+    "access": "public",
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 152,
+    "kind": "variable",
+    "name": "Utils",
+    "memberof": "lib/threshold-finder.js",
+    "static": true,
+    "longname": "lib/threshold-finder.js~Utils",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/threshold-finder.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 4,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 153,
+    "kind": "variable",
+    "name": "Checker",
+    "memberof": "lib/threshold-finder.js",
+    "static": true,
+    "longname": "lib/threshold-finder.js~Checker",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/threshold-finder.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 6,
+    "ignore": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 154,
+    "kind": "class",
+    "name": "SearchCriteria",
+    "memberof": "lib/threshold-finder.js",
+    "static": true,
+    "longname": "lib/threshold-finder.js~SearchCriteria",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/threshold-finder.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 9,
+    "interface": false,
+    "ignore": true
+  },
+  {
+    "__docId__": 155,
+    "kind": "method",
+    "name": "shouldScanDarkerSide",
+    "memberof": "lib/threshold-finder.js~SearchCriteria",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~SearchCriteria.shouldScanDarkerSide",
+    "access": "public",
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "params": [
+      {
+        "name": "fixedRgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "otherRgb",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 156,
+    "kind": "method",
+    "name": "define",
+    "memberof": "lib/threshold-finder.js~SearchCriteria",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~SearchCriteria.define",
+    "access": "public",
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "params": [
+      {
+        "name": "fixedRgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "otherRgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "level",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 157,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "lib/threshold-finder.js~SearchCriteria",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/threshold-finder.js~SearchCriteria#constructor",
+    "access": "public",
+    "description": null,
+    "lineNumber": 27,
+    "undocument": true
+  },
+  {
+    "__docId__": 158,
+    "kind": "member",
+    "name": "targetRatio",
+    "memberof": "lib/threshold-finder.js~SearchCriteria",
+    "static": false,
+    "longname": "lib/threshold-finder.js~SearchCriteria#targetRatio",
+    "access": "public",
+    "description": null,
+    "lineNumber": 28,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 159,
+    "kind": "member",
+    "name": "fixedLuminance",
+    "memberof": "lib/threshold-finder.js~SearchCriteria",
+    "static": false,
+    "longname": "lib/threshold-finder.js~SearchCriteria#fixedLuminance",
+    "access": "public",
+    "description": null,
+    "lineNumber": 29,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 160,
+    "kind": "method",
+    "name": "hasSufficientContrast",
+    "memberof": "lib/threshold-finder.js~SearchCriteria",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/threshold-finder.js~SearchCriteria#hasSufficientContrast",
+    "access": "public",
+    "description": null,
+    "lineNumber": 32,
+    "undocument": true,
+    "params": [
+      {
+        "name": "rgb",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 161,
+    "kind": "method",
+    "name": "contrastRatio",
+    "memberof": "lib/threshold-finder.js~SearchCriteria",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/threshold-finder.js~SearchCriteria#contrastRatio",
+    "access": "public",
+    "description": null,
+    "lineNumber": 36,
+    "undocument": true,
+    "params": [
+      {
+        "name": "rgb",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 162,
+    "kind": "class",
+    "name": "ToDarkerSide",
+    "memberof": "lib/threshold-finder.js",
+    "static": true,
+    "longname": "lib/threshold-finder.js~ToDarkerSide",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/threshold-finder.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 44,
+    "interface": false,
+    "extends": [
+      "SearchCriteria"
+    ],
+    "ignore": true
+  },
+  {
+    "__docId__": 163,
+    "kind": "method",
+    "name": "round",
+    "memberof": "lib/threshold-finder.js~ToDarkerSide",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/threshold-finder.js~ToDarkerSide#round",
+    "access": "public",
+    "description": null,
+    "lineNumber": 45,
+    "undocument": true,
+    "params": [
+      {
+        "name": "r",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 164,
+    "kind": "method",
+    "name": "incrementCondition",
+    "memberof": "lib/threshold-finder.js~ToDarkerSide",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/threshold-finder.js~ToDarkerSide#incrementCondition",
+    "access": "public",
+    "description": null,
+    "lineNumber": 49,
+    "undocument": true,
+    "params": [
+      {
+        "name": "contrastRatio",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 165,
+    "kind": "class",
+    "name": "ToBrighterSide",
+    "memberof": "lib/threshold-finder.js",
+    "static": true,
+    "longname": "lib/threshold-finder.js~ToBrighterSide",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/threshold-finder.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 55,
+    "interface": false,
+    "extends": [
+      "SearchCriteria"
+    ],
+    "ignore": true
+  },
+  {
+    "__docId__": 166,
+    "kind": "method",
+    "name": "round",
+    "memberof": "lib/threshold-finder.js~ToBrighterSide",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/threshold-finder.js~ToBrighterSide#round",
+    "access": "public",
+    "description": null,
+    "lineNumber": 56,
+    "undocument": true,
+    "params": [
+      {
+        "name": "r",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 167,
+    "kind": "method",
+    "name": "incrementCondition",
+    "memberof": "lib/threshold-finder.js~ToBrighterSide",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "lib/threshold-finder.js~ToBrighterSide#incrementCondition",
+    "access": "public",
+    "description": null,
+    "lineNumber": 60,
+    "undocument": true,
+    "params": [
+      {
+        "name": "contrastRatio",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 168,
+    "kind": "class",
+    "name": "ThresholdFinder",
+    "memberof": "lib/threshold-finder.js",
+    "static": true,
+    "longname": "lib/threshold-finder.js~ThresholdFinder",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/threshold-finder.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 66,
+    "interface": false,
+    "ignore": true
+  },
+  {
+    "__docId__": 169,
+    "kind": "method",
+    "name": "binarySearchWidth",
+    "memberof": "lib/threshold-finder.js~ThresholdFinder",
+    "generator": true,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~ThresholdFinder.binarySearchWidth",
+    "access": "private",
+    "description": null,
+    "lineNumber": 68,
+    "ignore": true,
+    "params": [
+      {
+        "name": "initWidth",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "min",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": null
+  },
+  {
+    "__docId__": 170,
+    "kind": "method",
+    "name": "findRatio",
+    "memberof": "lib/threshold-finder.js~ThresholdFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~ThresholdFinder.findRatio",
+    "access": "private",
+    "description": "",
+    "lineNumber": 82,
+    "ignore": true,
+    "params": [
+      {
+        "name": "otherColor",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "criteria",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "initRatio",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "initWidth",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "undefined[]"
+      ]
+    }
+  },
+  {
+    "__docId__": 171,
+    "kind": "method",
+    "name": "rgbWithBetterRatio",
+    "memberof": "lib/threshold-finder.js~ThresholdFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~ThresholdFinder.rgbWithBetterRatio",
+    "access": "private",
+    "description": "",
+    "lineNumber": 101,
+    "ignore": true,
+    "params": [
+      {
+        "name": "color",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "criteria",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "r",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "lastSufficientRatio",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 172,
+    "kind": "class",
+    "name": "LightnessFinder",
+    "memberof": "lib/threshold-finder.js",
+    "static": true,
+    "longname": "lib/threshold-finder.js~LightnessFinder",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/threshold-finder.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 113,
+    "interface": false,
+    "extends": [
+      "ThresholdFinder"
+    ],
+    "ignore": true
+  },
+  {
+    "__docId__": 173,
+    "kind": "method",
+    "name": "find",
+    "memberof": "lib/threshold-finder.js~LightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~LightnessFinder.find",
+    "access": "public",
+    "description": "Tries to find a color whose contrast against the base color is close to\na given level.\n\nThe returned color is gained by modifying the lightness of otherRgb.\nEven when a color that satisfies the level is not found, it returns\na new color anyway.",
+    "lineNumber": 129,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Array<number, number, number>} RGB value of a new color whose\n    contrast ratio against fixedRgb is close to a specified level"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "fixedRgb",
+        "description": "RGB value which remains\n    unchanged"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "otherRgb",
+        "description": "RGB value before the\n    modification of lightness"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "\"AA\"",
+        "defaultRaw": "AA",
+        "name": "level",
+        "description": "A, AA or AAA"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array<number, number, number>"
+      ],
+      "spread": false,
+      "description": "RGB value of a new color whose\n    contrast ratio against fixedRgb is close to a specified level"
+    }
+  },
+  {
+    "__docId__": 174,
+    "kind": "method",
+    "name": "rgbWithRatio",
+    "memberof": "lib/threshold-finder.js~LightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~LightnessFinder.rgbWithRatio",
+    "access": "private",
+    "description": "",
+    "lineNumber": 147,
+    "ignore": true,
+    "params": [
+      {
+        "name": "hsl",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "ratio",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 175,
+    "kind": "method",
+    "name": "determineMinmax",
+    "memberof": "lib/threshold-finder.js~LightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~LightnessFinder.determineMinmax",
+    "access": "private",
+    "description": "",
+    "lineNumber": 159,
+    "ignore": true,
+    "params": [
+      {
+        "name": "fixedRgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "otherRgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "initL",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "number[]"
+      ]
+    }
+  },
+  {
+    "__docId__": 176,
+    "kind": "method",
+    "name": "boundaryColor",
+    "memberof": "lib/threshold-finder.js~LightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~LightnessFinder.boundaryColor",
+    "access": "private",
+    "description": "",
+    "lineNumber": 170,
+    "ignore": true,
+    "params": [
+      {
+        "name": "rgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "max",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "min",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "criteria",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 177,
+    "kind": "method",
+    "name": "hasSufficientContrast",
+    "memberof": "lib/threshold-finder.js~LightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~LightnessFinder.hasSufficientContrast",
+    "access": "private",
+    "description": "",
+    "lineNumber": 188,
+    "ignore": true,
+    "params": [
+      {
+        "name": "fixedLuminance",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "rgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "criteria",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 178,
+    "kind": "class",
+    "name": "BrightnessFinder",
+    "memberof": "lib/threshold-finder.js",
+    "static": true,
+    "longname": "lib/threshold-finder.js~BrightnessFinder",
+    "access": "private",
+    "export": false,
+    "importPath": "color-contrast-calc/lib/threshold-finder.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 196,
+    "interface": false,
+    "extends": [
+      "ThresholdFinder"
+    ],
+    "ignore": true
+  },
+  {
+    "__docId__": 179,
+    "kind": "method",
+    "name": "find",
+    "memberof": "lib/threshold-finder.js~BrightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~BrightnessFinder.find",
+    "access": "public",
+    "description": "Tries to find a color whose contrast against the base color is close\n to a given level.\n\nThe returned color is gained by modifying the brightness of otherRgb.\nEven when a color that satisfies the level is not found, it returns\na new color anyway.",
+    "lineNumber": 212,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Array<number, number, number>} RGB value of a new color whose\n    contrast ratio against fixedRgb is close to a specified level"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "fixedRgb",
+        "description": "RGB value which remains\n    unchanged"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Array<number, number, number>"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "otherRgb",
+        "description": "RGB value before the\n    modification of brightness"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "\"AA\"",
+        "defaultRaw": "AA",
+        "name": "level",
+        "description": "A, AA or AAA"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Array<number, number, number>"
+      ],
+      "spread": false,
+      "description": "RGB value of a new color whose\n    contrast ratio against fixedRgb is close to a specified level"
+    }
+  },
+  {
+    "__docId__": 180,
+    "kind": "method",
+    "name": "rgbWithRatio",
+    "memberof": "lib/threshold-finder.js~BrightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~BrightnessFinder.rgbWithRatio",
+    "access": "private",
+    "description": "",
+    "lineNumber": 230,
+    "ignore": true,
+    "params": [
+      {
+        "name": "rgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "ratio",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 181,
+    "kind": "method",
+    "name": "exceedUpperLimit",
+    "memberof": "lib/threshold-finder.js~BrightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~BrightnessFinder.exceedUpperLimit",
+    "access": "private",
+    "description": "",
+    "lineNumber": 237,
+    "ignore": true,
+    "params": [
+      {
+        "name": "criteria",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "otherRgb",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "upperRgb",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 182,
+    "kind": "method",
+    "name": "calcUpperRatioLimit",
+    "memberof": "lib/threshold-finder.js~BrightnessFinder",
+    "generator": false,
+    "async": false,
+    "static": true,
+    "longname": "lib/threshold-finder.js~BrightnessFinder.calcUpperRatioLimit",
+    "access": "private",
+    "description": "",
+    "lineNumber": 246,
+    "ignore": true,
+    "params": [
+      {
+        "name": "rgb",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
       ]
     }
   },

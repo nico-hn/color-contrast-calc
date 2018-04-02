@@ -100,6 +100,23 @@ class ContrastChecker {
   }
 
   /**
+   * Check if the contrast ratio of a given color against black is higher
+   * than against white.
+   * @param {string|Array&lt;number, number, number&gt;} color - RGB value
+   *     represented as a string (hex code) or an array of numbers
+   * @returns {boolean} true if the contrast ratio against white is qual to or
+   *     less than the ratio against black
+   */
+  static isLightColor(color) {
+    const whiteLuminance = this.LUMINANCE.WHITE;
+    const blackLuminance = this.LUMINANCE.BLACK;
+    const l = this.relativeLuminance(color);
+    const ratioWithWhite = this.luminanceToContrastRatio(whiteLuminance, l);
+    const ratioWithBlack = this.luminanceToContrastRatio(blackLuminance, l);
+    return ratioWithWhite &lt;= ratioWithBlack;
+  }
+
+  /**
    * @private
    */
   static tristimulusValue(primaryColor, base = 255) {
@@ -124,15 +141,29 @@ class ContrastChecker {
    * @private
    */
   static levelToRatio(level) {
-    if (level === &quot;A&quot; || level === 1) {
+    if (typeof level === &quot;number&quot; &amp;&amp; level &gt;= 1.0 &amp;&amp; level &lt;= 21.0) {
+      return level;
+    }
+
+    if (level === &quot;A&quot;) {
       return 3.0;
-    } else if (level === &quot;AA&quot; || level === 2) {
+    } else if (level === &quot;AA&quot;) {
       return 4.5;
-    } else if (level === &quot;AAA&quot; || level === 3) {
+    } else if (level === &quot;AAA&quot;) {
       return 7.0;
     }
   }
 }
+
+/**
+ * The relative luminance of some colors.
+ */
+ContrastChecker.LUMINANCE = {
+  BLACK: 0.0,
+  WHITE: 1.0
+};
+
+Object.freeze(ContrastChecker.LUMINANCE);
 
 module.exports.ContrastChecker = ContrastChecker;
 </code></pre>

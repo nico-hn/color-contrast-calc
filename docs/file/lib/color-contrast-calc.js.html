@@ -195,18 +195,6 @@ class ColorContrastCalc {
   }
 }
 
-/** @private */
-ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
-  let i = 1;
-  let d = initWidth / Math.pow(2, i);
-
-  while (d &gt; min) {
-    yield d;
-    i++;
-    d = initWidth / Math.pow(2, i);
-  }
-};
-
 Color.calc = ColorContrastCalc;
 
 (function() {

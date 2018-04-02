@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/threshold-finder.js | color-contrast-calc</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="color-contrast-calc"><meta property="twitter:description" content="Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/nico-hn/color-contrast-calc"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-contrast-calc.js~ColorContrastCalc.html">ColorContrastCalc</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color-utils.js~ColorUtils.html">ColorUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/color.js~Color.html">Color</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/contrast-checker.js~ContrastChecker.html">ContrastChecker</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/threshold-finder.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">&quot;use strict&quot;;
+
+/** @private */
+const Utils = require(&quot;./color-utils&quot;).ColorUtils;
+/** @private */
+const Checker = require(&quot;./contrast-checker&quot;).ContrastChecker;
+
+/** @private */
+class SearchCriteria {
+  static shouldScanDarkerSide(fixedRgb, otherRgb) {
+    const fixedLuminance = Checker.relativeLuminance(fixedRgb);
+    const otherLuminance = Checker.relativeLuminance(otherRgb);
+    return fixedLuminance &gt; otherLuminance ||
+      fixedLuminance === otherLuminance &amp;&amp; Checker.isLightColor(fixedRgb);
+  }
+
+  static define(fixedRgb, otherRgb, level) {
+    const targetRatio = Checker.levelToRatio(level);
+
+    if (this.shouldScanDarkerSide(fixedRgb, otherRgb)) {
+      return new ToDarkerSide(targetRatio, fixedRgb);
+    } else {
+      return new ToBrighterSide(targetRatio, fixedRgb);
+    }
+  }
+
+  constructor(targetRatio, fixedRgb) {
+    this.targetRatio = targetRatio;
+    this.fixedLuminance = Checker.relativeLuminance(fixedRgb);
+  }
+
+  hasSufficientContrast(rgb) {
+    return this.contrastRatio(rgb) &gt;= this.targetRatio;
+  }
+
+  contrastRatio(rgb) {
+    const luminance = Checker.relativeLuminance(rgb);
+    return Checker.luminanceToContrastRatio(this.fixedLuminance,
+                                            luminance);
+  }
+}
+
+/** @private */
+class ToDarkerSide extends SearchCriteria {
+  round(r) {
+    return Math.floor(r * 10 ) / 10;
+  }
+
+  incrementCondition(contrastRatio) {
+    return contrastRatio &gt; this.targetRatio;
+  }
+}
+
+/** @private */
+class ToBrighterSide extends SearchCriteria {
+  round(r) {
+    return Math.ceil(r * 10) / 10;
+  }
+
+  incrementCondition(contrastRatio) {
+    return this.targetRatio &gt; contrastRatio;
+  }
+}
+
+/** @private */
+class ThresholdFinder {
+  /** @private */
+  static * binarySearchWidth(initWidth, min) {
+    let i = 1;
+    let d = initWidth / Math.pow(2, i);
+
+    while (d &gt; min) {
+      yield d;
+      i++;
+      d = initWidth / Math.pow(2, i);
+    }
+  }
+
+  /**
+   * @private
+   */
+  static findRatio(otherColor, criteria, initRatio, initWidth) {
+    let r = initRatio;
+    let lastSufficientRatio = null;
+
+    for (let d of this.binarySearchWidth(initWidth, 0.01)) {
+      const newRgb = this.rgbWithRatio(otherColor, r);
+      const newRatio = criteria.contrastRatio(newRgb);
+
+      if (criteria.hasSufficientContrast(newRgb)) { lastSufficientRatio = r; }
+      if (newRatio === criteria.targetRatio) { break; }
+      r += criteria.incrementCondition(newRatio) ? d : -d;
+    }
+
+    return [r, lastSufficientRatio];
+  }
+
+  /**
+   * @private
+   */
+  static rgbWithBetterRatio(color, criteria, r, lastSufficientRatio) {
+    const nearestRgb = this.rgbWithRatio(color, r);
+
+    if (lastSufficientRatio &amp;&amp; ! criteria.hasSufficientContrast(nearestRgb)) {
+      return this.rgbWithRatio(color, lastSufficientRatio);
+    }
+
+    return nearestRgb;
+  }
+}
+
+/** @private */
+class LightnessFinder extends ThresholdFinder {
+  /**
+   * Tries to find a color whose contrast against the base color is close to
+   * a given level.
+   *
+   * The returned color is gained by modifying the lightness of otherRgb.
+   * Even when a color that satisfies the level is not found, it returns
+   * a new color anyway.
+   * @param {Array&lt;number, number, number&gt;} fixedRgb - RGB value which remains
+   *     unchanged
+   * @param {Array&lt;number, number, number&gt;} otherRgb - RGB value before the
+   *     modification of lightness
+   * @param {string} [level=&quot;AA&quot;] - A, AA or AAA
+   * @returns {Array&lt;number, number, number&gt;} RGB value of a new color whose
+   *     contrast ratio against fixedRgb is close to a specified level
+   */
+  static find(fixedRgb, otherRgb, level = &quot;AA&quot;) {
+    const criteria = SearchCriteria.define(fixedRgb, otherRgb, level);
+    const otherHsl = Utils.rgbToHsl(otherRgb);
+    const [max, min] = this.determineMinmax(fixedRgb, otherRgb, otherHsl[2]);
+
+    const boundaryRgb = this.boundaryColor(fixedRgb, max, min, criteria);
+
+    if (boundaryRgb) { return boundaryRgb; }
+
+    const [r, lastSufficientRatio] = this.findRatio(otherHsl, criteria,
+                                                    (max + min) / 2, max - min);
+
+    return this.rgbWithBetterRatio(otherHsl, criteria, r, lastSufficientRatio);
+  }
+
+  /**
+   * @private
+   */
+  static rgbWithRatio(hsl, ratio) {
+    if (ratio !== undefined &amp;&amp; hsl[2] !== ratio) {
+      hsl = hsl.slice(0);
+      hsl[2] = ratio;
+    }
+
+    return Utils.hslToRgb(hsl);
+  }
+
+  /**
+   * @private
+   */
+  static determineMinmax(fixedRgb, otherRgb, initL) {
+    if (SearchCriteria.shouldScanDarkerSide(fixedRgb, otherRgb)) {
+      return [initL, 0];
+    } else {
+      return [100, initL];
+    }
+  }
+
+  /**
+   * @private
+   */
+  static boundaryColor(rgb, max, min, criteria) {
+    const black = Checker.LUMINANCE.BLACK;
+    const white = Checker.LUMINANCE.WHITE;
+
+    if (min === 0 &amp;&amp; ! this.hasSufficientContrast(black, rgb, criteria)) {
+      return Utils.RGB.BLACK;
+    }
+
+    if (max === 100 &amp;&amp; ! this.hasSufficientContrast(white, rgb, criteria)) {
+      return Utils.RGB.WHITE;
+    }
+
+    return null;
+  }
+
+  /**
+   * @private
+   */
+  static hasSufficientContrast(fixedLuminance, rgb, criteria) {
+    const luminance = Checker.relativeLuminance(rgb);
+    const ratio = Checker.luminanceToContrastRatio(fixedLuminance, luminance);
+    return ratio &gt;= criteria.targetRatio;
+  }
+}
+
+/** @private */
+class BrightnessFinder extends ThresholdFinder {
+  /**
+   * Tries to find a color whose contrast against the base color is close
+   *  to a given level.
+   *
+   * The returned color is gained by modifying the brightness of otherRgb.
+   * Even when a color that satisfies the level is not found, it returns
+   * a new color anyway.
+   * @param {Array&lt;number, number, number&gt;} fixedRgb - RGB value which remains
+   *     unchanged
+   * @param {Array&lt;number, number, number&gt;} otherRgb - RGB value before the
+   *     modification of brightness
+   * @param {string} [level=&quot;AA&quot;] - A, AA or AAA
+   * @returns {Array&lt;number, number, number&gt;} RGB value of a new color whose
+   *     contrast ratio against fixedRgb is close to a specified level
+   */
+  static find(fixedRgb, otherRgb, level = &quot;AA&quot;) {
+    const criteria = SearchCriteria.define(fixedRgb, otherRgb, level);
+    const w = this.calcUpperRatioLimit(otherRgb) / 2;
+
+    const upperRgb = this.rgbWithRatio(otherRgb, w * 2);
+
+    if (this.exceedUpperLimit(criteria, otherRgb, upperRgb)) {
+      return upperRgb;
+    }
+
+    const ratios = this.findRatio(otherRgb, criteria, w, w).map(criteria.round);
+
+    return this.rgbWithBetterRatio(otherRgb, criteria, ...ratios);
+  }
+
+  /**
+   * @private
+   */
+  static rgbWithRatio(rgb, ratio) {
+    return Utils.BrightnessCalc.calcRgb(rgb, ratio);
+  }
+
+  /**
+   * @private
+   */
+  static exceedUpperLimit(criteria, otherRgb, upperRgb) {
+    const otherLuminance = Checker.relativeLuminance(otherRgb);
+    return otherLuminance &gt; criteria.fixedLuminance &amp;&amp;
+      ! criteria.hasSufficientContrast(upperRgb);
+  }
+
+  /**
+   * @private
+   */
+  static calcUpperRatioLimit(rgb) {
+    if (Utils.isSameRgbColor(Utils.RGB.BLACK, rgb)) {
+      return 100;
+    }
+
+    const darkest = rgb
+            .filter(c =&gt; c !== 0)
+            .reduce((a, b) =&gt; Math.min(a, b));
+    return Math.ceil((255 / darkest) * 100);
+  }
+}
+
+module.exports.LightnessFinder = LightnessFinder;
+module.exports.BrightnessFinder = BrightnessFinder;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.1)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
