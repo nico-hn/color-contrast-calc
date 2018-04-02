@@ -5,6 +5,12 @@ const BrightnessFinder = require("../lib/threshold-finder").BrightnessFinder;
 const Checker = require("../lib/contrast-checker").ContrastChecker;
 const Calc = require("../lib/color-contrast-calc").ColorContrastCalc;
 
+const higherLuminanceThan = (mainRgb, otherRgb) => {
+  const mainLum = Checker.relativeLuminance(mainRgb);
+  const otherLum = Checker.relativeLuminance(otherRgb);
+  return mainLum > otherLum;
+};
+
 describe("BrightnessFinder", function() {
   const orange = Calc.colorFrom("orange").rgb;
   const blueviolet = Calc.colorFrom("blueviolet").rgb;
