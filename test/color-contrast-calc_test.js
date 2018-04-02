@@ -659,17 +659,6 @@ describe("ColorContrastCalc", () => {
         expect(caseInsensitiveComp("r", "R")).to.equal(0);
       });
     });
-
-    describe("binarySearchRange", function() {
-      it("expects to return a smaller value for each iteration", function() {
-        let ds = [];
-        for (let d of ColorContrastCalc.binarySearchWidth(100, 1)) {
-          ds.push(d);
-        }
-
-        expect(ds).to.deep.equal([50, 25, 12.5, 6.25, 3.125, 1.5625]);
-      });
-    });
   });
 
   describe("colorsWithSufficientContrast", function() {

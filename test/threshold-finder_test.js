@@ -27,6 +27,18 @@ describe("LightnessFinder", function() {
   const fuchsia = Calc.colorFrom("fuchsia").rgb;
   const azure = Calc.colorFrom("azure").rgb;
 
+
+  describe("binarySearchWidth", function() {
+    it("expects to return a smaller value for each iteration", function() {
+      let ds = [];
+      for (let d of LightnessFinder.binarySearchWidth(100, 1)) {
+        ds.push(d);
+      }
+
+      expect(ds).to.deep.equal([50, 25, 12.5, 6.25, 3.125, 1.5625]);
+    });
+  });
+
   describe("find", function() {
     context("when the required level is A", function() {
       it("expects to return a darker color when azure is passed to fuchsia", function() {
