@@ -90,6 +90,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -108,7 +109,6 @@
                 },
                 "name": "hexCodeToRgb"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -827,6 +827,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -845,7 +846,6 @@
                 },
                 "name": "normalizeHexCode"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -2164,6 +2164,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -2182,7 +2183,6 @@
                 },
                 "name": "rgbToHexCode"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -2844,6 +2844,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -2862,7 +2863,6 @@
                 },
                 "name": "hslToRgb"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -4859,6 +4859,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -4877,7 +4878,6 @@
                 },
                 "name": "hueToRgb"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -6300,6 +6300,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -6318,7 +6319,6 @@
                 },
                 "name": "hslToHexCode"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -6575,6 +6575,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -6593,7 +6594,6 @@
                 },
                 "name": "rgbToHsl"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -7239,6 +7239,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -7257,7 +7258,6 @@
                 },
                 "name": "rgbToLightness"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -7621,6 +7621,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -7639,7 +7640,6 @@
                 },
                 "name": "rgbToHue"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -9302,6 +9302,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -9320,7 +9321,6 @@
                 },
                 "name": "rgbToSaturation"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -10408,6 +10408,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -10426,7 +10427,6 @@
                 },
                 "name": "hexCodeToHsl"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -10683,6 +10683,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -10701,7 +10702,6 @@
                 },
                 "name": "decimalRound"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -11132,6 +11132,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -11150,7 +11151,6 @@
                 },
                 "name": "isValidRgb"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -11689,6 +11689,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -11707,7 +11708,6 @@
                 },
                 "name": "isValidHsl"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -12409,6 +12409,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -12427,7 +12428,6 @@
                 },
                 "name": "isValidHexCode"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -12652,6 +12652,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -12670,7 +12671,6 @@
                 },
                 "name": "isSameHexColor"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -13111,6 +13111,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -13129,7 +13130,6 @@
                 },
                 "name": "isSameRgbColor"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -13642,6 +13642,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -13660,7 +13661,6 @@
                 },
                 "name": "isString"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -13909,6 +13909,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -13927,7 +13928,6 @@
                 },
                 "name": "isUpperCase"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -14234,6 +14234,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -14252,7 +14253,6 @@
                 },
                 "name": "setup"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -14449,6 +14449,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -14467,7 +14468,6 @@
                 },
                 "name": "clampToRange"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -14859,6 +14859,7 @@
                   "column": 3
                 }
               },
+              "static": true,
               "computed": false,
               "key": {
                 "type": "Identifier",
@@ -14877,7 +14878,6 @@
                 },
                 "name": "rgbMap"
               },
-              "static": true,
               "kind": "method",
               "id": null,
               "generator": false,
@@ -16228,6 +16228,7 @@
                             "column": 5
                           }
                         },
+                        "static": false,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -16246,7 +16247,6 @@
                           },
                           "name": "constructor"
                         },
-                        "static": false,
                         "kind": "constructor",
                         "id": null,
                         "generator": false,
@@ -16400,6 +16400,7 @@
                             "column": 5
                           }
                         },
+                        "static": false,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -16418,7 +16419,6 @@
                           },
                           "name": "add"
                         },
-                        "static": false,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -17116,6 +17116,7 @@
                             "column": 5
                           }
                         },
+                        "static": false,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -17134,7 +17135,6 @@
                           },
                           "name": "multiply"
                         },
-                        "static": false,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -17510,6 +17510,7 @@
                             "column": 5
                           }
                         },
+                        "static": false,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -17528,7 +17529,6 @@
                           },
                           "name": "multiplyByScalar"
                         },
-                        "static": false,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -17993,6 +17993,7 @@
                             "column": 5
                           }
                         },
+                        "static": false,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -18011,7 +18012,6 @@
                           },
                           "name": "productByVector"
                         },
-                        "static": false,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -18776,6 +18776,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -18794,7 +18795,6 @@
                           },
                           "name": "calcRgb"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -19409,6 +19409,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -19427,7 +19428,6 @@
                           },
                           "name": "calcRgb"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -19893,6 +19893,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -19911,7 +19912,6 @@
                           },
                           "name": "calcRgb"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -20636,6 +20636,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -20654,7 +20655,6 @@
                           },
                           "name": "calcRgb"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -20945,6 +20945,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -20963,7 +20964,6 @@
                           },
                           "name": "degToRad"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -21155,6 +21155,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -21173,7 +21174,6 @@
                           },
                           "name": "calcRotation"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -23461,6 +23461,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -23479,7 +23480,6 @@
                           },
                           "name": "calcRgb"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -23770,6 +23770,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -23788,7 +23789,6 @@
                           },
                           "name": "calcSaturation"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -24520,6 +24520,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -24538,7 +24539,6 @@
                           },
                           "name": "calcRgb"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -24829,6 +24829,7 @@
                             "column": 5
                           }
                         },
+                        "static": true,
                         "computed": false,
                         "key": {
                           "type": "Identifier",
@@ -24847,7 +24848,6 @@
                           },
                           "name": "calcGrayscale"
                         },
-                        "static": true,
                         "kind": "method",
                         "id": null,
                         "generator": false,
@@ -27021,6 +27021,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -27039,7 +27040,6 @@
                   },
                   "name": "hexCodeToRgb"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -27758,6 +27758,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -27776,7 +27777,6 @@
                   },
                   "name": "normalizeHexCode"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -29095,6 +29095,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -29113,7 +29114,6 @@
                   },
                   "name": "rgbToHexCode"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -29775,6 +29775,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -29793,7 +29794,6 @@
                   },
                   "name": "hslToRgb"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -31790,6 +31790,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -31808,7 +31809,6 @@
                   },
                   "name": "hueToRgb"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -33231,6 +33231,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -33249,7 +33250,6 @@
                   },
                   "name": "hslToHexCode"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -33506,6 +33506,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -33524,7 +33525,6 @@
                   },
                   "name": "rgbToHsl"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -34170,6 +34170,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -34188,7 +34189,6 @@
                   },
                   "name": "rgbToLightness"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -34552,6 +34552,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -34570,7 +34571,6 @@
                   },
                   "name": "rgbToHue"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -36233,6 +36233,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -36251,7 +36252,6 @@
                   },
                   "name": "rgbToSaturation"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -37339,6 +37339,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -37357,7 +37358,6 @@
                   },
                   "name": "hexCodeToHsl"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -37614,6 +37614,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -37632,7 +37633,6 @@
                   },
                   "name": "decimalRound"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -38063,6 +38063,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -38081,7 +38082,6 @@
                   },
                   "name": "isValidRgb"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -38620,6 +38620,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -38638,7 +38639,6 @@
                   },
                   "name": "isValidHsl"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -39340,6 +39340,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -39358,7 +39359,6 @@
                   },
                   "name": "isValidHexCode"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -39583,6 +39583,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -39601,7 +39602,6 @@
                   },
                   "name": "isSameHexColor"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -40042,6 +40042,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -40060,7 +40061,6 @@
                   },
                   "name": "isSameRgbColor"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -40573,6 +40573,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -40591,7 +40592,6 @@
                   },
                   "name": "isString"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -40840,6 +40840,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -40858,7 +40859,6 @@
                   },
                   "name": "isUpperCase"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -41165,6 +41165,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -41183,7 +41184,6 @@
                   },
                   "name": "setup"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -41380,6 +41380,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -41398,7 +41399,6 @@
                   },
                   "name": "clampToRange"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
@@ -41790,6 +41790,7 @@
                     "column": 3
                   }
                 },
+                "static": true,
                 "computed": false,
                 "key": {
                   "type": "Identifier",
@@ -41808,7 +41809,6 @@
                   },
                   "name": "rgbMap"
                 },
-                "static": true,
                 "kind": "method",
                 "id": null,
                 "generator": false,
