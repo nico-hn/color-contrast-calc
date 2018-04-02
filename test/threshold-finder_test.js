@@ -141,6 +141,34 @@ describe("LightnessFinder", function() {
 	expect(newRgb).to.deep.equal(black);
       });
     });
+
+    context("when the required level is specified by a ratio", function() {
+      it("expects to return a darker orange when orange is passed to white", function() {
+	const newRgb = LightnessFinder.find(white, orange, 6.5);
+	const ratio = Checker.contrastRatio(white, newRgb);
+
+	expect(ratio).to.be.above(6.5);
+	expect(ratio).to.be.closeTo(6.5, 0.1);
+	expect(newRgb).to.deep.equal([130, 84, 0]);
+      });
+
+      it("expects to return a darker green when green is passed to white", function() {
+	const newRgb = LightnessFinder.find(white, green, 6.5);
+	const ratio = Checker.contrastRatio(white, newRgb);
+
+	expect(ratio).to.be.above(6.5);
+	expect(ratio).to.be.closeTo(6.5, 0.1);
+	expect(newRgb).to.deep.equal([0, 110, 0]);
+      });
+
+      it("expects to return black when blue is passed to green", function() {
+	const newRgb = LightnessFinder.find(green, blue, 6.5);
+	const ratio = Checker.contrastRatio(green, newRgb);
+
+	expect(ratio).to.be.lessThan(6.5);
+	expect(newRgb).to.deep.equal(black);
+      });
+    });
   });
 });
 
