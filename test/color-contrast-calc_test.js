@@ -684,15 +684,11 @@ describe("ColorContrastCalc", () => {
     it("expects to return an array of colors that satisfy level A of WCAG 2.0 if its argument is 'A' or 1", function() {
       expect(ColorContrastCalc.colorsWithSufficientContrast(white, "A").length).to.equal(57);
       expect(ColorContrastCalc.colorsWithSufficientContrast(black, "A").length).to.equal(130);
-      expect(ColorContrastCalc.colorsWithSufficientContrast(white, 1).length).to.equal(57);
-      expect(ColorContrastCalc.colorsWithSufficientContrast(black, 1).length).to.equal(130);
     });
 
     it("expects to return an array of colors that satisfy level AAA of WCAG 2.0 if its argument is 'AAA' or 3", function() {
       expect(ColorContrastCalc.colorsWithSufficientContrast(white, "AAA").length).to.equal(17);
       expect(ColorContrastCalc.colorsWithSufficientContrast(black, "AAA").length).to.equal(90);
-      expect(ColorContrastCalc.colorsWithSufficientContrast(white, 3).length).to.equal(17);
-      expect(ColorContrastCalc.colorsWithSufficientContrast(black, 3).length).to.equal(90);
     });
   });
 
