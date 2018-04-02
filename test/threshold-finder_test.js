@@ -1,6 +1,7 @@
 "use strict";
 
 const expect = require("chai").expect;
+const LightnessFinder = require("../lib/threshold-finder").LightnessFinder;
 const BrightnessFinder = require("../lib/threshold-finder").BrightnessFinder;
 const Checker = require("../lib/contrast-checker").ContrastChecker;
 const Calc = require("../lib/color-contrast-calc").ColorContrastCalc;
@@ -10,6 +11,27 @@ const higherLuminanceThan = (mainRgb, otherRgb) => {
   const otherLum = Checker.relativeLuminance(otherRgb);
   return mainLum > otherLum;
 };
+
+describe("LightnessFinder", function() {
+  const fuchsia = Calc.colorFrom("fuchsia").rgb;
+  const azure = Calc.colorFrom("azure").rgb;
+
+  describe("find", function() {
+    context("when the required level is A", function() {
+      it("expects to return a darker color when azure is passed to fuchsia", function() {
+	const newRgb = LightnessFinder.find(fuchsia, azure, "A");
+	const ratio = Checker.contrastRatio(fuchsia, newRgb);
+
+	expect(higherLuminanceThan(azure, fuchsia)).to.be.true;
+	expect(higherLuminanceThan(azure, newRgb)).to.be.true;
+	expect(ratio).to.be.above(3.0);
+	expect(ratio).to.be.closeTo(3.0, 0.5);
+	expect(newRgb).to.deep.equal([233, 255, 255]);
+      });
+    });
+
+  });
+});
 
 describe("BrightnessFinder", function() {
   const orange = Calc.colorFrom("orange").rgb;
