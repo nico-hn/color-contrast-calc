@@ -20,7 +20,7 @@
 	    "FunctionExpression": {
 	      "parameters": "first"
 	    },
-	    "MemberExpression": 3
+	    "MemberExpression": "off"
 	  }
         ],
         "linebreak-style": [
