@@ -161,18 +161,6 @@ class ColorContrastCalc {
   }
 }
 
-/** @private */
-ColorContrastCalc.binarySearchWidth = function*(initWidth, min) {
-  let i = 1;
-  let d = initWidth / Math.pow(2, i);
-
-  while (d > min) {
-    yield d;
-    i++;
-    d = initWidth / Math.pow(2, i);
-  }
-};
-
 Color.calc = ColorContrastCalc;
 
 (function() {
@@ -634,7 +622,11 @@ class ColorUtils {
   }
 
   /**
-   * @private
+   * Converts RGB value to HSL value
+   * @param {Array<number, number, number>} rgb - An array of numbers that
+   *     represents RGB value
+   * @returns {Array<number, number, number>} An array of numbers that
+   *     represents HSL value
    */
   static rgbToHsl(rgb) {
     const l = this.rgbToLightness(rgb) * 100;
@@ -694,7 +686,10 @@ class ColorUtils {
   }
 
   /**
-   * @private
+   * Converts a hex color code string to an HSL representation
+   * @param {string} hexCode - Hex color code such as "#ffff00"
+   * @returns {Array<number, number, number>} HSL value represented as
+   *     an array of numbers
    */
   static hexCodeToHsl(hexCode) {
     return this.rgbToHsl(this.hexCodeToRgb(hexCode));
@@ -834,7 +829,7 @@ class ColorUtils {
 ColorUtils.decimalToHexCode = ColorUtils.rgbToHexCode;
 
 /**
- * @deprecated use .hexCodeTorgb instead.
+ * @deprecated use .hexCodeToRgb instead.
  */
 ColorUtils.hexCodeToDecimal = ColorUtils.hexCodeToRgb;
 
@@ -995,6 +990,16 @@ ColorUtils.hexCodeToDecimal = ColorUtils.hexCodeToRgb;
                                         [-0.2126, -0.7152, 0.9278]]);
 
   ColorUtils.GrayscaleCalc = GrayscaleCalc;
+
+  /**
+   * The RGB value of some colors.
+   */
+  ColorUtils.RGB = {
+    BLACK: [0, 0, 0],
+    WHITE: [255, 255, 255]
+  };
+
+  Object.freeze(ColorUtils.RGB);
 })();
 
 ColorUtils.setup();
@@ -1008,6 +1013,10 @@ module.exports.ColorUtils = ColorUtils;
 const Utils = require("./color-utils").ColorUtils;
 /** @private */
 const Checker = require("./contrast-checker").ContrastChecker;
+/** @private */
+const LightnessFinder = require("./threshold-finder").LightnessFinder;
+/** @private */
+const BrightnessFinder = require("./threshold-finder").BrightnessFinder;
 
 /**
  * Class of which each instance represents a specific color.
@@ -1112,7 +1121,7 @@ class Color {
     }
 
     return Checker.luminanceToContrastRatio(this.relativeLuminance,
-                                         color.relativeLuminance);
+                                            color.relativeLuminance);
   }
 
   /**
@@ -1182,24 +1191,7 @@ class Color {
    *     a specified level
    */
   findBrightnessThreshold(otherColor, level = "AA") {
-    const targetRatio = Checker.levelToRatio(level);
-    const criteria = this.thresholdCriteria(targetRatio, otherColor);
-    const w = otherColor.calcUpperRatioLimit() / 2;
-    const upperColor = otherColor.newBrightnessColor(w * 2);
-
-    if (otherColor.isBrighterThan(this) && ! upperColor.hasSufficientContrast(this, level)) {
-      return upperColor;
-    }
-
-    const [r, lastSufficentRatio] = this.calcBrightnessRatio(otherColor, targetRatio, criteria, w);
-
-    const nearestColor = otherColor.newBrightnessColor(criteria.round(r));
-
-    if (lastSufficentRatio && nearestColor.contrastRatioAgainst(this) < targetRatio) {
-      return otherColor.newBrightnessColor(criteria.round(lastSufficentRatio));
-    }
-
-    return nearestColor;
+    return new Color(BrightnessFinder.find(this.rgb, otherColor.rgb, level));
   }
 
   /**
@@ -1215,56 +1207,8 @@ class Color {
    *     a specified level
    */
   findLightnessThreshold(otherColor, level = "AA") {
-    const targetRatio = Checker.levelToRatio(level);
-    const criteria = this.thresholdCriteria(targetRatio, otherColor);
-    const [h, s, initL] = Utils.rgbToHsl(otherColor.rgb);
-    const [max, min] = this.shouldScanDarkerSide(otherColor) ? [initL, 0] : [100, initL];
-    const boundaryColor = this.lightnessBoundaryColor(max, min, level);
-
-    if (boundaryColor) { return boundaryColor; }
-
-    let l = (max + min) / 2;
-    let lastSufficientLightness = null;
-
-    for (let d of Color.calc.binarySearchWidth(max - min, 0.01)) {
-      let newColor = Utils.hslToRgb([h, s, l]);
-      let contrastRatio = this.contrastRatioAgainst(newColor);
-
-      if (contrastRatio >= targetRatio) { lastSufficientLightness = l; }
-      if (contrastRatio === targetRatio) { break; }
-      l += criteria.incrementCondition(contrastRatio) ? d : -d;
-    }
-
-    const nearlestColor = Color.newHslColor([h, s, l]);
-
-    if (lastSufficientLightness && nearlestColor.contrastRatioAgainst(this) < targetRatio) {
-      return Color.newHslColor([h, s, lastSufficientLightness]);
-    }
-
-    return nearlestColor;
-  }
-
-  /**
-   * @private
-   */
-  shouldScanDarkerSide(otherColor) {
-    return this.isBrighterThan(otherColor) ||
-      this.hasSameLuminance(otherColor) && this.isLightColor();
-  }
-
-  /**
-   * @private
-   */
-  lightnessBoundaryColor(max, min, level) {
-    if (min === 0 && ! this.hasSufficientContrast(this.BLACK, level)) {
-      return this.BLACK;
-    }
-
-    if (max === 100 && ! this.hasSufficientContrast(this.WHITE, level)) {
-      return this.WHITE;
-    }
-
-    return null;
+    const newRgb = LightnessFinder.find(this.rgb, otherColor.rgb, level);
+    return new Color(newRgb);
   }
 
   /**
@@ -1335,67 +1279,6 @@ class Color {
   }
 
   /**
-   * @private
-   */
-  calcBrightnessRatio(otherColor, targetRatio, criteria, w) {
-    const otherRgb = otherColor.rgb;
-    let r = w;
-    let lastSufficentRatio = null;
-
-    for (let d of Color.calc.binarySearchWidth(w, 0.01)) {
-      const newRgb = Utils.BrightnessCalc.calcRgb(otherRgb, r);
-      const contrastRatio = this.calcContrastRatio(newRgb);
-
-      if (contrastRatio >= targetRatio) { lastSufficentRatio = r; }
-      if (contrastRatio === targetRatio) { break; }
-      r += criteria.incrementCondition(contrastRatio) ? d : -d;
-    }
-
-    return [r, lastSufficentRatio];
-  }
-
-  /**
-   * @private
-   */
-  calcContrastRatio(otherRgb) {
-    const otherLuminance = Checker.relativeLuminance(otherRgb);
-    return Checker.luminanceToContrastRatio(this.relativeLuminance,
-                                               otherLuminance);
-  }
-
-
-  /**
-   * @private
-   */
-  calcUpperRatioLimit() {
-    if (this.isSameColor(this.BLACK)) {
-      return 100;
-    }
-
-    const darkest = this.rgb
-            .filter(c => c !== 0)
-            .reduce((a, b) => Math.min(a, b));
-    return Math.ceil((255 / darkest) * 100);
-  }
-
-  /**
-   * @private
-   */
-  thresholdCriteria(targetRatio, otherColor) {
-    const criteria = {};
-
-    if (this.shouldScanDarkerSide(otherColor)) {
-      criteria.round = (r) => Math.floor(r * 10 ) / 10;
-      criteria.incrementCondition = (contrastRatio) => contrastRatio > targetRatio;
-    } else {
-      criteria.round = (r) => Math.ceil(r * 10) / 10;
-      criteria.incrementCondition = (contrastRatio) => targetRatio > contrastRatio;
-    }
-
-    return criteria;
-  }
-
-  /**
    * @param {Color} otherColor
    * @returns {boolean} true if the relative luminance of the base color is
    *     greater than that of otherColor
@@ -1418,7 +1301,7 @@ class Color {
    *     less than the ratio against black
    */
   isLightColor() {
-    return this.WHITE.contrastRatioAgainst(this) <= this.BLACK.contrastRatioAgainst(this);
+    return Checker.isLightColor(this.rgb);
   }
 
   /**
@@ -1486,7 +1369,7 @@ class List {
    * @returns {Color[]}
    */
   static hslColors(s = 100, l = 50, h_interval = 1) {
-    let colors = [];
+    const colors = [];
     for (let h = 0; h < 361; h += h_interval) {
       colors.push(Color.newHslColor([h, s, l]));
     }
@@ -1506,9 +1389,9 @@ class List {
     for (let r = 0; r < 16; r += 3) {
       for (let g = 0; g < 16; g += 3) {
         for (let b = 0; b < 16; b += 3) {
-          let hexCode = Utils.rgbToHexCode([r, g, b].map(c => c * 17));
-          let predefined = this.HEX_TO_COLOR.get(hexCode);
-          let color = predefined || new Color(hexCode);
+          const hexCode = Utils.rgbToHexCode([r, g, b].map(c => c * 17));
+          const predefined = this.HEX_TO_COLOR.get(hexCode);
+          const color = predefined || new Color(hexCode);
           this.WEB_SAFE_COLORS.push(color);
         }
       }
@@ -1522,7 +1405,7 @@ Color.assignColorConstants();
 
 module.exports.Color = Color;
 
-},{"./color-keywords.json":3,"./color-utils":4,"./contrast-checker":6}],6:[function(require,module,exports){
+},{"./color-keywords.json":3,"./color-utils":4,"./contrast-checker":6,"./threshold-finder":7}],6:[function(require,module,exports){
 "use strict";
 
 /** @private */
@@ -1585,6 +1468,23 @@ class ContrastChecker {
   }
 
   /**
+   * Check if the contrast ratio of a given color against black is higher
+   * than against white.
+   * @param {string|Array<number, number, number>} color - RGB value
+   *     represented as a string (hex code) or an array of numbers
+   * @returns {boolean} true if the contrast ratio against white is qual to or
+   *     less than the ratio against black
+   */
+  static isLightColor(color) {
+    const whiteLuminance = this.LUMINANCE.WHITE;
+    const blackLuminance = this.LUMINANCE.BLACK;
+    const l = this.relativeLuminance(color);
+    const ratioWithWhite = this.luminanceToContrastRatio(whiteLuminance, l);
+    const ratioWithBlack = this.luminanceToContrastRatio(blackLuminance, l);
+    return ratioWithWhite <= ratioWithBlack;
+  }
+
+  /**
    * @private
    */
   static tristimulusValue(primaryColor, base = 255) {
@@ -1609,17 +1509,292 @@ class ContrastChecker {
    * @private
    */
   static levelToRatio(level) {
-    if (level === "A" || level === 1) {
+    if (typeof level === "number" && level >= 1.0 && level <= 21.0) {
+      return level;
+    }
+
+    if (level === "A") {
       return 3.0;
-    } else if (level === "AA" || level === 2) {
+    } else if (level === "AA") {
       return 4.5;
-    } else if (level === "AAA" || level === 3) {
+    } else if (level === "AAA") {
       return 7.0;
     }
   }
 }
 
+/**
+ * The relative luminance of some colors.
+ */
+ContrastChecker.LUMINANCE = {
+  BLACK: 0.0,
+  WHITE: 1.0
+};
+
+Object.freeze(ContrastChecker.LUMINANCE);
+
 module.exports.ContrastChecker = ContrastChecker;
 
-},{"./color-utils":4}]},{},[1])(1)
+},{"./color-utils":4}],7:[function(require,module,exports){
+"use strict";
+
+/** @private */
+const Utils = require("./color-utils").ColorUtils;
+/** @private */
+const Checker = require("./contrast-checker").ContrastChecker;
+
+/** @private */
+class SearchCriteria {
+  static shouldScanDarkerSide(fixedRgb, otherRgb) {
+    const fixedLuminance = Checker.relativeLuminance(fixedRgb);
+    const otherLuminance = Checker.relativeLuminance(otherRgb);
+    return fixedLuminance > otherLuminance ||
+      fixedLuminance === otherLuminance && Checker.isLightColor(fixedRgb);
+  }
+
+  static define(fixedRgb, otherRgb, level) {
+    const targetRatio = Checker.levelToRatio(level);
+
+    if (this.shouldScanDarkerSide(fixedRgb, otherRgb)) {
+      return new ToDarkerSide(targetRatio, fixedRgb);
+    } else {
+      return new ToBrighterSide(targetRatio, fixedRgb);
+    }
+  }
+
+  constructor(targetRatio, fixedRgb) {
+    this.targetRatio = targetRatio;
+    this.fixedLuminance = Checker.relativeLuminance(fixedRgb);
+  }
+
+  hasSufficientContrast(rgb) {
+    return this.contrastRatio(rgb) >= this.targetRatio;
+  }
+
+  contrastRatio(rgb) {
+    const luminance = Checker.relativeLuminance(rgb);
+    return Checker.luminanceToContrastRatio(this.fixedLuminance,
+                                            luminance);
+  }
+}
+
+/** @private */
+class ToDarkerSide extends SearchCriteria {
+  round(r) {
+    return Math.floor(r * 10 ) / 10;
+  }
+
+  incrementCondition(contrastRatio) {
+    return contrastRatio > this.targetRatio;
+  }
+}
+
+/** @private */
+class ToBrighterSide extends SearchCriteria {
+  round(r) {
+    return Math.ceil(r * 10) / 10;
+  }
+
+  incrementCondition(contrastRatio) {
+    return this.targetRatio > contrastRatio;
+  }
+}
+
+/** @private */
+class ThresholdFinder {
+  /** @private */
+  static * binarySearchWidth(initWidth, min) {
+    let i = 1;
+    let d = initWidth / Math.pow(2, i);
+
+    while (d > min) {
+      yield d;
+      i++;
+      d = initWidth / Math.pow(2, i);
+    }
+  }
+
+  /**
+   * @private
+   */
+  static findRatio(otherColor, criteria, initRatio, initWidth) {
+    let r = initRatio;
+    let lastSufficientRatio = null;
+
+    for (let d of this.binarySearchWidth(initWidth, 0.01)) {
+      const newRgb = this.rgbWithRatio(otherColor, r);
+      const newRatio = criteria.contrastRatio(newRgb);
+
+      if (criteria.hasSufficientContrast(newRgb)) { lastSufficientRatio = r; }
+      if (newRatio === criteria.targetRatio) { break; }
+      r += criteria.incrementCondition(newRatio) ? d : -d;
+    }
+
+    return [r, lastSufficientRatio];
+  }
+
+  /**
+   * @private
+   */
+  static rgbWithBetterRatio(color, criteria, r, lastSufficientRatio) {
+    const nearestRgb = this.rgbWithRatio(color, r);
+
+    if (lastSufficientRatio && ! criteria.hasSufficientContrast(nearestRgb)) {
+      return this.rgbWithRatio(color, lastSufficientRatio);
+    }
+
+    return nearestRgb;
+  }
+}
+
+/** @private */
+class LightnessFinder extends ThresholdFinder {
+  /**
+   * Tries to find a color whose contrast against the base color is close to
+   * a given level.
+   *
+   * The returned color is gained by modifying the lightness of otherRgb.
+   * Even when a color that satisfies the level is not found, it returns
+   * a new color anyway.
+   * @param {Array<number, number, number>} fixedRgb - RGB value which remains
+   *     unchanged
+   * @param {Array<number, number, number>} otherRgb - RGB value before the
+   *     modification of lightness
+   * @param {string} [level="AA"] - A, AA or AAA
+   * @returns {Array<number, number, number>} RGB value of a new color whose
+   *     contrast ratio against fixedRgb is close to a specified level
+   */
+  static find(fixedRgb, otherRgb, level = "AA") {
+    const criteria = SearchCriteria.define(fixedRgb, otherRgb, level);
+    const otherHsl = Utils.rgbToHsl(otherRgb);
+    const [max, min] = this.determineMinmax(fixedRgb, otherRgb, otherHsl[2]);
+
+    const boundaryRgb = this.boundaryColor(fixedRgb, max, min, criteria);
+
+    if (boundaryRgb) { return boundaryRgb; }
+
+    const [r, lastSufficientRatio] = this.findRatio(otherHsl, criteria,
+                                                    (max + min) / 2, max - min);
+
+    return this.rgbWithBetterRatio(otherHsl, criteria, r, lastSufficientRatio);
+  }
+
+  /**
+   * @private
+   */
+  static rgbWithRatio(hsl, ratio) {
+    if (ratio !== undefined && hsl[2] !== ratio) {
+      hsl = hsl.slice(0);
+      hsl[2] = ratio;
+    }
+
+    return Utils.hslToRgb(hsl);
+  }
+
+  /**
+   * @private
+   */
+  static determineMinmax(fixedRgb, otherRgb, initL) {
+    if (SearchCriteria.shouldScanDarkerSide(fixedRgb, otherRgb)) {
+      return [initL, 0];
+    } else {
+      return [100, initL];
+    }
+  }
+
+  /**
+   * @private
+   */
+  static boundaryColor(rgb, max, min, criteria) {
+    const black = Checker.LUMINANCE.BLACK;
+    const white = Checker.LUMINANCE.WHITE;
+
+    if (min === 0 && ! this.hasSufficientContrast(black, rgb, criteria)) {
+      return Utils.RGB.BLACK;
+    }
+
+    if (max === 100 && ! this.hasSufficientContrast(white, rgb, criteria)) {
+      return Utils.RGB.WHITE;
+    }
+
+    return null;
+  }
+
+  /**
+   * @private
+   */
+  static hasSufficientContrast(fixedLuminance, rgb, criteria) {
+    const luminance = Checker.relativeLuminance(rgb);
+    const ratio = Checker.luminanceToContrastRatio(fixedLuminance, luminance);
+    return ratio >= criteria.targetRatio;
+  }
+}
+
+/** @private */
+class BrightnessFinder extends ThresholdFinder {
+  /**
+   * Tries to find a color whose contrast against the base color is close
+   *  to a given level.
+   *
+   * The returned color is gained by modifying the brightness of otherRgb.
+   * Even when a color that satisfies the level is not found, it returns
+   * a new color anyway.
+   * @param {Array<number, number, number>} fixedRgb - RGB value which remains
+   *     unchanged
+   * @param {Array<number, number, number>} otherRgb - RGB value before the
+   *     modification of brightness
+   * @param {string} [level="AA"] - A, AA or AAA
+   * @returns {Array<number, number, number>} RGB value of a new color whose
+   *     contrast ratio against fixedRgb is close to a specified level
+   */
+  static find(fixedRgb, otherRgb, level = "AA") {
+    const criteria = SearchCriteria.define(fixedRgb, otherRgb, level);
+    const w = this.calcUpperRatioLimit(otherRgb) / 2;
+
+    const upperRgb = this.rgbWithRatio(otherRgb, w * 2);
+
+    if (this.exceedUpperLimit(criteria, otherRgb, upperRgb)) {
+      return upperRgb;
+    }
+
+    const ratios = this.findRatio(otherRgb, criteria, w, w).map(criteria.round);
+
+    return this.rgbWithBetterRatio(otherRgb, criteria, ...ratios);
+  }
+
+  /**
+   * @private
+   */
+  static rgbWithRatio(rgb, ratio) {
+    return Utils.BrightnessCalc.calcRgb(rgb, ratio);
+  }
+
+  /**
+   * @private
+   */
+  static exceedUpperLimit(criteria, otherRgb, upperRgb) {
+    const otherLuminance = Checker.relativeLuminance(otherRgb);
+    return otherLuminance > criteria.fixedLuminance &&
+      ! criteria.hasSufficientContrast(upperRgb);
+  }
+
+  /**
+   * @private
+   */
+  static calcUpperRatioLimit(rgb) {
+    if (Utils.isSameRgbColor(Utils.RGB.BLACK, rgb)) {
+      return 100;
+    }
+
+    const darkest = rgb
+            .filter(c => c !== 0)
+            .reduce((a, b) => Math.min(a, b));
+    return Math.ceil((255 / darkest) * 100);
+  }
+}
+
+module.exports.LightnessFinder = LightnessFinder;
+module.exports.BrightnessFinder = BrightnessFinder;
+
+},{"./color-utils":4,"./contrast-checker":6}]},{},[1])(1)
 });
