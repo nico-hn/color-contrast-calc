@@ -16,7 +16,6 @@ describe("LightnessFinder", function() {
   const orange = Calc.colorFrom("orange").rgb;
   const blueviolet = Calc.colorFrom("blueviolet").rgb;
   const blue = Calc.colorFrom("blue").rgb;
-  const brown = Calc.colorFrom("brown").rgb;
   const black = Calc.colorFrom("black").rgb;
   const white = Calc.colorFrom("white").rgb;
   const darkgreen = Calc.colorFrom("darkgreen").rgb;
