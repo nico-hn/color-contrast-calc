@@ -122,7 +122,7 @@ let aContrastRatio = yellow.contrastRatioAgainst(aOrange);
 let aaOrange = yellow.findBrightnessThreshold(orange, "AA");
 let aaContrastRatio = yellow.contrastRatioAgainst(aaOrange);
 
-console.log("# Brightness adjusted colors")
+console.log("# Brightness adjusted colors");
 console.log(`aOrange: ${aOrange.hexCode}`);
 console.log(`contrast ratio between yellow and aOrange: ${aContrastRatio}`);
 console.log(`aaOrange: ${aaOrange.hexCode}`);
@@ -134,7 +134,7 @@ aContrastRatio = yellow.contrastRatioAgainst(aOrange);
 aaOrange = yellow.findLightnessThreshold(orange, "AA");
 aaContrastRatio = yellow.contrastRatioAgainst(aaOrange);
 
-console.log("# Lightness adjusted colors")
+console.log("# Lightness adjusted colors");
 console.log(`aOrange: ${aOrange.hexCode}`);
 console.log(`contrast ratio between yellow and aOrange: ${aContrastRatio}`);
 console.log(`aaOrange: ${aaOrange.hexCode}`);
