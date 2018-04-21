@@ -159,7 +159,7 @@ contrast ratio between yellow and aaOrange: 4.512053816540577
 ### Example 3: Grayscale of given colors
 
 For getting grayscale, `ColorContrastCalc.Color` has an instance method
-`newGrayscaleColor()`.
+`withGrayscale()`.
 For example, save the following code as `grayscale.js`:
 
 ```node
@@ -167,8 +167,8 @@ const ColorContrastCalc = require("color-contrast-calc").ColorContrastCalc;
 
 const yellow = ColorContrastCalc.colorFrom("yellow");
 const orange = ColorContrastCalc.colorFrom("orange");
-const yellowGrayscale = yellow.newGrayscaleColor();
-const orangeGrayscale = orange.newGrayscaleColor();
+const yellowGrayscale = yellow.withGrayscale();
+const orangeGrayscale = orange.withGrayscale();
 
 console.log(`The grayscale of ${yellow.hexCode} is ${yellowGrayscale.hexCode}`);
 console.log(`The grayscale of ${orange.hexCode} is ${orangeGrayscale.hexCode}`);
@@ -182,14 +182,14 @@ The grayscale of #ffff00 is #ededed
 The grayscale of #ffa500 is #acacac
 ```
 
-And other than `newGrayscaleColor`, following instance methods
+And other than `withGrayscale`, following instance methods
 are available for `Color`:
 
-* `newBrightnessColor`
-* `newContrastColor`
-* `newHueRotateColor`
-* `newInvertColor`
-* `newSaturateColor`
+* `withBrightness`
+* `withContrast`
+* `withHueRotate`
+* `withInvert`
+* `withSaturate`
 
 ### Example 4: Sort colors
 
