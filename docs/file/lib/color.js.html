@@ -8,7 +8,7 @@
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
   <script src="script/manual.js"></script>
-<meta name="description" content="Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="color-contrast-calc"><meta property="twitter:description" content="Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind"></head>
+<meta name="description" content="Utility that helps you choose colors with sufficient contrast, WCAG 2.0 in mind"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="color-contrast-calc"><meta property="twitter:description" content="Utility that helps you choose colors with sufficient contrast, WCAG 2.0 in mind"></head>
 <body class="layout-container" data-ice="rootContainer">
 
 <header>
@@ -160,7 +160,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newContrastColor(ratio, name = null) {
+  withContrast(ratio, name = null) {
     return this.generateNewColor(Utils.ContrastCalc, ratio, name);
   }
 
@@ -169,7 +169,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newBrightnessColor(ratio, name = null) {
+  withBrightness(ratio, name = null) {
     return this.generateNewColor(Utils.BrightnessCalc, ratio, name);
   }
 
@@ -178,7 +178,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newInvertColor(ratio = 100, name = null) {
+  withInvert(ratio = 100, name = null) {
     return this.generateNewColor(Utils.InvertCalc, ratio, name);
   }
 
@@ -187,7 +187,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newHueRotateColor(degree, name = null) {
+  withHueRotate(degree, name = null) {
     return this.generateNewColor(Utils.HueRotateCalc, degree, name);
   }
 
@@ -196,7 +196,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newSaturateColor(ratio, name = null) {
+  withSaturate(ratio, name = null) {
     return this.generateNewColor(Utils.SaturateCalc, ratio, name);
   }
 
@@ -205,7 +205,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newGrayscaleColor(ratio = 100, name = null) {
+  withGrayscale(ratio = 100, name = null) {
     return this.generateNewColor(Utils.GrayscaleCalc, ratio, name);
   }
 
@@ -353,6 +353,36 @@ class Color {
     return new Color(newRgb, name);
   }
 }
+
+/**
+ * @deprecated use withContrast() instead.
+ */
+Color.prototype.newContrastColor = Color.prototype.withContrast;
+
+/**
+ * @deprecated use withBrightness() instead.
+ */
+Color.prototype.newBrightnessColor = Color.prototype.withBrightness;
+
+/**
+ * @deprecated use withInvert() instead.
+ */
+Color.prototype.newInvertColor = Color.prototype.withInvert;
+
+/**
+ * @deprecated use withHueRotate() instead.
+ */
+Color.prototype.newHueRotateColor = Color.prototype.withHueRotate;
+
+/**
+ * @deprecated use withSaturate() instead.
+ */
+Color.prototype.newSaturateColor = Color.prototype.withSaturate;
+
+/**
+ * @deprecated use withGrayScale() instead.
+ */
+Color.prototype.newGrayscaleColor = Color.prototype.withGrayscale;
 
 class List {
   /**

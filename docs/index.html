@@ -8,7 +8,7 @@
   <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
   <script src="script/prettify/prettify.js"></script>
   <script src="script/manual.js"></script>
-<meta name="description" content="Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="color-contrast-calc"><meta property="twitter:description" content="Utility that supports you in choosing colors with sufficient contrast, WCAG 2.0 in mind"></head>
+<meta name="description" content="Utility that helps you choose colors with sufficient contrast, WCAG 2.0 in mind"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="color-contrast-calc"><meta property="twitter:description" content="Utility that helps you choose colors with sufficient contrast, WCAG 2.0 in mind"></head>
 <body class="layout-container" data-ice="rootContainer">
 
 <header>
@@ -118,7 +118,7 @@ let aContrastRatio = yellow.contrastRatioAgainst(aOrange);
 let aaOrange = yellow.findBrightnessThreshold(orange, &quot;AA&quot;);
 let aaContrastRatio = yellow.contrastRatioAgainst(aaOrange);
 
-console.log(&quot;# Brightness adjusted colors&quot;)
+console.log(&quot;# Brightness adjusted colors&quot;);
 console.log(`aOrange: ${aOrange.hexCode}`);
 console.log(`contrast ratio between yellow and aOrange: ${aContrastRatio}`);
 console.log(`aaOrange: ${aaOrange.hexCode}`);
@@ -130,7 +130,7 @@ aContrastRatio = yellow.contrastRatioAgainst(aOrange);
 aaOrange = yellow.findLightnessThreshold(orange, &quot;AA&quot;);
 aaContrastRatio = yellow.contrastRatioAgainst(aaOrange);
 
-console.log(&quot;# Lightness adjusted colors&quot;)
+console.log(&quot;# Lightness adjusted colors&quot;);
 console.log(`aOrange: ${aOrange.hexCode}`);
 console.log(`contrast ratio between yellow and aOrange: ${aContrastRatio}`);
 console.log(`aaOrange: ${aaOrange.hexCode}`);
@@ -148,15 +148,15 @@ aOrange: #c78000
 contrast ratio between yellow and aOrange: 3.0011856639235854
 aaOrange: #9d6600
 contrast ratio between yellow and aaOrange: 4.512053816540577</code>
-</code></pre><h3 id="example-3--grayscale-of-given-colors">Example 3: Grayscale of given colors</h3><p>For getting grayscale, <code>ColorContrastCalc::Color</code> has an instance method
-<code>newGrayscaleColor()</code>.
+</code></pre><h3 id="example-3--grayscale-of-given-colors">Example 3: Grayscale of given colors</h3><p>For getting grayscale, <code>ColorContrastCalc.Color</code> has an instance method
+<code>withGrayscale()</code>.
 For example, save the following code as <code>grayscale.js</code>:</p>
 <pre><code class="lang-node"><code class="source-code prettyprint">const ColorContrastCalc = require(&quot;color-contrast-calc&quot;).ColorContrastCalc;
 
 const yellow = ColorContrastCalc.colorFrom(&quot;yellow&quot;);
 const orange = ColorContrastCalc.colorFrom(&quot;orange&quot;);
-const yellowGrayscale = yellow.newGrayscaleColor();
-const orangeGrayscale = orange.newGrayscaleColor();
+const yellowGrayscale = yellow.withGrayscale();
+const orangeGrayscale = orange.withGrayscale();
 
 console.log(`The grayscale of ${yellow.hexCode} is ${yellowGrayscale.hexCode}`);
 console.log(`The grayscale of ${orange.hexCode} is ${orangeGrayscale.hexCode}`);</code>
@@ -165,9 +165,18 @@ console.log(`The grayscale of ${orange.hexCode} is ${orangeGrayscale.hexCode}`);
 <pre><code><code class="source-code prettyprint">$ node grayscale.js
 The grayscale of #ffff00 is #ededed
 The grayscale of #ffa500 is #acacac</code>
-</code></pre><p>And other than <code>newGrayscaleColor</code>, following instance methods
+</code></pre><p>And other than <code>withGrayscale</code>, following instance methods
 are available for <code>Color</code>:</p>
 <ul>
+<li><code>withBrightness</code></li>
+<li><code>withContrast</code></li>
+<li><code>withHueRotate</code></li>
+<li><code>withInvert</code></li>
+<li><code>withSaturate</code></li>
+</ul>
+<h4 id="deprecated-instance-methods">Deprecated instance methods</h4><p>Please note the following methods are deprecated:</p>
+<ul>
+<li><code>newGrayscaleColor</code></li>
 <li><code>newBrightnessColor</code></li>
 <li><code>newContrastColor</code></li>
 <li><code>newHueRotateColor</code></li>

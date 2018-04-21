@@ -546,42 +546,6 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
-    "lib/color.js~color#newbrightnesscolor",
-    "class/lib/color.js~Color.html#instance-method-newBrightnessColor",
-    "lib/color.js~Color#newBrightnessColor",
-    "method"
-  ],
-  [
-    "lib/color.js~color#newcontrastcolor",
-    "class/lib/color.js~Color.html#instance-method-newContrastColor",
-    "lib/color.js~Color#newContrastColor",
-    "method"
-  ],
-  [
-    "lib/color.js~color#newgrayscalecolor",
-    "class/lib/color.js~Color.html#instance-method-newGrayscaleColor",
-    "lib/color.js~Color#newGrayscaleColor",
-    "method"
-  ],
-  [
-    "lib/color.js~color#newhuerotatecolor",
-    "class/lib/color.js~Color.html#instance-method-newHueRotateColor",
-    "lib/color.js~Color#newHueRotateColor",
-    "method"
-  ],
-  [
-    "lib/color.js~color#newinvertcolor",
-    "class/lib/color.js~Color.html#instance-method-newInvertColor",
-    "lib/color.js~Color#newInvertColor",
-    "method"
-  ],
-  [
-    "lib/color.js~color#newsaturatecolor",
-    "class/lib/color.js~Color.html#instance-method-newSaturateColor",
-    "lib/color.js~Color#newSaturateColor",
-    "method"
-  ],
-  [
     "lib/color.js~color#relativeluminance",
     "class/lib/color.js~Color.html#instance-member-relativeLuminance",
     "lib/color.js~Color#relativeLuminance",
@@ -597,6 +561,42 @@ window.esdocSearchIndex = [
     "lib/color.js~color#tostring",
     "class/lib/color.js~Color.html#instance-method-toString",
     "lib/color.js~Color#toString",
+    "method"
+  ],
+  [
+    "lib/color.js~color#withbrightness",
+    "class/lib/color.js~Color.html#instance-method-withBrightness",
+    "lib/color.js~Color#withBrightness",
+    "method"
+  ],
+  [
+    "lib/color.js~color#withcontrast",
+    "class/lib/color.js~Color.html#instance-method-withContrast",
+    "lib/color.js~Color#withContrast",
+    "method"
+  ],
+  [
+    "lib/color.js~color#withgrayscale",
+    "class/lib/color.js~Color.html#instance-method-withGrayscale",
+    "lib/color.js~Color#withGrayscale",
+    "method"
+  ],
+  [
+    "lib/color.js~color#withhuerotate",
+    "class/lib/color.js~Color.html#instance-method-withHueRotate",
+    "lib/color.js~Color#withHueRotate",
+    "method"
+  ],
+  [
+    "lib/color.js~color#withinvert",
+    "class/lib/color.js~Color.html#instance-method-withInvert",
+    "lib/color.js~Color#withInvert",
+    "method"
+  ],
+  [
+    "lib/color.js~color#withsaturate",
+    "class/lib/color.js~Color.html#instance-method-withSaturate",
+    "lib/color.js~Color#withSaturate",
     "method"
   ],
   [
