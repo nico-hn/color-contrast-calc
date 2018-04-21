@@ -1129,7 +1129,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newContrastColor(ratio, name = null) {
+  withContrast(ratio, name = null) {
     return this.generateNewColor(Utils.ContrastCalc, ratio, name);
   }
 
@@ -1138,7 +1138,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newBrightnessColor(ratio, name = null) {
+  withBrightness(ratio, name = null) {
     return this.generateNewColor(Utils.BrightnessCalc, ratio, name);
   }
 
@@ -1147,7 +1147,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newInvertColor(ratio = 100, name = null) {
+  withInvert(ratio = 100, name = null) {
     return this.generateNewColor(Utils.InvertCalc, ratio, name);
   }
 
@@ -1156,7 +1156,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newHueRotateColor(degree, name = null) {
+  withHueRotate(degree, name = null) {
     return this.generateNewColor(Utils.HueRotateCalc, degree, name);
   }
 
@@ -1165,7 +1165,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newSaturateColor(ratio, name = null) {
+  withSaturate(ratio, name = null) {
     return this.generateNewColor(Utils.SaturateCalc, ratio, name);
   }
 
@@ -1174,7 +1174,7 @@ class Color {
    * @param {string} [name=null] - Name of color
    * @returns {Color}
    */
-  newGrayscaleColor(ratio = 100, name = null) {
+  withGrayscale(ratio = 100, name = null) {
     return this.generateNewColor(Utils.GrayscaleCalc, ratio, name);
   }
 
@@ -1322,6 +1322,36 @@ class Color {
     return new Color(newRgb, name);
   }
 }
+
+/**
+ * @deprecated use withContrast() instead.
+ */
+Color.prototype.newContrastColor = Color.prototype.withContrast;
+
+/**
+ * @deprecated use withBrightness() instead.
+ */
+Color.prototype.newBrightnessColor = Color.prototype.withBrightness;
+
+/**
+ * @deprecated use withInvert() instead.
+ */
+Color.prototype.newInvertColor = Color.prototype.withInvert;
+
+/**
+ * @deprecated use withHueRotate() instead.
+ */
+Color.prototype.newHueRotateColor = Color.prototype.withHueRotate;
+
+/**
+ * @deprecated use withSaturate() instead.
+ */
+Color.prototype.newSaturateColor = Color.prototype.withSaturate;
+
+/**
+ * @deprecated use withGrayScale() instead.
+ */
+Color.prototype.newGrayscaleColor = Color.prototype.withGrayscale;
 
 class List {
   /**
@@ -1553,22 +1583,22 @@ class SearchCriteria {
   }
 
   static define(fixedRgb, otherRgb, level) {
-    const targetRatio = Checker.levelToRatio(level);
+    const targetContrast = Checker.levelToRatio(level);
 
     if (this.shouldScanDarkerSide(fixedRgb, otherRgb)) {
-      return new ToDarkerSide(targetRatio, fixedRgb);
+      return new ToDarkerSide(targetContrast, fixedRgb);
     } else {
-      return new ToBrighterSide(targetRatio, fixedRgb);
+      return new ToBrighterSide(targetContrast, fixedRgb);
     }
   }
 
-  constructor(targetRatio, fixedRgb) {
-    this.targetRatio = targetRatio;
+  constructor(targetContrast, fixedRgb) {
+    this.targetContrast = targetContrast;
     this.fixedLuminance = Checker.relativeLuminance(fixedRgb);
   }
 
   hasSufficientContrast(rgb) {
-    return this.contrastRatio(rgb) >= this.targetRatio;
+    return this.contrastRatio(rgb) >= this.targetContrast;
   }
 
   contrastRatio(rgb) {
@@ -1580,23 +1610,23 @@ class SearchCriteria {
 
 /** @private */
 class ToDarkerSide extends SearchCriteria {
-  round(r) {
-    return Math.floor(r * 10 ) / 10;
+  round(ratio) {
+    return Math.floor(ratio * 10 ) / 10;
   }
 
   incrementCondition(contrastRatio) {
-    return contrastRatio > this.targetRatio;
+    return contrastRatio > this.targetContrast;
   }
 }
 
 /** @private */
 class ToBrighterSide extends SearchCriteria {
-  round(r) {
-    return Math.ceil(r * 10) / 10;
+  round(ratio) {
+    return Math.ceil(ratio * 10) / 10;
   }
 
   incrementCondition(contrastRatio) {
-    return this.targetRatio > contrastRatio;
+    return this.targetContrast > contrastRatio;
   }
 }
 
@@ -1619,31 +1649,31 @@ class ThresholdFinder {
    */
   static findRatio(otherColor, criteria, initRatio, initWidth) {
     let r = initRatio;
-    let lastSufficientRatio = null;
+    let passingRatio = null;
 
     for (let d of this.binarySearchWidth(initWidth, 0.01)) {
       const newRgb = this.rgbWithRatio(otherColor, r);
-      const newRatio = criteria.contrastRatio(newRgb);
+      const contrast = criteria.contrastRatio(newRgb);
 
-      if (criteria.hasSufficientContrast(newRgb)) { lastSufficientRatio = r; }
-      if (newRatio === criteria.targetRatio) { break; }
-      r += criteria.incrementCondition(newRatio) ? d : -d;
+      if (criteria.hasSufficientContrast(newRgb)) { passingRatio = r; }
+      if (contrast === criteria.targetContrast) { break; }
+      r += criteria.incrementCondition(contrast) ? d : -d;
     }
 
-    return [r, lastSufficientRatio];
+    return [r, passingRatio];
   }
 
   /**
    * @private
    */
-  static rgbWithBetterRatio(color, criteria, r, lastSufficientRatio) {
-    const nearestRgb = this.rgbWithRatio(color, r);
+  static rgbWithBetterRatio(color, criteria, lastRatio, passingRatio) {
+    const closestRgb = this.rgbWithRatio(color, lastRatio);
 
-    if (lastSufficientRatio && ! criteria.hasSufficientContrast(nearestRgb)) {
-      return this.rgbWithRatio(color, lastSufficientRatio);
+    if (passingRatio && ! criteria.hasSufficientContrast(closestRgb)) {
+      return this.rgbWithRatio(color, passingRatio);
     }
 
-    return nearestRgb;
+    return closestRgb;
   }
 }
 
@@ -1673,10 +1703,10 @@ class LightnessFinder extends ThresholdFinder {
 
     if (boundaryRgb) { return boundaryRgb; }
 
-    const [r, lastSufficientRatio] = this.findRatio(otherHsl, criteria,
-                                                    (max + min) / 2, max - min);
+    const [r, passingRatio] = this.findRatio(otherHsl, criteria,
+                                             (max + min) / 2, max - min);
 
-    return this.rgbWithBetterRatio(otherHsl, criteria, r, lastSufficientRatio);
+    return this.rgbWithBetterRatio(otherHsl, criteria, r, passingRatio);
   }
 
   /**
@@ -1723,10 +1753,10 @@ class LightnessFinder extends ThresholdFinder {
   /**
    * @private
    */
-  static hasSufficientContrast(fixedLuminance, rgb, criteria) {
+  static hasSufficientContrast(refLuminance, rgb, criteria) {
     const luminance = Checker.relativeLuminance(rgb);
-    const ratio = Checker.luminanceToContrastRatio(fixedLuminance, luminance);
-    return ratio >= criteria.targetRatio;
+    const ratio = Checker.luminanceToContrastRatio(refLuminance, luminance);
+    return ratio >= criteria.targetContrast;
   }
 }
 

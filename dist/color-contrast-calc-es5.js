@@ -1521,8 +1521,8 @@ var Color = function () {
      */
 
   }, {
-    key: "newContrastColor",
-    value: function newContrastColor(ratio) {
+    key: "withContrast",
+    value: function withContrast(ratio) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       return this.generateNewColor(Utils.ContrastCalc, ratio, name);
@@ -1535,8 +1535,8 @@ var Color = function () {
      */
 
   }, {
-    key: "newBrightnessColor",
-    value: function newBrightnessColor(ratio) {
+    key: "withBrightness",
+    value: function withBrightness(ratio) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       return this.generateNewColor(Utils.BrightnessCalc, ratio, name);
@@ -1549,8 +1549,8 @@ var Color = function () {
      */
 
   }, {
-    key: "newInvertColor",
-    value: function newInvertColor() {
+    key: "withInvert",
+    value: function withInvert() {
       var ratio = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
@@ -1564,8 +1564,8 @@ var Color = function () {
      */
 
   }, {
-    key: "newHueRotateColor",
-    value: function newHueRotateColor(degree) {
+    key: "withHueRotate",
+    value: function withHueRotate(degree) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       return this.generateNewColor(Utils.HueRotateCalc, degree, name);
@@ -1578,8 +1578,8 @@ var Color = function () {
      */
 
   }, {
-    key: "newSaturateColor",
-    value: function newSaturateColor(ratio) {
+    key: "withSaturate",
+    value: function withSaturate(ratio) {
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
       return this.generateNewColor(Utils.SaturateCalc, ratio, name);
@@ -1592,8 +1592,8 @@ var Color = function () {
      */
 
   }, {
-    key: "newGrayscaleColor",
-    value: function newGrayscaleColor() {
+    key: "withGrayscale",
+    value: function withGrayscale() {
       var ratio = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 100;
       var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
@@ -1808,6 +1808,38 @@ var Color = function () {
   }]);
   return Color;
 }();
+
+/**
+ * @deprecated use withContrast() instead.
+ */
+
+
+Color.prototype.newContrastColor = Color.prototype.withContrast;
+
+/**
+ * @deprecated use withBrightness() instead.
+ */
+Color.prototype.newBrightnessColor = Color.prototype.withBrightness;
+
+/**
+ * @deprecated use withInvert() instead.
+ */
+Color.prototype.newInvertColor = Color.prototype.withInvert;
+
+/**
+ * @deprecated use withHueRotate() instead.
+ */
+Color.prototype.newHueRotateColor = Color.prototype.withHueRotate;
+
+/**
+ * @deprecated use withSaturate() instead.
+ */
+Color.prototype.newSaturateColor = Color.prototype.withSaturate;
+
+/**
+ * @deprecated use withGrayScale() instead.
+ */
+Color.prototype.newGrayscaleColor = Color.prototype.withGrayscale;
 
 var List = function () {
   function List() {
@@ -2186,27 +2218,27 @@ var SearchCriteria = function () {
   }, {
     key: "define",
     value: function define(fixedRgb, otherRgb, level) {
-      var targetRatio = Checker.levelToRatio(level);
+      var targetContrast = Checker.levelToRatio(level);
 
       if (this.shouldScanDarkerSide(fixedRgb, otherRgb)) {
-        return new ToDarkerSide(targetRatio, fixedRgb);
+        return new ToDarkerSide(targetContrast, fixedRgb);
       } else {
-        return new ToBrighterSide(targetRatio, fixedRgb);
+        return new ToBrighterSide(targetContrast, fixedRgb);
       }
     }
   }]);
 
-  function SearchCriteria(targetRatio, fixedRgb) {
+  function SearchCriteria(targetContrast, fixedRgb) {
     (0, _classCallCheck3.default)(this, SearchCriteria);
 
-    this.targetRatio = targetRatio;
+    this.targetContrast = targetContrast;
     this.fixedLuminance = Checker.relativeLuminance(fixedRgb);
   }
 
   (0, _createClass3.default)(SearchCriteria, [{
     key: "hasSufficientContrast",
     value: function hasSufficientContrast(rgb) {
-      return this.contrastRatio(rgb) >= this.targetRatio;
+      return this.contrastRatio(rgb) >= this.targetContrast;
     }
   }, {
     key: "contrastRatio",
@@ -2231,13 +2263,13 @@ var ToDarkerSide = function (_SearchCriteria) {
 
   (0, _createClass3.default)(ToDarkerSide, [{
     key: "round",
-    value: function round(r) {
-      return Math.floor(r * 10) / 10;
+    value: function round(ratio) {
+      return Math.floor(ratio * 10) / 10;
     }
   }, {
     key: "incrementCondition",
     value: function incrementCondition(contrastRatio) {
-      return contrastRatio > this.targetRatio;
+      return contrastRatio > this.targetContrast;
     }
   }]);
   return ToDarkerSide;
@@ -2256,13 +2288,13 @@ var ToBrighterSide = function (_SearchCriteria2) {
 
   (0, _createClass3.default)(ToBrighterSide, [{
     key: "round",
-    value: function round(r) {
-      return Math.ceil(r * 10) / 10;
+    value: function round(ratio) {
+      return Math.ceil(ratio * 10) / 10;
     }
   }, {
     key: "incrementCondition",
     value: function incrementCondition(contrastRatio) {
-      return this.targetRatio > contrastRatio;
+      return this.targetContrast > contrastRatio;
     }
   }]);
   return ToBrighterSide;
@@ -2320,7 +2352,7 @@ var ThresholdFinder = function () {
     key: "findRatio",
     value: function findRatio(otherColor, criteria, initRatio, initWidth) {
       var r = initRatio;
-      var lastSufficientRatio = null;
+      var passingRatio = null;
 
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
@@ -2331,15 +2363,15 @@ var ThresholdFinder = function () {
           var d = _step.value;
 
           var newRgb = this.rgbWithRatio(otherColor, r);
-          var newRatio = criteria.contrastRatio(newRgb);
+          var contrast = criteria.contrastRatio(newRgb);
 
           if (criteria.hasSufficientContrast(newRgb)) {
-            lastSufficientRatio = r;
+            passingRatio = r;
           }
-          if (newRatio === criteria.targetRatio) {
+          if (contrast === criteria.targetContrast) {
             break;
           }
-          r += criteria.incrementCondition(newRatio) ? d : -d;
+          r += criteria.incrementCondition(contrast) ? d : -d;
         }
       } catch (err) {
         _didIteratorError = true;
@@ -2356,7 +2388,7 @@ var ThresholdFinder = function () {
         }
       }
 
-      return [r, lastSufficientRatio];
+      return [r, passingRatio];
     }
 
     /**
@@ -2365,14 +2397,14 @@ var ThresholdFinder = function () {
 
   }, {
     key: "rgbWithBetterRatio",
-    value: function rgbWithBetterRatio(color, criteria, r, lastSufficientRatio) {
-      var nearestRgb = this.rgbWithRatio(color, r);
+    value: function rgbWithBetterRatio(color, criteria, lastRatio, passingRatio) {
+      var closestRgb = this.rgbWithRatio(color, lastRatio);
 
-      if (lastSufficientRatio && !criteria.hasSufficientContrast(nearestRgb)) {
-        return this.rgbWithRatio(color, lastSufficientRatio);
+      if (passingRatio && !criteria.hasSufficientContrast(closestRgb)) {
+        return this.rgbWithRatio(color, passingRatio);
       }
 
-      return nearestRgb;
+      return closestRgb;
     }
   }]);
   return ThresholdFinder;
@@ -2427,9 +2459,9 @@ var LightnessFinder = function (_ThresholdFinder) {
       var _findRatio = this.findRatio(otherHsl, criteria, (max + min) / 2, max - min),
           _findRatio2 = (0, _slicedToArray3.default)(_findRatio, 2),
           r = _findRatio2[0],
-          lastSufficientRatio = _findRatio2[1];
+          passingRatio = _findRatio2[1];
 
-      return this.rgbWithBetterRatio(otherHsl, criteria, r, lastSufficientRatio);
+      return this.rgbWithBetterRatio(otherHsl, criteria, r, passingRatio);
     }
 
     /**
@@ -2488,10 +2520,10 @@ var LightnessFinder = function (_ThresholdFinder) {
 
   }, {
     key: "hasSufficientContrast",
-    value: function hasSufficientContrast(fixedLuminance, rgb, criteria) {
+    value: function hasSufficientContrast(refLuminance, rgb, criteria) {
       var luminance = Checker.relativeLuminance(rgb);
-      var ratio = Checker.luminanceToContrastRatio(fixedLuminance, luminance);
-      return ratio >= criteria.targetRatio;
+      var ratio = Checker.luminanceToContrastRatio(refLuminance, luminance);
+      return ratio >= criteria.targetContrast;
     }
   }]);
   return LightnessFinder;
@@ -4021,7 +4053,7 @@ module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
 };
 
 },{"./_an-instance":46,"./_array-methods":50,"./_descriptors":62,"./_export":66,"./_fails":67,"./_for-of":68,"./_global":69,"./_hide":71,"./_is-object":78,"./_meta":86,"./_object-dp":88,"./_redefine-all":101,"./_set-to-string-tag":107}],58:[function(require,module,exports){
-var core = module.exports = { version: '2.5.4' };
+var core = module.exports = { version: '2.5.5' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],59:[function(require,module,exports){
