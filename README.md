@@ -191,6 +191,17 @@ are available for `Color`:
 * `withInvert`
 * `withSaturate`
 
+#### Deprecated instance methods
+
+Please note the following methods are deprecated:
+
+* `newGrayscaleColor`
+* `newBrightnessColor`
+* `newContrastColor`
+* `newHueRotateColor`
+* `newInvertColor`
+* `newSaturateColor`
+
 ### Example 4: Sort colors
 
 You can sort colors using a method `ColorContrastCalc.sort()'
