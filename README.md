@@ -158,7 +158,7 @@ contrast ratio between yellow and aaOrange: 4.512053816540577
 ```
 ### Example 3: Grayscale of given colors
 
-For getting grayscale, `ColorContrastCalc::Color` has an instance method
+For getting grayscale, `ColorContrastCalc.Color` has an instance method
 `newGrayscaleColor()`.
 For example, save the following code as `grayscale.js`:
 
