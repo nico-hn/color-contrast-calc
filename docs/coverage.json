@@ -17,7 +17,7 @@
       "expectCount": 48,
       "actualCount": 47,
       "undocumentLines": [
-        347
+        353
       ]
     },
     "lib/contrast-checker.js": {
