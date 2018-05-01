@@ -40,6 +40,10 @@ describe("Color", () => {
       it("expects to return a new instance if a given hex code is not registered", function() {
         expect(Color.getByHexCode("#f3f2f1").name).to.equal("#f3f2f1");
       });
+
+      it("expects to return a common name when when the color is a named one", function() {
+        expect(Color.getByHexCode("#ff0").name).to.equal("yellow");
+      });
     });
 
     describe("newHslColor", function() {
