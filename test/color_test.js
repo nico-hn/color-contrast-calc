@@ -54,6 +54,28 @@ describe("Color", () => {
       });
     });
 
+    describe("getByHsl", function() {
+      it("expects to return an instance with .hexCode '#ffff00' when [60, 100, 50]  is passed", function() {
+        expect(Color.getByHsl([60, 100, 50]).hexCode).to.equal("#ffff00");
+      });
+
+      it("expects to return an instance with .hexCode '#ff8000' when [30, 100, 50]  is passed", function() {
+        expect(Color.getByHsl([30, 100, 50]).hexCode).to.equal("#ff8000");
+      });
+
+      it("expects to return a common name when when the color is a named one", function() {
+        expect(Color.getByHsl([60, 100, 50]).name).to.equal("yellow");
+      });
+
+      it("expects to overwrite the common name when a new name is given", function() {
+        const yellow = Color.getByHsl([60, 100, 50]);
+        const named_yellow = Color.getByHsl([60, 100, 50], "named_yellow");
+
+        expect(yellow.name).to.equal("yellow");
+        expect(named_yellow.name).to.equal("named_yellow");
+      });
+    });
+
     describe("newHslColor", function() {
       it("expects to return an instance with .hexCode '#ffff00' when [60, 100, 50]  is passed", function() {
         expect(Color.newHslColor([60, 100, 50]).hexCode).to.equal("#ffff00");
