@@ -5,6 +5,7 @@ const ColorContrastCalc = require("../lib/color-contrast-calc").ColorContrastCal
 const Color = require("../lib/color-contrast-calc").Color;
 const BrightnessFinder = require("../lib/threshold-finder").BrightnessFinder;
 const List = Color.List;
+const Utils = require("../lib/color-utils").ColorUtils;
 
 describe("Color", () => {
   const RGB_WHITE = [255, 255, 255];
@@ -21,6 +22,36 @@ describe("Color", () => {
 
       it("expects to return a falsy value if a passed name does not exist", function() {
         expect(Color.getByName("kiiro")).to.undefined;
+      });
+    });
+
+    describe("getByRgb", function() {
+      const yellowRgb = [255, 255, 0];
+      const yellowName = "yellow";
+
+      it("expects to return a Color representing yellow [255, 255, 0] is passed", function() {
+        const yellow = Color.getByRgb(yellowRgb);
+
+        expect(yellow).to.be.instanceof(Color);
+        expect(yellow.rgb).to.deep.equal(yellowRgb);
+        expect(yellow.name).to.equal(yellowName);
+      });
+
+      it("expects to be able to assign a name to the returned Color instance", function() {
+        const newName = "new_yellow";
+        const yellow = Color.getByRgb(yellowRgb, newName);
+
+        expect(yellow.rgb).to.deep.equal(yellowRgb);
+        expect(yellow.name).to.equal(newName);
+      });
+
+      it("expects to return a new Color if an unregistered RGB value is passed", function() {
+        const unNamedRgb = [123, 234, 123];
+        const unNamedHex = Utils.rgbToHexCode(unNamedRgb);
+        const newColor = Color.getByRgb(unNamedRgb);
+
+        expect(newColor.name).to.equal(unNamedHex);
+        expect(newColor.hexCode).to.equal(unNamedHex);
       });
     });
 
