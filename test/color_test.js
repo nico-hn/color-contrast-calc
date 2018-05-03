@@ -44,6 +44,14 @@ describe("Color", () => {
       it("expects to return a common name when when the color is a named one", function() {
         expect(Color.getByHexCode("#ff0").name).to.equal("yellow");
       });
+
+      it("expects to overwrite the common name when a new name is given", function() {
+        const yellow = Color.getByHexCode("#ff0");
+        const named_yellow = Color.getByHexCode("#ff0", "named_yellow");
+
+        expect(yellow.name).to.equal("yellow");
+        expect(named_yellow.name).to.equal("named_yellow");
+      });
     });
 
     describe("newHslColor", function() {
