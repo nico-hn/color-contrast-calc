@@ -160,6 +160,19 @@ describe("Color", () => {
     });
   });
 
+  describe("commonName", function() {
+    it("expects to return when a color keyword name when the color is a named color", function() {
+      const yellow = new Color("#ff0");
+      expect(yellow.commonName).to.equal("yellow");
+    });
+
+    it("expects to return a hex code when the color is not a named color", function() {
+      const unnamedHex = "#123456";
+      const unnamed = new Color(unnamedHex);
+      expect(unnamed.commonName).to.equal(unnamedHex);
+    });
+  });
+
   describe("new", function() {
     const rgb_yellow = [255, 255, 0];
 
