@@ -175,6 +175,8 @@ describe("Color", () => {
 
   describe("new", function() {
     const rgb_yellow = [255, 255, 0];
+    const unnamed_rgb = [123, 234, 123];
+    const unnamed_hex = "#7bea7b";
 
     it("expects to generate an instance with rgb and name properties", function() {
       const yellow = new Color(rgb_yellow, "yellow");
@@ -195,6 +197,12 @@ describe("Color", () => {
       const yellow = new Color(rgb_yellow);
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
       expect(yellow.name).to.equal("#ffff00");
+    });
+
+    it("expects to assign the value of .hexCode to .name if the color is not a named one", function() {
+      const yellow = new Color(unnamed_rgb);
+      expect(yellow.hexCode).to.deep.equal(unnamed_hex);
+      expect(yellow.name).to.equal(unnamed_hex);
     });
 
     it("properties of a returned object are frozen", function() {
