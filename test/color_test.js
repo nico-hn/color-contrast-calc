@@ -193,10 +193,17 @@ describe("Color", () => {
       expect(yellow.name).to.equal("yellow");
     });
 
-    it("expects to assign the value of .hexCode to .name if no name is specified", function() {
+    it("expects to assign the predefined name to .name if the color is a named one", function() {
       const yellow = new Color(rgb_yellow);
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
-      expect(yellow.name).to.equal("#ffff00");
+      expect(yellow.name).to.equal("yellow");
+    });
+
+    it("expects to overwrite the predefined name if a new name is passed", function() {
+      const new_name = "new_name";
+      const yellow = new Color(rgb_yellow, new_name);
+      expect(yellow.rgb).to.deep.equal(rgb_yellow);
+      expect(yellow.name).to.equal(new_name);
     });
 
     it("expects to assign the value of .hexCode to .name if the color is not a named one", function() {
