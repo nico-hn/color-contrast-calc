@@ -18,18 +18,18 @@
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "babelify": "^8.0.0",
-    "browserify": "^16.2.0",
+    "browserify": "^16.2.2",
     "chai": "^4.1.2",
-    "esdoc": "^1.0.4",
+    "esdoc": "^1.1.0",
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^4.19.1",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.1",
     "gulp-cli": "^2.0.1",
-    "mocha": "^5.1.1",
-    "sinon": "^4.5.0",
+    "mocha": "^5.2.0",
+    "sinon": "^5.0.10",
     "vinyl-source-stream": "^2.0.0"
   }
 }
