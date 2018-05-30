@@ -2,3 +2,5 @@ docs
 examples
 *~
 esdoc-plugin.js
+test
+yarn.lock
