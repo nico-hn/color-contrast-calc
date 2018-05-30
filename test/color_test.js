@@ -5,6 +5,7 @@ const ColorContrastCalc = require("../lib/color-contrast-calc").ColorContrastCal
 const Color = require("../lib/color-contrast-calc").Color;
 const BrightnessFinder = require("../lib/threshold-finder").BrightnessFinder;
 const List = Color.List;
+const Utils = require("../lib/color-utils").ColorUtils;
 
 describe("Color", () => {
   const RGB_WHITE = [255, 255, 255];
@@ -24,6 +25,36 @@ describe("Color", () => {
       });
     });
 
+    describe("getByRgb", function() {
+      const yellowRgb = [255, 255, 0];
+      const yellowName = "yellow";
+
+      it("expects to return a Color representing yellow [255, 255, 0] is passed", function() {
+        const yellow = Color.getByRgb(yellowRgb);
+
+        expect(yellow).to.be.instanceof(Color);
+        expect(yellow.rgb).to.deep.equal(yellowRgb);
+        expect(yellow.name).to.equal(yellowName);
+      });
+
+      it("expects to be able to assign a name to the returned Color instance", function() {
+        const newName = "new_yellow";
+        const yellow = Color.getByRgb(yellowRgb, newName);
+
+        expect(yellow.rgb).to.deep.equal(yellowRgb);
+        expect(yellow.name).to.equal(newName);
+      });
+
+      it("expects to return a new Color if an unregistered RGB value is passed", function() {
+        const unNamedRgb = [123, 234, 123];
+        const unNamedHex = Utils.rgbToHexCode(unNamedRgb);
+        const newColor = Color.getByRgb(unNamedRgb);
+
+        expect(newColor.name).to.equal(unNamedHex);
+        expect(newColor.hexCode).to.equal(unNamedHex);
+      });
+    });
+
     describe("getByHexCode", function() {
       it("expects to return yellow when '#ffff00' is passed", function() {
         expect(Color.getByHexCode("#ffff00").name).to.equal("yellow");
@@ -39,6 +70,40 @@ describe("Color", () => {
 
       it("expects to return a new instance if a given hex code is not registered", function() {
         expect(Color.getByHexCode("#f3f2f1").name).to.equal("#f3f2f1");
+      });
+
+      it("expects to return a common name when when the color is a named one", function() {
+        expect(Color.getByHexCode("#ff0").name).to.equal("yellow");
+      });
+
+      it("expects to overwrite the common name when a new name is given", function() {
+        const yellow = Color.getByHexCode("#ff0");
+        const named_yellow = Color.getByHexCode("#ff0", "named_yellow");
+
+        expect(yellow.name).to.equal("yellow");
+        expect(named_yellow.name).to.equal("named_yellow");
+      });
+    });
+
+    describe("getByHsl", function() {
+      it("expects to return an instance with .hexCode '#ffff00' when [60, 100, 50]  is passed", function() {
+        expect(Color.getByHsl([60, 100, 50]).hexCode).to.equal("#ffff00");
+      });
+
+      it("expects to return an instance with .hexCode '#ff8000' when [30, 100, 50]  is passed", function() {
+        expect(Color.getByHsl([30, 100, 50]).hexCode).to.equal("#ff8000");
+      });
+
+      it("expects to return a common name when when the color is a named one", function() {
+        expect(Color.getByHsl([60, 100, 50]).name).to.equal("yellow");
+      });
+
+      it("expects to overwrite the common name when a new name is given", function() {
+        const yellow = Color.getByHsl([60, 100, 50]);
+        const named_yellow = Color.getByHsl([60, 100, 50], "named_yellow");
+
+        expect(yellow.name).to.equal("yellow");
+        expect(named_yellow.name).to.equal("named_yellow");
       });
     });
 
@@ -95,8 +160,23 @@ describe("Color", () => {
     });
   });
 
+  describe("commonName", function() {
+    it("expects to return when a color keyword name when the color is a named color", function() {
+      const yellow = new Color("#ff0");
+      expect(yellow.commonName).to.equal("yellow");
+    });
+
+    it("expects to return a hex code when the color is not a named color", function() {
+      const unnamedHex = "#123456";
+      const unnamed = new Color(unnamedHex);
+      expect(unnamed.commonName).to.equal(unnamedHex);
+    });
+  });
+
   describe("new", function() {
     const rgb_yellow = [255, 255, 0];
+    const unnamed_rgb = [123, 234, 123];
+    const unnamed_hex = "#7bea7b";
 
     it("expects to generate an instance with rgb and name properties", function() {
       const yellow = new Color(rgb_yellow, "yellow");
@@ -113,10 +193,23 @@ describe("Color", () => {
       expect(yellow.name).to.equal("yellow");
     });
 
-    it("expects to assign the value of .hexCode to .name if no name is specified", function() {
+    it("expects to assign the predefined name to .name if the color is a named one", function() {
       const yellow = new Color(rgb_yellow);
       expect(yellow.rgb).to.deep.equal(rgb_yellow);
-      expect(yellow.name).to.equal("#ffff00");
+      expect(yellow.name).to.equal("yellow");
+    });
+
+    it("expects to overwrite the predefined name if a new name is passed", function() {
+      const new_name = "new_name";
+      const yellow = new Color(rgb_yellow, new_name);
+      expect(yellow.rgb).to.deep.equal(rgb_yellow);
+      expect(yellow.name).to.equal(new_name);
+    });
+
+    it("expects to assign the value of .hexCode to .name if the color is not a named one", function() {
+      const yellow = new Color(unnamed_rgb);
+      expect(yellow.hexCode).to.deep.equal(unnamed_hex);
+      expect(yellow.name).to.equal(unnamed_hex);
     });
 
     it("properties of a returned object are frozen", function() {
