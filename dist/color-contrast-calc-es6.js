@@ -1125,6 +1125,7 @@ class Color {
   }
 
   /**
+   * Return a new instance of Color with adjusted contrast.
    * @param {number} ratio - Value in percent
    * @param {string} [name=null] - Name of color
    * @returns {Color}
@@ -1134,6 +1135,7 @@ class Color {
   }
 
   /**
+   * Return a new instance of Color with adjusted brightness.
    * @param {number} ratio - Value in percent
    * @param {string} [name=null] - Name of color
    * @returns {Color}
@@ -1143,6 +1145,7 @@ class Color {
   }
 
   /**
+   * Return an inverted color as an instance of Color.
    * @param {number} [ratio=100] - Value in percent
    * @param {string} [name=null] - Name of color
    * @returns {Color}
@@ -1152,6 +1155,7 @@ class Color {
   }
 
   /**
+   * Return a hue rotation applied color as an instance of Color.
    * @param {number} degree - Value in degree
    * @param {string} [name=null] - Name of color
    * @returns {Color}
@@ -1161,6 +1165,7 @@ class Color {
   }
 
   /**
+   * Return a saturated color as an instance of Color.
    * @param {number} ratio - Value in percent
    * @param {string} [name=null] - Name of color
    * @returns {Color}
@@ -1170,6 +1175,7 @@ class Color {
   }
 
   /**
+   * Return a grayscale of the original color.
    * @param {number} [ratio=100] - Conversion ratio in percentage
    * @param {string} [name=null] - Name of color
    * @returns {Color}
