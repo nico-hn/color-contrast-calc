@@ -28,8 +28,8 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.1",
     "gulp-cli": "^2.0.1",
-    "mocha": "^5.2.0",
-    "sinon": "^5.0.10",
+    "mocha": "^6.1.4",
+    "sinon": "^7.3.2",
     "vinyl-source-stream": "^2.0.0"
   }
 }
