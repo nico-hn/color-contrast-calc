@@ -1018,6 +1018,13 @@ const LightnessFinder = require("./threshold-finder").LightnessFinder;
 /** @private */
 const BrightnessFinder = require("./threshold-finder").BrightnessFinder;
 
+/** @private */
+const COLOR_KEYWORDS = require("./color-keywords.json");
+/** @private */
+const HEX_TO_NAME = COLOR_KEYWORDS.reduce((table, [key, val]) => {
+  return table.set(val, key);
+}, new Map());
+
 /**
  * Class of which each instance represents a specific color.
  * The instances provide methods to generate a new color with modified
@@ -1035,23 +1042,70 @@ class Color {
   }
 
   /**
-   * Returns an instance of Color for a hex code
-   * @param {string} code - RGB value in hex code
+   * Returns an instance of Color for an RGB value
+   * @param {Array<number,number, number>} rgb - an array of numbers that
+   *     represents an RGB value
+   * @param {string} [name=null] - If the color to be created has a
+   *     color keyword name and no name is passed, the color keyword name
+   *     will be assigned. Otherwise, the passed name or the narmalized
+   *     hex color code of the color will be assigned.
    * @returns {Color}
    */
-  static getByHexCode(code) {
-    const hexCode = Utils.normalizeHexCode(code);
-    return this.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode);
+  static getByRgb(rgb, name = null) {
+    const hexCode = Utils.rgbToHexCode(rgb);
+
+    if (!name && this.List.HEX_TO_COLOR.has(hexCode)) {
+      return this.List.HEX_TO_COLOR.get(hexCode);
+    }
+
+    return new Color(rgb, name);
   }
 
   /**
+   * Returns an instance of Color for a hex code
+   * @param {string} code - RGB value in hex code
+   * @param {string} [name=null] - If the color to be created has a
+   *     color keyword name and no name is passed, the color keyword name
+   *     will be assigned. Otherwise, the passed name or the narmalized
+   *     hex color code of the color will be assigned.
+   * @returns {Color}
+   */
+  static getByHexCode(code, name = null) {
+    const hexCode = Utils.normalizeHexCode(code);
+    if (!name && this.List.HEX_TO_COLOR.has(hexCode)) {
+      return this.List.HEX_TO_COLOR.get(hexCode);
+    }
+
+    return new Color(hexCode, name);
+  }
+
+  /**
+   * Returns an instance of Color for a HSL value
+   * @param {Array<number,number, number>} hsl - an array of numbers that
+   *     represents an HSL value
+   * @param {string} [name=null] - If the color to be created has a
+   *     color keyword name and no name is passed, the color keyword name
+   *     will be assigned. Otherwise, the passed name or the narmalized
+   *     hex color code of the color will be assigned.
+   * @returns {Color}
+   */
+  static getByHsl(hsl, name = null) {
+    return this.getByHexCode(Utils.hslToHexCode(hsl), name);
+  }
+
+  /**
+   * @deprecated Use Color.getByHsl() instead.
    * Creates an instance of Color from an HSL value
    * @param {Array<number,number, number>} hsl - an array of numbers that
    *     represents an HSL value
+   * @param {string} [name=null] - If the color to be created has a
+   *     color keyword name and no name is passed, the color keyword name
+   *     will be assigned. Otherwise, the passed name or the narmalized
+   *     hex color code of the color will be assigned.
    * @returns {Color} An instance of Color
    */
-  static newHslColor(hsl) {
-    return this.getByHexCode(Utils.hslToHexCode(hsl));
+  static newHslColor(hsl, name = null) {
+    return new Color(Utils.hslToRgb(hsl), name);
   }
 
   /**
@@ -1087,13 +1141,13 @@ class Color {
      *     https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
      */
     this.relativeLuminance = Checker.relativeLuminance(this.rgb);
+    /** @property {string} hexCode - RGB value in hex code notation */
+    this.hexCode = Utils.rgbToHexCode(this.rgb);
     /**
      * @property {string} name - If no name is explicitely given, the property
      *     is set to the value of this.hexCode
      */
-    this.name = name === null ? Utils.rgbToHexCode(this.rgb) : name;
-    /** @property {string} hexCode - RGB value in hex code notation */
-    this.hexCode = Utils.rgbToHexCode(this.rgb);
+    this.name = name === null ? this.commonName : name;
     this.freezeProperties();
     /** @private */
     this._hsl = null;
@@ -1107,6 +1161,15 @@ class Color {
     if (this._hsl) { return this._hsl; }
     this._hsl = Utils.rgbToHsl(this.rgb);
     return this._hsl;
+  }
+
+  /**
+   * @property {string} commonName - Return a color keyword name when the name
+   *     corresponds to the hex code of the color. Otherwise the hex code will
+   *     be returned.
+   */
+  get commonName() {
+    return HEX_TO_NAME.get(this.hexCode) || this.hexCode;
   }
 
   /**
@@ -1363,8 +1426,8 @@ class List {
   /**
    * @private
    */
-  static setup(colorKeywordsJSON) {
-    this.loadColorKeywords(colorKeywordsJSON);
+  static setup(colorKeywords) {
+    this.loadColorKeywords(colorKeywords);
     this.generateWebSafeColors();
     Object.freeze(this);
   }
@@ -1372,7 +1435,7 @@ class List {
   /**
    * @private
    */
-  static loadColorKeywords(colorKeywordsJSON) {
+  static loadColorKeywords(colorKeywords) {
     /**
      * Array of named colors defined at
      * https://www.w3.org/TR/SVG/types.html#ColorKeywords
@@ -1383,7 +1446,7 @@ class List {
     this.NAME_TO_COLOR = new Map();
     /** @private */
     this.HEX_TO_COLOR = new Map();
-    colorKeywordsJSON.forEach(keyword => {
+    colorKeywords.forEach(keyword => {
       const [name, hex] = keyword;
       const color = new Color(hex, name);
       this.NAMED_COLORS.push(color);
@@ -1435,7 +1498,7 @@ class List {
   }
 }
 
-List.setup(require("./color-keywords.json"));
+List.setup(COLOR_KEYWORDS);
 Color.List = List;
 Color.assignColorConstants();
 

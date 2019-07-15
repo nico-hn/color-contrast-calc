@@ -1373,11 +1373,7 @@ var _interopRequireDefault = require("@babel/runtime-corejs3/helpers/interopRequ
 
 var _map = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/instance/map"));
 
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime-corejs3/helpers/slicedToArray"));
-
 var _forEach = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/instance/for-each"));
-
-var _map2 = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/map"));
 
 var _freeze = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/object/freeze"));
 
@@ -1390,6 +1386,12 @@ var _find = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stabl
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime-corejs3/helpers/classCallCheck"));
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime-corejs3/helpers/createClass"));
+
+var _map2 = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/map"));
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime-corejs3/helpers/slicedToArray"));
+
+var _reduce = _interopRequireDefault(require("@babel/runtime-corejs3/core-js-stable/instance/reduce"));
 
 var Utils = require("./color-utils").ColorUtils;
 /** @private */
@@ -1404,12 +1406,25 @@ var LightnessFinder = require("./threshold-finder").LightnessFinder;
 
 
 var BrightnessFinder = require("./threshold-finder").BrightnessFinder;
+/** @private */
+
+
+var COLOR_KEYWORDS = require("./color-keywords.json");
+/** @private */
+
+
+var HEX_TO_NAME = (0, _reduce["default"])(COLOR_KEYWORDS).call(COLOR_KEYWORDS, function (table, _ref) {
+  var _ref2 = (0, _slicedToArray2["default"])(_ref, 2),
+      key = _ref2[0],
+      val = _ref2[1];
+
+  return table.set(val, key);
+}, new _map2["default"]());
 /**
  * Class of which each instance represents a specific color.
  * The instances provide methods to generate a new color with modified
  * properties, such as lightness or saturation.
  */
-
 
 var Color =
 /*#__PURE__*/
@@ -1427,28 +1442,84 @@ function () {
       return this.List.NAME_TO_COLOR.get(name.toLowerCase());
     }
     /**
+     * Returns an instance of Color for an RGB value
+     * @param {Array<number,number, number>} rgb - an array of numbers that
+     *     represents an RGB value
+     * @param {string} [name=null] - If the color to be created has a
+     *     color keyword name and no name is passed, the color keyword name
+     *     will be assigned. Otherwise, the passed name or the narmalized
+     *     hex color code of the color will be assigned.
+     * @returns {Color}
+     */
+
+  }, {
+    key: "getByRgb",
+    value: function getByRgb(rgb) {
+      var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      var hexCode = Utils.rgbToHexCode(rgb);
+
+      if (!name && this.List.HEX_TO_COLOR.has(hexCode)) {
+        return this.List.HEX_TO_COLOR.get(hexCode);
+      }
+
+      return new Color(rgb, name);
+    }
+    /**
      * Returns an instance of Color for a hex code
      * @param {string} code - RGB value in hex code
+     * @param {string} [name=null] - If the color to be created has a
+     *     color keyword name and no name is passed, the color keyword name
+     *     will be assigned. Otherwise, the passed name or the narmalized
+     *     hex color code of the color will be assigned.
      * @returns {Color}
      */
 
   }, {
     key: "getByHexCode",
     value: function getByHexCode(code) {
+      var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
       var hexCode = Utils.normalizeHexCode(code);
-      return this.List.HEX_TO_COLOR.get(hexCode) || new Color(hexCode);
+
+      if (!name && this.List.HEX_TO_COLOR.has(hexCode)) {
+        return this.List.HEX_TO_COLOR.get(hexCode);
+      }
+
+      return new Color(hexCode, name);
     }
     /**
+     * Returns an instance of Color for a HSL value
+     * @param {Array<number,number, number>} hsl - an array of numbers that
+     *     represents an HSL value
+     * @param {string} [name=null] - If the color to be created has a
+     *     color keyword name and no name is passed, the color keyword name
+     *     will be assigned. Otherwise, the passed name or the narmalized
+     *     hex color code of the color will be assigned.
+     * @returns {Color}
+     */
+
+  }, {
+    key: "getByHsl",
+    value: function getByHsl(hsl) {
+      var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      return this.getByHexCode(Utils.hslToHexCode(hsl), name);
+    }
+    /**
+     * @deprecated Use Color.getByHsl() instead.
      * Creates an instance of Color from an HSL value
      * @param {Array<number,number, number>} hsl - an array of numbers that
      *     represents an HSL value
+     * @param {string} [name=null] - If the color to be created has a
+     *     color keyword name and no name is passed, the color keyword name
+     *     will be assigned. Otherwise, the passed name or the narmalized
+     *     hex color code of the color will be assigned.
      * @returns {Color} An instance of Color
      */
 
   }, {
     key: "newHslColor",
     value: function newHslColor(hsl) {
-      return this.getByHexCode(Utils.hslToHexCode(hsl));
+      var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      return new Color(Utils.hslToRgb(hsl), name);
     }
     /**
      * @private
@@ -1494,15 +1565,15 @@ function () {
      */
 
     this.relativeLuminance = Checker.relativeLuminance(this.rgb);
+    /** @property {string} hexCode - RGB value in hex code notation */
+
+    this.hexCode = Utils.rgbToHexCode(this.rgb);
     /**
      * @property {string} name - If no name is explicitely given, the property
      *     is set to the value of this.hexCode
      */
 
-    this.name = name === null ? Utils.rgbToHexCode(this.rgb) : name;
-    /** @property {string} hexCode - RGB value in hex code notation */
-
-    this.hexCode = Utils.rgbToHexCode(this.rgb);
+    this.name = name === null ? this.commonName : name;
     this.freezeProperties();
     /** @private */
 
@@ -1805,6 +1876,17 @@ function () {
       this._hsl = Utils.rgbToHsl(this.rgb);
       return this._hsl;
     }
+    /**
+     * @property {string} commonName - Return a color keyword name when the name
+     *     corresponds to the hex code of the color. Otherwise the hex code will
+     *     be returned.
+     */
+
+  }, {
+    key: "commonName",
+    get: function get() {
+      return HEX_TO_NAME.get(this.hexCode) || this.hexCode;
+    }
   }]);
   return Color;
 }();
@@ -1853,8 +1935,8 @@ function () {
     /**
      * @private
      */
-    value: function setup(colorKeywordsJSON) {
-      this.loadColorKeywords(colorKeywordsJSON);
+    value: function setup(colorKeywords) {
+      this.loadColorKeywords(colorKeywords);
       this.generateWebSafeColors();
       (0, _freeze["default"])(this);
     }
@@ -1864,7 +1946,7 @@ function () {
 
   }, {
     key: "loadColorKeywords",
-    value: function loadColorKeywords(colorKeywordsJSON) {
+    value: function loadColorKeywords(colorKeywords) {
       var _this2 = this;
 
       /**
@@ -1879,7 +1961,7 @@ function () {
       /** @private */
 
       this.HEX_TO_COLOR = new _map2["default"]();
-      (0, _forEach["default"])(colorKeywordsJSON).call(colorKeywordsJSON, function (keyword) {
+      (0, _forEach["default"])(colorKeywords).call(colorKeywords, function (keyword) {
         var _keyword = (0, _slicedToArray2["default"])(keyword, 2),
             name = _keyword[0],
             hex = _keyword[1];
@@ -1951,12 +2033,12 @@ function () {
   return List;
 }();
 
-List.setup(require("./color-keywords.json"));
+List.setup(COLOR_KEYWORDS);
 Color.List = List;
 Color.assignColorConstants();
 module.exports.Color = Color;
 
-},{"./color-keywords.json":3,"./color-utils":4,"./contrast-checker":6,"./threshold-finder":7,"@babel/runtime-corejs3/core-js-stable/instance/every":10,"@babel/runtime-corejs3/core-js-stable/instance/find":12,"@babel/runtime-corejs3/core-js-stable/instance/for-each":13,"@babel/runtime-corejs3/core-js-stable/instance/includes":14,"@babel/runtime-corejs3/core-js-stable/instance/map":16,"@babel/runtime-corejs3/core-js-stable/map":23,"@babel/runtime-corejs3/core-js-stable/object/freeze":26,"@babel/runtime-corejs3/helpers/classCallCheck":40,"@babel/runtime-corejs3/helpers/createClass":41,"@babel/runtime-corejs3/helpers/interopRequireDefault":44,"@babel/runtime-corejs3/helpers/slicedToArray":51}],6:[function(require,module,exports){
+},{"./color-keywords.json":3,"./color-utils":4,"./contrast-checker":6,"./threshold-finder":7,"@babel/runtime-corejs3/core-js-stable/instance/every":10,"@babel/runtime-corejs3/core-js-stable/instance/find":12,"@babel/runtime-corejs3/core-js-stable/instance/for-each":13,"@babel/runtime-corejs3/core-js-stable/instance/includes":14,"@babel/runtime-corejs3/core-js-stable/instance/map":16,"@babel/runtime-corejs3/core-js-stable/instance/reduce":17,"@babel/runtime-corejs3/core-js-stable/map":23,"@babel/runtime-corejs3/core-js-stable/object/freeze":26,"@babel/runtime-corejs3/helpers/classCallCheck":40,"@babel/runtime-corejs3/helpers/createClass":41,"@babel/runtime-corejs3/helpers/interopRequireDefault":44,"@babel/runtime-corejs3/helpers/slicedToArray":51}],6:[function(require,module,exports){
 "use strict";
 /** @private */
 
