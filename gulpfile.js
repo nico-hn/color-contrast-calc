@@ -17,4 +17,4 @@ gulp.task("es6", () => browserify("./index.js",
           .pipe(gulp.dest("./dist/")));
 
 
-gulp.task("default", ["es5", "es6"]);
+gulp.task("default", gulp.parallel("es5", "es6"));
