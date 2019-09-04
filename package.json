@@ -1,6 +1,6 @@
 {
   "name": "color-contrast-calc",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Utility that helps you choose colors with sufficient contrast, WCAG 2.0 in mind",
   "homepage": "https://github.com/nico-hn/color-contrast-calc",
   "main": "index.js",
@@ -32,7 +32,7 @@
     "chai": "^4.1.2",
     "esdoc": "^1.1.0",
     "esdoc-standard-plugin": "^1.0.0",
-    "eslint": "^6.1.0",
+    "eslint": "^6.3.0",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-cli": "^2.0.1",
